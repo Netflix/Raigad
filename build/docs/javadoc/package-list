@@ -1,0 +1,7 @@
+com.netflix.elasticcar
+com.netflix.elasticcar.aws
+com.netflix.elasticcar.defaultimpl
+com.netflix.elasticcar.identity
+com.netflix.elasticcar.resources
+com.netflix.elasticcar.scheduler
+com.netflix.elasticcar.utils
