@@ -1,3 +1,8 @@
+# Build output directies
+/target
+*/target
+/tmp
+bin/com/
 build/
 .ivy2.cache/
 *~

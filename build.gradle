@@ -1,4 +1,4 @@
-group = 'com.netflix.elasticcar'
+group = 'com.netflix'
 
 allprojects {
     repositories { 
