@@ -15,33 +15,33 @@ import java.util.Properties;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Loads the 'Elasticsearch.properties' file as a source.
+ * Loads the 'Dynomite.properties' file as a source.
  */
 public class PropertiesConfigSource extends AbstractConfigSource 
 {
     private static final Logger logger = LoggerFactory.getLogger(PropertiesConfigSource.class.getName());
 
-    private static final String DEFAULT_ESCAR_PROPERTIES = "Elasticsearch.properties";
+    private static final String DEFAULT_FLORIDA_PROPERTIES = "Dynomite.properties";
 
     private final Map<String, String> data = Maps.newConcurrentMap();
-    private final String escarFile;
+    private final String floridaFile;
 
     public PropertiesConfigSource() 
     {
-        this.escarFile = DEFAULT_ESCAR_PROPERTIES;
+        this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
     }
 
     public PropertiesConfigSource(final Properties properties) 
     {
         checkNotNull(properties);
-        this.escarFile = DEFAULT_ESCAR_PROPERTIES;
+        this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
         clone(properties);
     }
 
     @VisibleForTesting
     PropertiesConfigSource(final String file) 
     {
-        this.escarFile = checkNotNull(file);
+        this.floridaFile = checkNotNull(file);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class PropertiesConfigSource extends AbstractConfigSource
     {
         super.intialize(asgName, region);
         Properties properties = new Properties();
-        URL url = PropertiesConfigSource.class.getClassLoader().getResource(escarFile);
+        URL url = PropertiesConfigSource.class.getClassLoader().getResource(floridaFile);
         if (url != null) 
         {
             try 
@@ -59,12 +59,12 @@ public class PropertiesConfigSource extends AbstractConfigSource
             } 
             catch (IOException e) 
             {
-                logger.info("No Elasticsearch.properties. Ignore!");
+                logger.info("No Dynomite.properties. Ignore!");
             }
         } 
         else 
         {
-            logger.info("No Elasticsearch.properties. Ignore!");
+            logger.info("No Dynomite.properties. Ignore!");
         }
     }
 

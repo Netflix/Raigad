@@ -31,11 +31,8 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
-import com.netflix.elasticcar.CassandraInstanceFactory;
 import com.netflix.elasticcar.ElasticCarServer;
 import com.netflix.elasticcar.IConfiguration;
-import com.netflix.elasticcar.ICredential;
-import com.netflix.elasticcar.aws.IAMCredential;
 import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
@@ -85,7 +82,7 @@ public class InjectedWebListener extends GuiceServletContextListener
         protected void configure()
         {
             bind(SchedulerFactory.class).to(StdSchedulerFactory.class).asEagerSingleton();
-            bind(IElasticCarInstanceFactory.class).to(CassandraInstanceFactory.class);
+//            bind(IElasticCarInstanceFactory.class).to(CassandraInstanceFactory.class);
 //            bind(ICredential.class).to(IAMCredential.class);
         }
     } 
