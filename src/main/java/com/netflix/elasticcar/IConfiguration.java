@@ -129,7 +129,10 @@ public interface IConfiguration
 
 	public boolean doesElasticsearchStartManually();
 
-	String getDataFileLocation();
+    /**
+     * @return Location of the local data dir
+     */
+	public String getDataFileLocation();
 
     
 }

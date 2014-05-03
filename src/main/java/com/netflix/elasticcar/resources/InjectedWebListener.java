@@ -48,11 +48,12 @@ public class InjectedWebListener extends GuiceServletContextListener
         List<Module> moduleList = Lists.newArrayList();
         moduleList.add(new JaxServletModule());
         moduleList.add(new ElasticCarGuiceModule());
-        Injector injector = Guice.createInjector(moduleList);
+        Injector injector;
         try
         {
-            injector.getInstance(IConfiguration.class).intialize();
-            injector.getInstance(ElasticCarServer.class).intialize();
+        		injector  = Guice.createInjector(moduleList);
+//            injector.getInstance(IConfiguration.class).intialize();
+//            injector.getInstance(ElasticCarServer.class).intialize();
         }
         catch (Exception e)
         {

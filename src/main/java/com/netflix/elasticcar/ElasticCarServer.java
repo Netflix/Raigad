@@ -54,6 +54,8 @@ public class ElasticCarServer
     {     
         if (id.getInstance().isOutOfService())
             return;
+        
+        logger.info("Initializing ElasticCarServer now ...");
 
         // start to schedule jobs
         scheduler.start();
@@ -69,6 +71,8 @@ public class ElasticCarServer
 //        }
 //
 //        scheduler.runTaskNow(TuneElasticsearch.class);
+        
+        logger.info("Trying to start Elastic Search now ...");
         
 		if (!config.doesElasticsearchStartManually())
 			esProcess.start(true); // Start elasticsearch.
