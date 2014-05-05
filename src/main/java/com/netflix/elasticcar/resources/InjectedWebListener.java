@@ -33,7 +33,6 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.netflix.elasticcar.ElasticCarServer;
 import com.netflix.elasticcar.IConfiguration;
-import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -52,8 +51,8 @@ public class InjectedWebListener extends GuiceServletContextListener
         try
         {
         		injector  = Guice.createInjector(moduleList);
-//            injector.getInstance(IConfiguration.class).intialize();
-//            injector.getInstance(ElasticCarServer.class).intialize();
+            injector.getInstance(IConfiguration.class).intialize();
+            injector.getInstance(ElasticCarServer.class).intialize();
         }
         catch (Exception e)
         {
