@@ -234,13 +234,13 @@ public class ElasticCarConfiguration implements IConfiguration
 
 
     @Override
-    public int getElasticsearchPeerListenerPort()
+    public int getTransportTcpPort()
     {
         return config.get(CONFIG_ES_PEER_PORT_NAME, DEFAULT_ES_PEER_PORT);
     }
 
     @Override
-    public int getStoragePort()
+    public int getHttpPort()
     {
         return config.get(CONFIG_STORAGE_LISTERN_PORT_NAME, DEFAULT_STORAGE_PORT);
     }
@@ -350,6 +350,66 @@ public class ElasticCarConfiguration implements IConfiguration
 	@Override
 	public boolean doesElasticsearchStartManually() {
 		return false;
+	}
+
+	@Override
+	public int getNumOfShards() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getNumOfReplicas() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getRefreshInterval() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isMasterQuorumEnabled() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public int getMinimumMasterNodes() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public String getPingTimeout() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isPingMulticastEnabled() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getFdPingInterval() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getFdPingTimeout() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getLogFileLocation() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

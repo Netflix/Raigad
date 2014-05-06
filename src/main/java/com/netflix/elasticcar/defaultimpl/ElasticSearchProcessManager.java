@@ -57,7 +57,7 @@ public class ElasticSearchProcessManager implements IElasticsearchProcess
         logger.info("Starting Elasticsearch server ....");
 		try {
 			sleeper.sleepQuietly(SCRIPT_EXECUTE_WAIT_TIME_MS);
-			int code = starter.exitValue();
+			int code = starter.waitFor();
 			if (code == 0)
 				logger.info("Elasticsearch server has been started");
 			else

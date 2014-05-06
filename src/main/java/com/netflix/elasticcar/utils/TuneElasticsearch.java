@@ -28,10 +28,10 @@ import com.netflix.elasticcar.scheduler.TaskTimer;
 public class TuneElasticsearch extends Task
 {
     public static final String JOBNAME = "Tune-Elasticsearch";
-    private final ElasticsearchTuner tuner;
+    private final IElasticsearchTuner tuner;
 
     @Inject
-    public TuneElasticsearch(IConfiguration config, ElasticsearchTuner tuner)
+    public TuneElasticsearch(IConfiguration config, IElasticsearchTuner tuner)
     {
         super(config);
         this.tuner = tuner;
@@ -39,7 +39,7 @@ public class TuneElasticsearch extends Task
 
     public void execute() throws IOException
     {
-        tuner.writeAllProperties(config.getYamlLocation(), null, config.getSeedProviderName());
+        tuner.writeAllProperties(config.getYamlLocation(), null);
     }
 
     @Override

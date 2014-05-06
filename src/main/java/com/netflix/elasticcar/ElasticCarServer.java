@@ -35,25 +35,33 @@ public class ElasticCarServer
 {
     private final ElasticCarScheduler scheduler;
     private final IConfiguration config;
-    private final InstanceIdentity id;
-    private final Sleeper sleeper;
+//    private final InstanceIdentity id;
+//    private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
+//    @Inject
+//    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, InstanceIdentity id, Sleeper sleeper, IElasticsearchProcess esProcess)
+//    {
+//        this.config = config;
+//        this.scheduler = scheduler;
+//        this.id = id;
+//        this.sleeper = sleeper;
+//        this.esProcess = esProcess;
+//    }
+
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, InstanceIdentity id, Sleeper sleeper, IElasticsearchProcess esProcess)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess)
     {
         this.config = config;
         this.scheduler = scheduler;
-        this.id = id;
-        this.sleeper = sleeper;
-        this.esProcess = esProcess;
+        this.esProcess = esProcess;    	
     }
-
+    
     public void intialize() throws Exception
     {     
-        if (id.getInstance().isOutOfService())
-            return;
+//        if (id.getInstance().isOutOfService())
+//            return;
         
         logger.info("Initializing ElasticCarServer now ...");
 
@@ -70,7 +78,7 @@ public class ElasticCarServer
 //            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(id));
 //        }
 //
-//        scheduler.runTaskNow(TuneElasticsearch.class);
+        scheduler.runTaskNow(TuneElasticsearch.class);
         
         logger.info("Trying to start Elastic Search now ...");
         
@@ -82,15 +90,15 @@ public class ElasticCarServer
        
     }
 
-    public InstanceIdentity getId()
-    {
-        return id;
-    }
-
-    public ElasticCarScheduler getScheduler()
-    {
-        return scheduler;
-    }
+//    public InstanceIdentity getId()
+//    {
+//        return id;
+//    }
+//
+//    public ElasticCarScheduler getScheduler()
+//    {
+//        return scheduler;
+//    }
 
     public IConfiguration getConfiguration()
     {

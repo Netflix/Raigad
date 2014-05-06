@@ -53,7 +53,7 @@ public class UpdateSecuritySettings extends Task
     public void execute()
     {
         // if seed dont execute.
-        int port = config.getElasticsearchPeerListenerPort();
+        int port = config.getElasticsearchListenerPort();
         List<String> acls = membership.listACL(port, port);
         List<ElasticCarInstance> instances = factory.getAllIds(config.getAppName());
 

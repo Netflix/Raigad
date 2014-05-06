@@ -43,17 +43,42 @@ public interface IConfiguration
      * @return Path to Elasticsearch stop sript
      */
     public String getElasticsearchStopScript();
-
    
     public int getElasticsearchListenerPort();
         
-
-    public int getStoragePort();
+    public int getTransportTcpPort();
     
-   
-    public int getElasticsearchPeerListenerPort();
+    public int getHttpPort();
 
-   
+    public int getNumOfShards();
+    
+    public int getNumOfReplicas();
+    
+    public String getRefreshInterval();
+    
+    public boolean isMasterQuorumEnabled();
+    
+    public int getMinimumMasterNodes();
+    
+    public String getPingTimeout();
+    
+    public boolean isPingMulticastEnabled();
+    
+    public String getFdPingInterval();
+    
+    public String getFdPingTimeout();   
+
+    /**
+     * @return Location of the local data dir
+     */
+	public String getDataFileLocation();
+
+    /**
+     * @return Location of the local log dir
+     */
+	public String getLogFileLocation();
+
+	public boolean doesElasticsearchStartManually();
 
     /**
      * @return Cluster name
@@ -126,13 +151,6 @@ public interface IConfiguration
     public String getElasticsearchProcessName();
 
 	public boolean isMultiDC();
-
-	public boolean doesElasticsearchStartManually();
-
-    /**
-     * @return Location of the local data dir
-     */
-	public String getDataFileLocation();
 
     
 }
