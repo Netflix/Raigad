@@ -43,7 +43,7 @@ import com.netflix.elasticcar.identity.ElasticCarInstance;
 @Singleton
 public class SDBInstanceData
 {
-    public static class Attributes
+ /*   public static class Attributes
     {
         public final static String APP_ID = "appId";
         public final static String ID = "id";
@@ -74,7 +74,7 @@ public class SDBInstanceData
      * @param id Node ID
      * @return the node with the given {@code id}, or {@code null} if no such node exists
      */
-    public ElasticCarInstance getInstance(String app, String dc, int id)
+/*    public ElasticCarInstance getInstance(String app, String dc, int id)
     {
         AmazonSimpleDBClient simpleDBClient = getSimpleDBClient();
         SelectRequest request = new SelectRequest(String.format(INSTANCE_QUERY, app, dc, id));
@@ -90,7 +90,7 @@ public class SDBInstanceData
      * @param app Cluster name
      * @return the set of all instances in the given {@code app}
      */
-    public Set<ElasticCarInstance> getAllIds(String app)
+/*    public Set<ElasticCarInstance> getAllIds(String app)
     {
         AmazonSimpleDBClient simpleDBClient = getSimpleDBClient();
         Set<ElasticCarInstance> inslist = new HashSet<ElasticCarInstance>();
@@ -117,7 +117,7 @@ public class SDBInstanceData
      * @param instance
      * @throws AmazonServiceException
      */
-    public void createInstance(ElasticCarInstance instance) throws AmazonServiceException
+/*    public void createInstance(ElasticCarInstance instance) throws AmazonServiceException
     {
         AmazonSimpleDBClient simpleDBClient = getSimpleDBClient();
         PutAttributesRequest putReq = new PutAttributesRequest(DOMAIN, getKey(instance), createAttributesToRegister(instance));
@@ -130,7 +130,7 @@ public class SDBInstanceData
      * @param instance
      * @throws AmazonServiceException
      */
-    public void registerInstance(ElasticCarInstance instance) throws AmazonServiceException
+/*    public void registerInstance(ElasticCarInstance instance) throws AmazonServiceException
     {
         AmazonSimpleDBClient simpleDBClient = getSimpleDBClient();
         PutAttributesRequest putReq = new PutAttributesRequest(DOMAIN, getKey(instance), createAttributesToRegister(instance));
@@ -147,7 +147,7 @@ public class SDBInstanceData
      * @param instance
      * @throws AmazonServiceException
      */
-    public void deregisterInstance(ElasticCarInstance instance) throws AmazonServiceException
+ /*   public void deregisterInstance(ElasticCarInstance instance) throws AmazonServiceException
     {
         AmazonSimpleDBClient simpleDBClient = getSimpleDBClient();
         DeleteAttributesRequest delReq = new DeleteAttributesRequest(DOMAIN, getKey(instance), createAttributesToDeRegister(instance));
@@ -191,7 +191,7 @@ public class SDBInstanceData
      * @param item
      * @return
      */
-    public ElasticCarInstance transform(Item item)
+/*    public ElasticCarInstance transform(Item item)
     {
         ElasticCarInstance ins = new ElasticCarInstance();
         Iterator<Attribute> attrs = item.getAttributes().iterator();
@@ -229,4 +229,5 @@ public class SDBInstanceData
         //Create per request
         return new AmazonSimpleDBClient(provider.getAwsCredentialProvider());
     }
+    */
 }

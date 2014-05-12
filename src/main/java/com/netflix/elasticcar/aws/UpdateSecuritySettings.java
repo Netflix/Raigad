@@ -25,7 +25,7 @@ import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.netflix.elasticcar.identity.IMembership;
-import com.netflix.elasticcar.identity.InstanceIdentity;
+//import com.netflix.elasticcar.identity.InstanceIdentity;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -91,7 +91,7 @@ public class UpdateSecuritySettings extends Task
         }
     }
 
-    public static TaskTimer getTimer(InstanceIdentity id)
+/*    public static TaskTimer getTimer(InstanceIdentity id)
     {
         SimpleTimer return_;
         if (id.isSeed())
@@ -100,7 +100,7 @@ public class UpdateSecuritySettings extends Task
             return_ = new SimpleTimer(JOBNAME);
         return return_;
     }
-
+*/
     @Override
     public String getName()
     {

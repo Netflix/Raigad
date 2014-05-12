@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
-import com.netflix.elasticcar.identity.InstanceIdentity;
+//import com.netflix.elasticcar.identity.InstanceIdentity;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;

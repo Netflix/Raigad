@@ -37,9 +37,9 @@ import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
  * created ahead
  */
 @Singleton
-public class SDBInstanceFactory implements IElasticCarInstanceFactory
+public class SDBInstanceFactory //implements IElasticCarInstanceFactory
 {
-    private static final Logger logger = LoggerFactory.getLogger(SDBInstanceFactory.class);
+/*    private static final Logger logger = LoggerFactory.getLogger(SDBInstanceFactory.class);
 
     private final IConfiguration config;
     private final SDBInstanceData dao;
@@ -165,4 +165,5 @@ public class SDBInstanceFactory implements IElasticCarInstanceFactory
         ins.setVolumes(v);
         return ins;
     }
+    */
 }
