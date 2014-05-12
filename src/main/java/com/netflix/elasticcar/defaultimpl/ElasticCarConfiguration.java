@@ -58,8 +58,7 @@ public class ElasticCarConfiguration implements IConfiguration
     private static final String CONFIG_ES_PROCESS_NAME = ESCAR_PRE + ".elasticsearch.process";
     private static final String CONFIG_YAML_LOCATION = ESCAR_PRE + ".yamlLocation";
     private static final String CONFIG_PARTITIONER = ESCAR_PRE + ".partitioner";
-
-    
+   
     // Amazon specific
     private static final String CONFIG_ASG_NAME = ESCAR_PRE + ".az.asgname";
     private static final String CONFIG_REGION_NAME = ESCAR_PRE + ".az.region";
@@ -408,6 +407,12 @@ public class ElasticCarConfiguration implements IConfiguration
 
 	@Override
 	public String getLogFileLocation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getElasticsearchDiscoveryType() {
 		// TODO Auto-generated method stub
 		return null;
 	}

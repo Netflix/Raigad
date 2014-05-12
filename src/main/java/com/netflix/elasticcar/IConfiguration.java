@@ -150,6 +150,12 @@ public interface IConfiguration
      */
     public String getElasticsearchProcessName();
 
+    /**
+     * @return Elasticsearch Discovery Type
+     */
+    public String getElasticsearchDiscoveryType();
+
+
 	public boolean isMultiDC();
 
     
