@@ -110,7 +110,7 @@ public class SDBInstanceFactory implements IElasticCarInstanceFactory
         }
         catch (AmazonServiceException e)
         {
-            throw new RuntimeException("Unable to deregister priam instance", e);
+            throw new RuntimeException("Unable to deregister elasticcar instance", e);
         }
     }
 
@@ -123,7 +123,7 @@ public class SDBInstanceFactory implements IElasticCarInstanceFactory
         }
         catch (AmazonServiceException e)
         {
-            throw new RuntimeException("Unable to update/create priam instance", e);
+            throw new RuntimeException("Unable to update/create elasticcar instance", e);
         }
     }
 

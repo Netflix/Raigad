@@ -45,9 +45,6 @@ public class StandardTuner implements IElasticsearchTuner
 //        Map<String, String> m = (Map<String, String>) seedp.get(0);
 //        m.put("class_name", seedProvider);
 
-        //force to 1 until vnodes are properly supported
-	    map.put("num_tokens", 1);
-
         logger.info(yaml.dump(map));
         yaml.dump(map, new FileWriter(yamlFile));
     }
