@@ -73,7 +73,6 @@ public class ElasticCarConfiguration implements IConfiguration
     private static String ASG_NAME = System.getenv("ASG_NAME");
     private static String REGION = System.getenv("EC2_REGION");
 
-
     // Defaults 
     private final String DEFAULT_CLUSTER_NAME = "elasticsearch_demo1";
     private final String DEFAULT_DATA_LOCATION = "/mnt/data/es";
@@ -413,6 +412,12 @@ public class ElasticCarConfiguration implements IConfiguration
 
 	@Override
 	public String getElasticsearchDiscoveryType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getInstanceId() {
 		// TODO Auto-generated method stub
 		return null;
 	}

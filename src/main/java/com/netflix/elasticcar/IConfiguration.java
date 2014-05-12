@@ -105,6 +105,11 @@ public interface IConfiguration
      */
     public String getInstanceName();
 
+    /**
+     * @return Get instance id (for AWS)
+     */
+    public String getInstanceId();
+
 
     /**
      * @return Get the Data Center name (or region for AWS)

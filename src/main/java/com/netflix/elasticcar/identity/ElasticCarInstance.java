@@ -25,11 +25,11 @@ public class ElasticCarInstance implements Serializable
 	private long updatetime;
 
 	private String Id;
-	private String cluster;
+	private String app;
 	private String instanceId;
 	private String availabilityZone;
 	private String publicip;
-	private String region;
+	private String dc;
 
 	public String getId() {
 		return Id;
@@ -39,12 +39,12 @@ public class ElasticCarInstance implements Serializable
 		Id = id;
 	}
 
-	public String getCluster() {
-		return cluster;
+	public String getApp() {
+		return app;
 	}
 
-	public ElasticCarInstance setCluster(String cluster) {
-		this.cluster = cluster;
+	public ElasticCarInstance setApp(String app) {
+		this.app = app;
 		return this;
 	}
 
@@ -87,17 +87,17 @@ public class ElasticCarInstance implements Serializable
 	@Override
 	public String toString() {
 		return String
-				.format("Hostname: %s, InstanceId: %s, Cluster_: %s, Availability Zone : %s Region %s",
-						getHostName(), getInstanceId(), getCluster(),
-						getAvailabilityZone(), getRegion());
+				.format("Hostname: %s, InstanceId: %s, App: %s, Availability Zone : %s, Location %s",
+						getHostName(), getInstanceId(), getApp(),
+						getAvailabilityZone(), getDC());
 	}
 
-	public String getRegion() {
-		return region;
+	public String getDC() {
+		return dc;
 	}
 
-	public ElasticCarInstance setRegion(String location) {
-		this.region = location;
+	public ElasticCarInstance setDC(String dc) {
+		this.dc = dc;
 		return this;
 	}
 
