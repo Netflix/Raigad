@@ -24,18 +24,18 @@ public class ElasticCarInstance implements Serializable
 	private String hostname;
 	private long updatetime;
 
-	private int Id;
+	private String Id;
 	private String cluster;
 	private String instanceId;
 	private String availabilityZone;
 	private String publicip;
 	private String region;
 
-	public int getId() {
+	public String getId() {
 		return Id;
 	}
 
-	public void setId(int id) {
+	public void setId(String id) {
 		Id = id;
 	}
 
