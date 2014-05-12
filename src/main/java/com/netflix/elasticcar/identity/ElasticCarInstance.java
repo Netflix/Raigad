@@ -20,143 +20,92 @@ import java.util.Map;
 
 public class ElasticCarInstance implements Serializable
 {
-    private static final long serialVersionUID = 5606412386974488659L;
-    private String hostname;
-    private long updatetime;
-    private boolean outOfService;
+	private static final long serialVersionUID = 5606412386974488659L;
+	private String hostname;
+	private long updatetime;
 
-    private String app;
-    private int Id;
-    private String instanceId;
-    private String availabilityZone;
-    private String publicip;
-    private String location;
-    private String token;
-    //Handles Storage objects
-    private Map<String, Object> volumes;
-    
-    public String getApp()
-    {
-        return app;
-    }
+	private int Id;
+	private String cluster;
+	private String instanceId;
+	private String availabilityZone;
+	private String publicip;
+	private String region;
 
-    public void setApp(String app)
-    {
-        this.app = app;
-    }
+	public int getId() {
+		return Id;
+	}
 
-    public int getId()
-    {
-        return Id;
-    }
+	public void setId(int id) {
+		Id = id;
+	}
 
-    public void setId(int id)
-    {
-        Id = id;
-    }
+	public String getCluster() {
+		return cluster;
+	}
 
-    public String getInstanceId()
-    {
-        return instanceId;
-    }
+	public ElasticCarInstance setCluster(String cluster) {
+		this.cluster = cluster;
+		return this;
+	}
 
-    public void setInstanceId(String instanceId)
-    {
-        this.instanceId = instanceId;
-    }
+	public String getInstanceId() {
+		return instanceId;
+	}
 
-    public String getRac()
-    {
-        return availabilityZone;
-    }
+	public ElasticCarInstance setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+		return this;
+	}
 
-    public void setRac(String availabilityZone)
-    {
-        this.availabilityZone = availabilityZone;
-    }
+	public String getAvailabilityZone() {
+		return availabilityZone;
+	}
 
-    public String getHostName()
-    {
-        return hostname;
-    }
-    
-    public String getHostIP()
-    {
-        return publicip;
-    }
+	public ElasticCarInstance setAvailabilityZone(String availabilityZone) {
+		this.availabilityZone = availabilityZone;
+		return this;
+	}
 
-    public void setHost(String hostname, String publicip)
-    {
-        this.hostname = hostname;
-        this.publicip = publicip;
-    }
+	public String getHostName() {
+		return hostname;
+	}
 
-    public void setHost(String hostname)
-    {
-        this.hostname = hostname;
-    }
+	public String getHostIP() {
+		return publicip;
+	}
 
-    public void setHostIP(String publicip)
-    {
-        this.publicip = publicip;
-    }
+	public ElasticCarInstance setHostName(String hostname) {
+		this.hostname = hostname;
+		return this;
+	}
 
-    public String getToken()
-    {
-        return token;
-    }
+	public ElasticCarInstance setHostIP(String publicip) {
+		this.publicip = publicip;
+		return this;
+	}
 
-    public void setToken(String token)
-    {
-        this.token = token;
-    }
+	@Override
+	public String toString() {
+		return String
+				.format("Hostname: %s, InstanceId: %s, Cluster_: %s, Availability Zone : %s Region %s",
+						getHostName(), getInstanceId(), getCluster(),
+						getAvailabilityZone(), getRegion());
+	}
 
-    public Map<String, Object> getVolumes()
-    {
-        return volumes;
-    }
+	public String getRegion() {
+		return region;
+	}
 
-    public void setVolumes(Map<String, Object> volumes)
-    {
-        this.volumes = volumes;
-    }
+	public ElasticCarInstance setRegion(String location) {
+		this.region = location;
+		return this;
+	}
 
-    @Override
-    public String toString()
-    {
-        return String.format("Hostname: %s, InstanceId: %s, APP_NAME: %s, RAC : %s Location %s, Id: %s: Token: %s", getHostName(), getInstanceId(), getApp(), getRac(), getDC(), getId(),
-                getToken());
-    }
+	public long getUpdatetime() {
+		return updatetime;
+	}
 
-    public String getDC()
-    {
-        return location;
-    }
-    
-    public void setDC(String location)
-    {
-        this.location = location;
-    }
-
-    public long getUpdatetime()
-    {
-        return updatetime;
-    }
-
-    public void setUpdatetime(long updatetime)
-    {
-        this.updatetime = updatetime;
-    }
-
-    public boolean isOutOfService()
-    {
-        return outOfService;
-    }
-
-    public void setOutOfService(boolean outOfService)
-    {
-        this.outOfService = outOfService;
-    }
-
-
+	public void setUpdatetime(long updatetime) {
+		this.updatetime = updatetime;
+	}
 }
