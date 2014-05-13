@@ -117,10 +117,10 @@ public interface IConfiguration
     public String getDC();
 
     /**
-     * @param region
+     * @param dc
      *            Set the current data center
      */
-    public void setDC(String region);
+    public void setDC(String dc);
 
  
     /**
