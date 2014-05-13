@@ -40,6 +40,8 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("http.port", config.getHttpPort());       
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
+        map.put("discovery.type", config.getElasticsearchDiscoveryType());
+        map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
 
 //        List<?> seedp = (List) map.get("seed_provider");
 //        Map<String, String> m = (Map<String, String>) seedp.get(0);
