@@ -14,14 +14,12 @@ import org.elasticsearch.node.settings.NodeSettingsService;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportService;
 
-import com.netflix.elasticcar.IConfiguration;
-
 public class CustomDiscovery extends ZenDiscovery {
   @Inject
   public CustomDiscovery(Settings settings, ClusterName clusterName, ThreadPool threadPool, TransportService transportService,
                          ClusterService clusterService, NodeSettingsService nodeSettingsService, ZenPingService pingService,
-                         DiscoveryNodeService discoveryNodeService, Version version) {
-    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, version);
+                         DiscoveryNodeService discoveryNodeService, Version version, DiscoverySettings discoverySettings) {
+    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, Version.CURRENT, discoverySettings);
     org.elasticsearch.common.collect.ImmutableList<? extends ZenPing> zenPings = pingService.zenPings();
     UnicastZenPing unicastZenPing = null;
     for (ZenPing zenPing : zenPings) {
