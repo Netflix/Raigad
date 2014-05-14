@@ -33,6 +33,7 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.netflix.elasticcar.ElasticCarServer;
 import com.netflix.elasticcar.IConfiguration;
+import com.netflix.elasticcar.defaultimpl.ElasticCarConfiguration;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -51,8 +52,7 @@ public class InjectedWebListener extends GuiceServletContextListener
         try
         {
         		injector  = Guice.createInjector(moduleList);
-            injector.getInstance(IConfiguration.class).intialize();
-            injector.getInstance(ElasticCarServer.class).intialize();
+        		startJobs(injector);
         }
         catch (Exception e)
         {
@@ -62,6 +62,15 @@ public class InjectedWebListener extends GuiceServletContextListener
         return injector;
     }
 
+    private void startJobs(Injector injector) throws Exception
+    {
+    		ElasticCarServer escarServer = injector.getInstance(ElasticCarServer.class);
+    		
+    		logger.info("**Now starting to initialize escarserver from OSS");
+    		escarServer.intialize();
+            
+    }
+    
     public static class JaxServletModule extends ServletModule
     {
         @Override
@@ -81,6 +90,8 @@ public class InjectedWebListener extends GuiceServletContextListener
         @Override
         protected void configure()
         {
+    		logger.info("**Binding OSS Config classes.");
+            bind(IConfiguration.class).to(ElasticCarConfiguration.class);
             bind(SchedulerFactory.class).to(StdSchedulerFactory.class).asEagerSingleton();
 //            bind(IElasticCarInstanceFactory.class).to(CassandraInstanceFactory.class);
 //            bind(ICredential.class).to(IAMCredential.class);
