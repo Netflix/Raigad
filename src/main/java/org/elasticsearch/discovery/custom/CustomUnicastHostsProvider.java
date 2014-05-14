@@ -21,19 +21,20 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
   private final TransportService transportService;
 //  private final IElasticCarInstanceFactory instanceFactory;
   private final Version version;
-  private final IConfiguration config;
 
   @Inject
   IElasticCarInstanceFactory instanceFactory;
   
   @Inject
-  public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version,IConfiguration config) {
+  IConfiguration config;
+  
+  @Inject
+  public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
     super(settings);
 
     this.transportService = transportService;
 //    this.instanceFactory = ElasticSearch.getInjector().getInstance(IElasticCarInstanceFactory.class);
     this.version = version;
-    this.config = config;
   }
 
   @Override
