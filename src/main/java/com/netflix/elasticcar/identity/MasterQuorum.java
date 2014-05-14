@@ -29,13 +29,13 @@ public abstract class MasterQuorum {
   protected abstract int discoverySize();
   protected abstract void updateSecuritySettings();
 
-  private final ClusterAdminClient client;
+//  private final ClusterAdminClient client;
 
-  public MasterQuorum(ClusterAdminClient client) {
-    this.client = client;
-  }
+//  public MasterQuorum(ClusterAdminClient client) {
+//    this.client = client;
+//  }
 
-  public void setMasterQuorum() {
+/*  public void setMasterQuorum() {
     try {
       if (delegate()) {
         final int newQuorumCount = (discoverySize() / 2 + 1);
@@ -71,14 +71,14 @@ public abstract class MasterQuorum {
       log.error("Exception on setting master quorum: " + e.getMessage(), e);
     }
   }
-
+*/
   @PostConstruct
   public void start() {
     scheduler.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
         try {
-          setMasterQuorum();
+//          setMasterQuorum();
           updateSecuritySettings();
         } catch (Exception e) {
           log.error("Exception on setting master quorum: " + e.getMessage(), e);
