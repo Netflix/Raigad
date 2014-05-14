@@ -21,7 +21,7 @@ publications {
 }
 
 ext {
-  elasticsearchVersion='1.0.1'
+  elasticsearchVersion='1.1.0'
 }
 
 dependencies {
