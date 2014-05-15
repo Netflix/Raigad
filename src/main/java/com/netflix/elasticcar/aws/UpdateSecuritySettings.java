@@ -91,16 +91,12 @@ public class UpdateSecuritySettings extends Task
         }
     }
 
-/*    public static TaskTimer getTimer(InstanceIdentity id)
+    public static TaskTimer getTimer()
     {
-        SimpleTimer return_;
-        if (id.isSeed())
-            return_ = new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
-        else
-            return_ = new SimpleTimer(JOBNAME);
+        SimpleTimer return_ = new SimpleTimer(JOBNAME);
         return return_;
     }
-*/
+
     @Override
     public String getName()
     {

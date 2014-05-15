@@ -43,9 +43,13 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
 
     // TODO: This should be equal to CassConfig.getCluster due to separate injectors
     List<ElasticCarInstance> instances = instanceFactory.getAllIds(config.getAppName());
-
+    logger.info("***APP NAME = "+config.getAppName());
+    if (instances == null)
+    		logger.info("Instances are NULL");
+    if(instances.size() == 0)
+    		logger.info("Instance size is ZERO");
     for (ElasticCarInstance instance : instances) {
-      try {
+      try {logger.info("---Host Ip = "+instance.getHostIP());
         TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
         // we only limit to 1 addresses, makes no sense to ping 100 ports
         for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {

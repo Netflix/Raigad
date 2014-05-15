@@ -21,10 +21,11 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
-//import com.netflix.elasticcar.identity.InstanceIdentity;
+import com.netflix.elasticcar.identity.MasterQuorum;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
+//import com.netflix.elasticcar.identity.InstanceIdentity;
 
 /**
  * Start all tasks here - Property update task - Backup task - Restore task -
@@ -36,8 +37,9 @@ public class ElasticCarServer
     private final ElasticCarScheduler scheduler;
     private final IConfiguration config;
 //    private final InstanceIdentity id;
-//    private final Sleeper sleeper;
+    private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
+    private final MasterQuorum masterQuorum;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 //    @Inject
@@ -51,11 +53,13 @@ public class ElasticCarServer
 //    }
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, MasterQuorum masterQuorum)
     {
         this.config = config;
         this.scheduler = scheduler;
-        this.esProcess = esProcess;    	
+        this.esProcess = esProcess;
+        this.sleeper = sleeper;
+        this.masterQuorum = masterQuorum;
     }
     
     public void intialize() throws Exception
@@ -78,6 +82,15 @@ public class ElasticCarServer
 //            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(id));
 //        }
 //
+        
+        scheduler.runTaskNow(UpdateSecuritySettings.class);
+        
+        if (UpdateSecuritySettings.firstTimeUpdated)
+          sleeper.sleep(60 * 1000);
+        
+        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer());
+
+        
         scheduler.runTaskNow(TuneElasticsearch.class);
         
         logger.info("Trying to start Elastic Search now ...");
