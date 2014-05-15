@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
-import com.netflix.elasticcar.identity.MasterQuorum;
+import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
@@ -39,7 +39,7 @@ public class ElasticCarServer
 //    private final InstanceIdentity id;
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
-    private final MasterQuorum masterQuorum;
+    private final InstanceManager instanceManager;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 //    @Inject
@@ -53,13 +53,13 @@ public class ElasticCarServer
 //    }
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, MasterQuorum masterQuorum)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager)
     {
         this.config = config;
         this.scheduler = scheduler;
         this.esProcess = esProcess;
         this.sleeper = sleeper;
-        this.masterQuorum = masterQuorum;
+        this.instanceManager = instanceManager;
     }
     
     public void intialize() throws Exception
