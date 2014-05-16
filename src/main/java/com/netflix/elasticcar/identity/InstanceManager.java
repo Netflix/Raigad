@@ -54,7 +54,7 @@ public class InstanceManager {
 				.create(config.getAppName(),
 						config.getDC() + "." + config.getInstanceId(),
 						config.getInstanceId(), config.getHostname(),
-						config.getHostIP(), config.getRac(), null);
+						config.getHostIP(), config.getRac(), config.getDC(), null);
 	}
 
 	public ElasticCarInstance getInstance()

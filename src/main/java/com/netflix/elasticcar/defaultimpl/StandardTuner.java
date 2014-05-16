@@ -45,7 +45,10 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("node.rack_id", config.getDC());
         map.put("node.name", config.getDC() + "." + config.getInstanceId());
         map.put("network.publish_host", config.getHostIP());
-
+        map.put("index.number_of_shards", config.getNumOfShards());
+        map.put("index.number_of_replicas", config.getNumOfReplicas());
+        map.put("index.refresh_interval", config.getIndexRefreshInterval());
+        
 //        List<?> seedp = (List) map.get("seed_provider");
 //        Map<String, String> m = (Map<String, String>) seedp.get(0);
 //        m.put("class_name", seedProvider);

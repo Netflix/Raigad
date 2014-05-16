@@ -48,10 +48,12 @@ public interface IElasticCarInstanceFactory
      * @param hostname
      * @param ip
      * @param rac
+     * @param dc
      * @param volumes
      * @return the new node
      */
-    public ElasticCarInstance create(String app, String id, String instanceID, String hostname, String ip, String rac, Map<String, Object> volumes);
+	public ElasticCarInstance create(String app, String id, String instanceID,
+			String hostname, String ip, String rac, String dc, Map<String, Object> volumes);
 
     /**
      * Delete the server node from the registry

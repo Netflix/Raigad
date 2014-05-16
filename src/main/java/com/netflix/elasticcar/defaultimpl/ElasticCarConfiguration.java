@@ -422,6 +422,12 @@ public class ElasticCarConfiguration implements IConfiguration
 		return null;
 	}
 
+	@Override
+	public String getIndexRefreshInterval() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
    
 }

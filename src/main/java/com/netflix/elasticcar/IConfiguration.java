@@ -163,5 +163,10 @@ public interface IConfiguration
 
 	public boolean isMultiDC();
 
+    /**
+     * @return Elasticsearch Index Refresh Interval
+     */
+	public String getIndexRefreshInterval();
+
     
 }
