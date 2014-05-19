@@ -18,6 +18,9 @@ package com.netflix.elasticcar.aws;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -34,7 +37,8 @@ import com.netflix.elasticcar.scheduler.TaskTimer;
 @Singleton
 public class UpdateSecuritySettings extends Task
 {
-    public static final String JOBNAME = "Update_SG";
+	private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
+	public static final String JOBNAME = "Update_SG";
     public static boolean firstTimeUpdated = false;
 
     private static final Random ran = new Random();
@@ -55,6 +59,9 @@ public class UpdateSecuritySettings extends Task
         // if seed dont execute.
         int port = config.getTransportTcpPort();
         List<String> acls = membership.listACL(port, port);
+        
+        logger.info("*** Done Listing .... ");
+        
         List<ElasticCarInstance> instances = factory.getAllIds(config.getAppName());
 
         // iterate to add...

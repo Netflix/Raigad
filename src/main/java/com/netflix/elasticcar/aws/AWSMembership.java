@@ -175,12 +175,26 @@ public class AWSMembership implements IMembership
         {
             client = getEc2Client();
             List<String> ipPermissions = new ArrayList<String>();
+            logger.info("***ACL Group Name = "+config.getACLGroupName());
             DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
             DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
             for (SecurityGroup group : result.getSecurityGroups())
+            {   logger.info("***Grp Desc = ("+group.getDescription()+")");
+            		logger.info("Grp Id = ("+group.getGroupId()+")");
+            		logger.info("Grp Name = ("+group.getGroupName()+")");
+            		logger.info("Grp Owner Id = ("+group.getOwnerId()+")");
                 for (IpPermission perm : group.getIpPermissions())
+                {  if(perm == null)
+                	    logger.info("***IpPermission is  NULL ... ");
                     if (perm.getFromPort() == from && perm.getToPort() == to)
-                        ipPermissions.addAll(perm.getIpRanges());
+                    {
+                    		logger.info("From : ("+from+") To : ("+to+")");
+                    		for(String ip:perm.getIpRanges())
+                    			logger.info("IP : ["+ip+"]");
+                    		ipPermissions.addAll(perm.getIpRanges());
+                    }
+                }
+            }
             return ipPermissions;
         }
         finally

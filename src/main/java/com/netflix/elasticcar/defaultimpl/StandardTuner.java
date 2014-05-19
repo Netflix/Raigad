@@ -42,7 +42,7 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("path.logs", config.getLogFileLocation());
         map.put("discovery.type", config.getElasticsearchDiscoveryType());
         map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
-        map.put("node.rack_id", config.getDC());
+        map.put("node.rack_id", config.getRac());
         map.put("node.name", config.getDC() + "." + config.getInstanceId());
         map.put("network.publish_host", config.getHostIP());
         map.put("index.number_of_shards", config.getNumOfShards());
