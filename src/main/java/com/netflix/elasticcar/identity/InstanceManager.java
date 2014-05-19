@@ -9,7 +9,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.utils.RetryableCallable;
-import com.netflix.priam.identity.IMembership;
 
 /**
  * This class provides the central place to create and consume the identity of
@@ -45,6 +44,7 @@ public class InstanceManager {
 			public Void retriableCall() throws Exception 
 			{
 				deregisterInstance(instanceFactory,config);
+				return null;
 			}
 		}.call();
 		
