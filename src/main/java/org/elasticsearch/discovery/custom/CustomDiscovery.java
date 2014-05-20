@@ -20,7 +20,8 @@ public class CustomDiscovery extends ZenDiscovery {
   public CustomDiscovery(Settings settings, ClusterName clusterName, ThreadPool threadPool, TransportService transportService,
                          ClusterService clusterService, NodeSettingsService nodeSettingsService, ZenPingService pingService,
                          DiscoveryNodeService discoveryNodeService, Version version, DiscoverySettings discoverySettings) {
-    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, Version.CURRENT, discoverySettings);
+    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, version, discoverySettings);
+    logger.info("In constructor CustomDiscovery ... Now using PingService to zenPings");
     org.elasticsearch.common.collect.ImmutableList<? extends ZenPing> zenPings = pingService.zenPings();
     UnicastZenPing unicastZenPing = null;
     for (ZenPing zenPing : zenPings) {
