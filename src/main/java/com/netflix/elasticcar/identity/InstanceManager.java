@@ -88,4 +88,9 @@ public class InstanceManager {
 	{
 		return myInstance;
 	}
+	
+	public List<ElasticCarInstance> getAllInstances()
+	{
+		return instanceFactory.getAllIds(config.getAppName());
+	}
 }

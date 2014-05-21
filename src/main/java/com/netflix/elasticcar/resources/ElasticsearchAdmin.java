@@ -22,7 +22,7 @@ public class ElasticsearchAdmin
 {
     private static final String REST_SUCCESS = "[\"ok\"]";
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchAdmin.class);
-    private IConfiguration config;
+    private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
 
     @Inject

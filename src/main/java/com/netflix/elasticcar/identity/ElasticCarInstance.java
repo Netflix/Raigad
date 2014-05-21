@@ -16,13 +16,13 @@
 package com.netflix.elasticcar.identity;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class ElasticCarInstance implements Serializable
 {
 	private static final long serialVersionUID = 5606412386974488659L;
 	private String hostname;
 	private long updatetime;
+    private boolean outOfService;
 
 	private String Id;
 	private String app;
@@ -36,34 +36,31 @@ public class ElasticCarInstance implements Serializable
 	}
 
 	public void setId(String id) {
-		Id = id;
+		this.Id = id;
 	}
 
 	public String getApp() {
 		return app;
 	}
 
-	public ElasticCarInstance setApp(String app) {
+	public void setApp(String app) {
 		this.app = app;
-		return this;
 	}
 
 	public String getInstanceId() {
 		return instanceId;
 	}
 
-	public ElasticCarInstance setInstanceId(String instanceId) {
+	public void setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
-		return this;
 	}
 
 	public String getAvailabilityZone() {
 		return availabilityZone;
 	}
 
-	public ElasticCarInstance setAvailabilityZone(String availabilityZone) {
+	public void setAvailabilityZone(String availabilityZone) {
 		this.availabilityZone = availabilityZone;
-		return this;
 	}
 
 	public String getHostName() {
@@ -74,31 +71,28 @@ public class ElasticCarInstance implements Serializable
 		return publicip;
 	}
 
-	public ElasticCarInstance setHostName(String hostname) {
+	public void setHostName(String hostname) {
 		this.hostname = hostname;
-		return this;
 	}
 
-	public ElasticCarInstance setHostIP(String publicip) {
+	public void setHostIP(String publicip) {
 		this.publicip = publicip;
-		return this;
 	}
 
 	@Override
 	public String toString() {
 		return String
-				.format("Hostname: %s, InstanceId: %s, App: %s, Availability Zone : %s, Location %s",
+				.format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, UpdateTime : %s",
 						getHostName(), getInstanceId(), getApp(),
-						getAvailabilityZone(), getDC());
+						getAvailabilityZone(), getId(), getHostIP(), getDC(), getUpdatetime());
 	}
 
 	public String getDC() {
 		return dc;
 	}
 
-	public ElasticCarInstance setDC(String dc) {
+	public void setDC(String dc) {
 		this.dc = dc;
-		return this;
 	}
 
 	public long getUpdatetime() {
@@ -108,4 +102,15 @@ public class ElasticCarInstance implements Serializable
 	public void setUpdatetime(long updatetime) {
 		this.updatetime = updatetime;
 	}
+	
+    public boolean isOutOfService()
+    {
+        return outOfService;
+    }
+
+    public void setOutOfService(boolean outOfService)
+    {
+        this.outOfService = outOfService;
+    }
+
 }

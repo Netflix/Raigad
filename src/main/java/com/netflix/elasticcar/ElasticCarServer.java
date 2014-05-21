@@ -25,7 +25,6 @@ import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
-//import com.netflix.elasticcar.identity.InstanceIdentity;
 
 /**
  * Start all tasks here - Property update task - Backup task - Restore task -
@@ -36,21 +35,11 @@ public class ElasticCarServer
 {
     private final ElasticCarScheduler scheduler;
     private final IConfiguration config;
-//    private final InstanceIdentity id;
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
-//    @Inject
-//    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, InstanceIdentity id, Sleeper sleeper, IElasticsearchProcess esProcess)
-//    {
-//        this.config = config;
-//        this.scheduler = scheduler;
-//        this.id = id;
-//        this.sleeper = sleeper;
-//        this.esProcess = esProcess;
-//    }
 
     @Inject
     public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager)
@@ -64,8 +53,9 @@ public class ElasticCarServer
     
     public void intialize() throws Exception
     {     
-//        if (id.getInstance().isOutOfService())
-//            return;
+    		//Check If it's really needed
+        if (instanceManager.getInstance().isOutOfService())
+            return;
         
         logger.info("Initializing ElasticCarServer now ...");
 
@@ -103,15 +93,15 @@ public class ElasticCarServer
        
     }
 
-//    public InstanceIdentity getId()
-//    {
-//        return id;
-//    }
-//
-//    public ElasticCarScheduler getScheduler()
-//    {
-//        return scheduler;
-//    }
+    public InstanceManager getInstanceManager()
+    {
+        return instanceManager;
+    }
+
+    public ElasticCarScheduler getScheduler()
+    {
+        return scheduler;
+    }
 
     public IConfiguration getConfiguration()
     {
