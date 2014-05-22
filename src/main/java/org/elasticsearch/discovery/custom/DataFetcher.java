@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.elasticcar.utils;
+package org.elasticsearch.discovery.custom;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -21,17 +21,14 @@ import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.elasticsearch.common.logging.ESLogger;
 
 import com.google.common.base.Charsets;
 
 public class DataFetcher
 {
-    private static final Logger logger = LoggerFactory.getLogger(DataFetcher.class);
 
-    public static String fetchData(String url)
+    public static String fetchData(String url,ESLogger logger)
     {
         DataInputStream responseStream = null;
         try

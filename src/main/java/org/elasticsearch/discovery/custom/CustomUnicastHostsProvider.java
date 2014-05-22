@@ -16,7 +16,6 @@ import org.json.simple.parser.JSONParser;
 
 import com.google.common.collect.Lists;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
-import com.netflix.elasticcar.utils.DataFetcher;
 import com.netflix.elasticcar.utils.EsUtils;
 
 public class CustomUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
@@ -36,15 +35,9 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
 		logger.info("&&& Inside buildDynamicNodes .....");
 		List<DiscoveryNode> discoNodes = Lists.newArrayList();
 		logger.info("&&& Before getting All Ids .....");
-		// TODO: This should be equal to CassConfig.getCluster due to separate
-		// injectors
-		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Elasticcar/REST/v1/esconfig/get_nodes");
 		try {
-			List<ElasticCarInstance> instances = EsUtils.getEsCarInstancesFromJson((JSONObject) new JSONParser().parse(strNodes));
-			if (instances == null)
-				logger.info("Instances are NULL");
-			if (instances.size() == 0)
-				logger.info("Instance size is ZERO");
+		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Elasticcar/REST/v1/esconfig/get_nodes",logger);
+		List<ElasticCarInstance> instances = ElasticsearchUtil.getEsCarInstancesFromJsonString(strNodes, logger);
 			for (ElasticCarInstance instance : instances) {
 				try {
 					logger.info("---Host Ip = " + instance.getHostIP());

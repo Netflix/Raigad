@@ -22,7 +22,7 @@ import com.netflix.elasticcar.utils.EsUtils;
  * requests for it.
  */
 @Path("/v1/esconfig")
-@Produces(MediaType.APPLICATION_JSON)
+@Produces(MediaType.TEXT_PLAIN)
 public class ElasticsearchConfig 
 {
 	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
@@ -45,7 +45,7 @@ public class ElasticsearchConfig
 			if (instances != null && !instances.isEmpty()) {
 				JSONObject esCarJson = EsUtils
 						.transformEsCarInstanceToJson(instances);
-				return Response.ok(esCarJson, MediaType.APPLICATION_JSON)
+				return Response.ok(esCarJson.toString())
 						.build();
 			}
 		} catch (Exception e) {
