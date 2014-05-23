@@ -168,5 +168,7 @@ public interface IConfiguration
      */
 	public String getIndexRefreshInterval();
 
+    public String getClusterRoutingAttributes();
     
+    public boolean isAsgBasedDedicatedDeployment();
 }

@@ -428,6 +428,18 @@ public class ElasticCarConfiguration implements IConfiguration
 		return null;
 	}
 
+	@Override
+	public String getClusterRoutingAttributes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean isAsgBasedDedicatedDeployment() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 
    
 }

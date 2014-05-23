@@ -28,7 +28,8 @@ public class StandardTuner implements IElasticsearchTuner
         this.config = config;
     }
 
-    public void writeAllProperties(String yamlLocation, String hostname) throws IOException
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+	public void writeAllProperties(String yamlLocation, String hostname) throws IOException
     {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -42,12 +43,21 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("path.logs", config.getLogFileLocation());
         map.put("discovery.type", config.getElasticsearchDiscoveryType());
         map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
-        map.put("node.rack_id", config.getRac());
-        map.put("node.name", config.getDC() + "." + config.getInstanceId());
-        map.put("network.publish_host", config.getHostIP());
         map.put("index.number_of_shards", config.getNumOfShards());
         map.put("index.number_of_replicas", config.getNumOfReplicas());
         map.put("index.refresh_interval", config.getIndexRefreshInterval());
+        map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
+		if (config.isMultiDC()) 
+		{
+			map.put("node.name", config.getDC() + "." + config.getInstanceId());
+			map.put("node.rack_id", config.getDC());
+			map.put("network.publish_host", config.getHostIP());
+		}        
+		else
+        {
+			map.put("node.name", config.getDC() + "." + config.getInstanceId());
+			map.put("node.rack_id", config.getRac());
+        }
         
 //        List<?> seedp = (List) map.get("seed_provider");
 //        Map<String, String> m = (Map<String, String>) seedp.get(0);
