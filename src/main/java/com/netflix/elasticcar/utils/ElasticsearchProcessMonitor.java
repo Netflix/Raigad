@@ -33,14 +33,14 @@ import com.netflix.elasticcar.scheduler.TaskTimer;
  * This task checks if the Elasticsearch process is running.
  */
 @Singleton
-public class ElasticsearchMonitor extends Task{
+public class ElasticsearchProcessMonitor extends Task{
 
 	public static final String JOBNAME = "ES_MONITOR_THREAD";
-    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
     private static final AtomicBoolean isElasticsearchStarted = new AtomicBoolean(false);
 
     @Inject
-    protected ElasticsearchMonitor(IConfiguration config) {
+    protected ElasticsearchProcessMonitor(IConfiguration config) {
 		super(config);
 	}
 

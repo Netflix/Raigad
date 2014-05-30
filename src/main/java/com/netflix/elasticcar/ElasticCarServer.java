@@ -23,6 +23,7 @@ import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
+import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
 
@@ -38,6 +39,7 @@ public class ElasticCarServer
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
+    private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 
@@ -89,6 +91,12 @@ public class ElasticCarServer
 			esProcess.start(true); // Start elasticsearch.
 		else
 			logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually ...");        
+
+        /*
+         *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch
+         */
+        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
+        
 
        
     }
