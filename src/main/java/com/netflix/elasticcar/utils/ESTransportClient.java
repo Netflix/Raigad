@@ -26,6 +26,7 @@ import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilde
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.collect.Tuple;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.env.Environment;
@@ -57,14 +58,13 @@ public class ESTransportClient
      * 
      * This will work only if Elasticsearch runs.
      */
-    public ESTransportClient(String host, int port) throws IOException, InterruptedException
+    public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
     {
     		logger.info("***Inside ESTransportClient ctr ...");
-        Tuple<Settings, Environment> tuple = InternalSettingsPreparer.prepareSettings(EMPTY_SETTINGS, true);
-        TransportClient client = new TransportClient(tuple.v1());
-        client.addTransportAddress(
-            new InetSocketTransportAddress(
-                host,port));
+        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
+        TransportClient client = new TransportClient(settings);
+        client.addTransportAddress(new InetSocketTransportAddress(host,port));
+        
         ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
         logger.info("***Done constructing NodesStatsRequestBuilder...");
     }
@@ -72,7 +72,7 @@ public class ESTransportClient
     @Inject
     public ESTransportClient(IConfiguration config) throws IOException, InterruptedException
     {
-        this("localhost", config.getTransportTcpPort());
+        this("localhost", config.getTransportTcpPort(), config.getAppName());
     }
 
     /**
@@ -120,7 +120,7 @@ public class ESTransportClient
 							@Override
 							public ESTransportClient retriableCall() throws Exception
 							{
-								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort());
+								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(),config.getAppName());
 						   		logger.info("***Returning ESTransportClient from connect ...");
 						   		return esTransportClientLocal;
 							}
