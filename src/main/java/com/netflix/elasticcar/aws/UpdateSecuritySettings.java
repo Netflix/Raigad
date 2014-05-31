@@ -16,7 +16,6 @@
 package com.netflix.elasticcar.aws;
 
 import java.util.List;
-import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +27,6 @@ import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.netflix.elasticcar.identity.IMembership;
-//import com.netflix.elasticcar.identity.InstanceIdentity;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -41,7 +39,6 @@ public class UpdateSecuritySettings extends Task
 	public static final String JOBNAME = "Update_SG";
     public static boolean firstTimeUpdated = false;
 
-    private static final Random ran = new Random();
     private final IMembership membership;
     private final IElasticCarInstanceFactory factory;
 
@@ -100,8 +97,7 @@ public class UpdateSecuritySettings extends Task
 
     public static TaskTimer getTimer()
     {
-        SimpleTimer return_ = new SimpleTimer(JOBNAME);
-        return return_;
+    		return new SimpleTimer(JOBNAME, 20 * 1000);
     }
 
     @Override

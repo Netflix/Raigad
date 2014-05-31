@@ -52,7 +52,7 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
 		if (config.isMultiDC()) 
 		{
-			map.put("node.name", config.getDC() + "." + config.getInstanceId());
+			map.put("node.name", config.getRac() + "." + config.getInstanceId());
 			map.put("node.rack_id", config.getDC());
 			map.put("network.publish_host", config.getHostIP());
 		}        
