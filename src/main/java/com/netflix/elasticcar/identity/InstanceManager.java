@@ -76,8 +76,8 @@ public class InstanceManager {
 	    List<String> asgInstances = membership.getRacMembership();
 	    for (ElasticCarInstance dead : allInstances)
 	    {
-	      // test same zone and is it is alive.
-	      if (!dead.getAvailabilityZone().equals(config.getRac()) || asgInstances.contains(dead.getInstanceId()))
+	      // test same region and is it is alive.
+	      if (!dead.getDC().equals(config.getDC()) || asgInstances.contains(dead.getInstanceId()))
 	        continue;
 	      logger.info("Found dead instances: " + dead.getInstanceId());
 	      instanceFactory.delete(dead);
