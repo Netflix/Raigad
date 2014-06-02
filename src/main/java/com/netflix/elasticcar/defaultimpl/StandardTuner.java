@@ -61,6 +61,26 @@ public class StandardTuner implements IElasticsearchTuner
 			map.put("node.name", config.getDC() + "." + config.getInstanceId());
 			map.put("node.rack_id", config.getRac());
         }
+		
+		//TODO: Create New Tuner for ASG Based Deployment
+		if(config.isAsgBasedDedicatedDeployment())
+		{
+			if(config.getASGName().toLowerCase().contains("master"))
+			{
+				map.put("node.master", true);
+				map.put("node.data", false);
+			}
+			else if(config.getASGName().toLowerCase().contains("data"))
+			{
+				map.put("node.master", false);
+				map.put("node.data", true);				
+			}
+			else if(config.getASGName().toLowerCase().contains("search"))
+			{
+				map.put("node.master", false);
+				map.put("node.data", false);
+			}
+		}
         
 //        List<?> seedp = (List) map.get("seed_provider");
 //        Map<String, String> m = (Map<String, String>) seedp.get(0);

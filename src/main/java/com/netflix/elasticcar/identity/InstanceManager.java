@@ -77,6 +77,7 @@ public class InstanceManager {
 	    for (ElasticCarInstance dead : allInstances)
 	    {
 	      // test same region and is it is alive.
+	    	  // TODO: Provide Config prop to choose same DC/Region
 	      if (!dead.getDC().equals(config.getDC()) || asgInstances.contains(dead.getInstanceId()))
 	        continue;
 	      logger.info("Found dead instances: " + dead.getInstanceId());
