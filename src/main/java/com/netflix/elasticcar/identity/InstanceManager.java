@@ -67,7 +67,7 @@ public class InstanceManager {
 				.create(config.getAppName(),
 						config.getDC() + "." + config.getInstanceId(),
 						config.getInstanceId(), config.getHostname(),
-						config.getHostIP(), config.getRac(), config.getDC(), null);
+						config.getHostIP(), config.getRac(), config.getDC(), config.getASGName(), null);
 	}
 
 	private void deregisterInstance(
@@ -78,7 +78,7 @@ public class InstanceManager {
 	    {
 	      // test same region and is it is alive.
 	    	  // TODO: Provide Config prop to choose same DC/Region
-	      if (!dead.getAvailabilityZone().equals(config.getRac()) || asgInstances.contains(dead.getInstanceId()))
+	      if (!dead.getAsg().equals(config.getASGName()) || !dead.getAvailabilityZone().equals(config.getRac()) || asgInstances.contains(dead.getInstanceId()))
 	        continue;
 	      logger.info("Found dead instances: " + dead.getInstanceId());
 	      instanceFactory.delete(dead);

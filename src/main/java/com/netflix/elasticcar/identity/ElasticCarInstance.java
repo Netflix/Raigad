@@ -30,6 +30,7 @@ public class ElasticCarInstance implements Serializable
 	private String availabilityZone;
 	private String publicip;
 	private String dc;
+	private String asgName;
 
 	public String getId() {
 		return Id;
@@ -82,9 +83,9 @@ public class ElasticCarInstance implements Serializable
 	@Override
 	public String toString() {
 		return String
-				.format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, UpdateTime : %s",
+				.format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, ASG : %s, UpdateTime : %s",
 						getHostName(), getInstanceId(), getApp(),
-						getAvailabilityZone(), getId(), getHostIP(), getDC(), getUpdatetime());
+						getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
 	}
 
 	public String getDC() {
@@ -94,6 +95,15 @@ public class ElasticCarInstance implements Serializable
 	public void setDC(String dc) {
 		this.dc = dc;
 	}
+
+	public String getAsg() {
+		return asgName;
+	}
+
+	public void setAsg(String asgName) {
+		this.asgName = asgName;
+	}
+
 
 	public long getUpdatetime() {
 		return updatetime;
