@@ -22,6 +22,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.identity.InstanceManager;
+import com.netflix.elasticcar.monitoring.FsStatsMonitor;
+import com.netflix.elasticcar.monitoring.NetworkStatsMonitor;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.elasticcar.utils.Sleeper;
@@ -97,8 +99,12 @@ public class ElasticCarServer
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
         
-
-       
+        /*
+         * Starting Monitoring Jobs
+         */
+        scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
+        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("FsStatsMonitor"));
+      
     }
 
     public InstanceManager getInstanceManager()

@@ -90,33 +90,5 @@ public class StandardTuner implements IElasticsearchTuner
         yaml.dump(map, new FileWriter(yamlFile));
     }
 
-   
 
-//    String derivePartitioner(String fromYaml, String fromConfig)
-//    {
-//        if(fromYaml == null || fromYaml.isEmpty())
-//            return fromConfig;
-//        //this check is to prevent against overwriting an existing yaml file that has
-//        // a partitioner not RandomPartitioner or (as of cass 1.2) Murmur3Partitioner.
-//        //basically we don't want to hose existing deployments by changing the partitioner unexpectedly on them
-//        final String lowerCase = fromYaml.toLowerCase();
-//        if(lowerCase.contains("randomparti") || lowerCase.contains("murmur"))
-//            return fromConfig;
-//        return fromYaml;
-//    }
-
-   
-
-//    public void updateAutoBootstrap(String yamlFile, boolean autobootstrap) throws IOException
-//    {
-//        DumperOptions options = new DumperOptions();
-//        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-//        Yaml yaml = new Yaml(options);
-//        @SuppressWarnings("rawtypes")
-//        Map map = (Map) yaml.load(new FileInputStream(yamlFile));
-//        //Dont bootstrap in restore mode
-//        map.put("auto_bootstrap", autobootstrap);
-//        logger.info("Updating yaml" + yaml.dump(map));
-//        yaml.dump(map, new FileWriter(yamlFile));
-//    }
 }
