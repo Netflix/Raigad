@@ -103,8 +103,7 @@ public class ElasticCarServer
          * Starting Monitoring Jobs
          */
         scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
-        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("FsStatsMonitor"));
-      
+        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));      
     }
 
     public InstanceManager getInstanceManager()
