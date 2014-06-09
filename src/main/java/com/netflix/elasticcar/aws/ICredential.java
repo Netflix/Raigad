@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.aws;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.inject.ImplementedBy;

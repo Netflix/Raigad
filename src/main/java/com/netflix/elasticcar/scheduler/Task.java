@@ -15,20 +15,18 @@
  */
 package com.netflix.elasticcar.scheduler;
 
-import java.lang.management.ManagementFactory;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
+import com.google.common.base.Throwables;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Throwables;
-import com.netflix.elasticcar.IConfiguration;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Task class that should be implemented by all cron tasks. Jobconf will contain

@@ -2,12 +2,12 @@ package com.netflix.elasticcar.identity;
 
 import java.util.List;
 
+import com.netflix.elasticcar.configuration.IConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.utils.RetryableCallable;
 
 /**

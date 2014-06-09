@@ -17,7 +17,6 @@ package com.netflix.elasticcar.aws;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
-import com.netflix.elasticcar.ICredential;
 
 public class IAMCredential implements ICredential
 {

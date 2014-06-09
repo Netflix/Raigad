@@ -15,25 +15,21 @@
  */
 package com.netflix.elasticcar.utils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.MessageDigest;
-import java.util.List;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.util.List;
 
 
 public class SystemUtils
@@ -68,6 +64,58 @@ public class SystemUtils
             throw new RuntimeException(ex);
         }
 
+    }
+
+    public static String runHttpGetCommand(String url) throws Exception
+    {
+            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+            conn.setConnectTimeout(1000);
+            conn.setReadTimeout(1000);
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() != 200)
+            {
+                throw new ESHttpException("Unable to get data for URL " + url);
+            }
+            byte[] b = new byte[2048];
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
+            int c = 0;
+            while ((c = d.read(b, 0, b.length)) != -1)
+                bos.write(b, 0, c);
+            String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
+            logger.info("Calling URL API: {} returns: {}", url, return_);
+            conn.disconnect();
+            return return_;
+    }
+
+    public static String runHttpPutCommand(String url,JSONObject jsonBody) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestMethod("POST");
+        OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
+        wr.write(jsonBody.toString());
+        wr.flush();
+        wr.close();
+
+        if (conn.getResponseCode() != 200)
+        {
+            throw new ESHttpException("Unable to execute PUT URL ("+url+") Exception Message: ("+conn.getResponseMessage()+")");
+        }
+        byte[] b = new byte[2048];
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
+        int c = 0;
+        while ((c = d.read(b, 0, b.length)) != -1)
+            bos.write(b, 0, c);
+        String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
+        logger.info("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
+        conn.disconnect();
+        return return_;
     }
 
     /**

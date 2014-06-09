@@ -1,16 +1,8 @@
 package com.netflix.elasticcar.monitoring;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
-import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
-import org.elasticsearch.monitor.fs.FsStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfiguration;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -19,6 +11,13 @@ import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
+import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.monitor.fs.FsStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class FsStatsMonitor extends Task
@@ -31,7 +30,6 @@ public class FsStatsMonitor extends Task
     public FsStatsMonitor(IConfiguration config)
     {
         super(config);
-        logger.info("***Inside constructor FsStatsMonitor");
         fsStatsReporter = new FsStatsReporter();
     		Monitors.registerObject(fsStatsReporter);
     }

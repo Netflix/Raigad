@@ -1,0 +1,312 @@
+package com.netflix.elasticcar.monitoring;
+
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
+
+import com.netflix.elasticcar.configuration.IConfiguration;
+import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.threadpool.ThreadPoolStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.netflix.elasticcar.scheduler.SimpleTimer;
+import com.netflix.elasticcar.scheduler.Task;
+import com.netflix.elasticcar.scheduler.TaskTimer;
+import com.netflix.elasticcar.utils.ESTransportClient;
+import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
+import com.netflix.servo.annotations.DataSourceType;
+import com.netflix.servo.annotations.Monitor;
+import com.netflix.servo.monitor.Monitors;
+
+@Singleton
+public class ThreadPoolStatsMonitor extends Task
+{
+	private static final Logger logger = LoggerFactory.getLogger(ThreadPoolStatsMonitor.class);
+    public static final String METRIC_NAME = "Elasticsearch_ThreadPoolMonitor";
+    private final ThreadPoolStatsReporter tpStatsReporter;
+    
+    @Inject
+    public ThreadPoolStatsMonitor(IConfiguration config)
+    {
+        super(config);
+        tpStatsReporter = new ThreadPoolStatsReporter();
+    		Monitors.registerObject(tpStatsReporter);
+    }
+
+  	@Override
+	public void execute() throws Exception {
+
+		// If Elasticsearch is started then only start the monitoring
+		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+			logger.info(exceptionMsg);
+			return;
+		}        		
+	
+  		ThreadPoolStatsBean tpStatsBean = new ThreadPoolStatsBean();
+  		try
+  		{
+  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+  			ThreadPoolStats tpstats = null;
+  			NodeStats ndStat = null;
+  			if (ndsStatsResponse.getNodes().length > 0) {
+  				ndStat = ndsStatsResponse.getAt(0);
+            }
+			if (ndStat == null) {
+				logger.info("NodeStats is null,hence returning (No ThreadPoolStats).");
+				return;
+			}
+  			tpstats = ndStat.getThreadPool();
+			if (tpstats == null) {
+				logger.info("ThreadPoolStats is null,hence returning (No ThreadPoolStats).");
+				return;
+			}
+  		    Iterator<ThreadPoolStats.Stats> iter = tpstats.iterator();
+  		    while( iter.hasNext() ) {
+  		      ThreadPoolStats.Stats stat = iter.next();
+  		      if( stat.getName().equals("index") ) {
+  		    	  	tpStatsBean.indexThreads = stat.getThreads();
+  		    	  	tpStatsBean.indexQueue = stat.getQueue();
+  		    	  	tpStatsBean.indexActive = stat.getActive();
+  		    	  	tpStatsBean.indexRejected = stat.getRejected();
+  		    	  	tpStatsBean.indexLargest = stat.getLargest();
+  		    	  	tpStatsBean.indexCompleted = stat.getCompleted();
+  		    	  	logger.info("indexThreads = "+tpStatsBean.indexThreads);
+  		    	  	logger.info("indexQueue = "+tpStatsBean.indexQueue);
+  		    	  	logger.info("indexActive = "+tpStatsBean.indexActive);
+  		    		logger.info("indexRejected = "+tpStatsBean.indexRejected);
+  		    		logger.info("indexLargest = "+tpStatsBean.indexLargest);
+  		    		logger.info("indexCompleted = "+tpStatsBean.indexCompleted);
+  		      }
+  		      else if( stat.getName().equals("get") ) {
+  		    	  	tpStatsBean.getThreads = stat.getThreads();
+  		    	  	tpStatsBean.getQueue = stat.getQueue();
+  		    	  	tpStatsBean.getActive = stat.getActive();
+  		    	  	tpStatsBean.getRejected = stat.getRejected();
+  		    	  	tpStatsBean.getLargest = stat.getLargest();
+  		    	  	tpStatsBean.getCompleted = stat.getCompleted();
+  		    	  	logger.info("getThreads = "+tpStatsBean.getThreads);
+  		    	  	logger.info("getQueue = "+tpStatsBean.getQueue);
+  		    	  	logger.info("getActive = "+tpStatsBean.getActive);
+  		    		logger.info("getRejected = "+tpStatsBean.getRejected);
+  		    		logger.info("getLargest = "+tpStatsBean.getLargest);
+  		    		logger.info("getCompleted = "+tpStatsBean.getCompleted);
+  		      }
+  		      else if( stat.getName().equals("search") ) {
+  		    	  	tpStatsBean.searchThreads = stat.getThreads();
+  		    	  	tpStatsBean.searchQueue = stat.getQueue();
+  		    	  	tpStatsBean.searchActive = stat.getActive();
+  		    	  	tpStatsBean.searchRejected = stat.getRejected();
+  		    	  	tpStatsBean.searchLargest = stat.getLargest();
+  		    	  	tpStatsBean.searchCompleted = stat.getCompleted();
+  		    	  	logger.info("searchThreads = "+tpStatsBean.getThreads);
+  		    	  	logger.info("searchQueue = "+tpStatsBean.getQueue);
+  		    	  	logger.info("searchActive = "+tpStatsBean.getActive);
+  		    		logger.info("searchRejected = "+tpStatsBean.getRejected);
+  		    		logger.info("searchLargest = "+tpStatsBean.getLargest);
+  		    		logger.info("searchCompleted = "+tpStatsBean.getCompleted);
+  		      }
+  		      else if( stat.getName().equals("bulk") ) {
+  		    	  	tpStatsBean.bulkThreads = stat.getThreads();
+  		    	  	tpStatsBean.bulkQueue = stat.getQueue();
+  		    	  	tpStatsBean.bulkActive = stat.getActive();
+  		    	  	tpStatsBean.bulkRejected = stat.getRejected();
+  		    	  	tpStatsBean.bulkLargest = stat.getLargest();
+  		    	  	tpStatsBean.bulkCompleted = stat.getCompleted();
+  		    	  	logger.info("bulkThreads = "+tpStatsBean.getThreads);
+  		    	  	logger.info("bulkQueue = "+tpStatsBean.getQueue);
+  		    	  	logger.info("bulkActive = "+tpStatsBean.getActive);
+  		    		logger.info("bulkRejected = "+tpStatsBean.getRejected);
+  		    		logger.info("bulkLargest = "+tpStatsBean.getLargest);
+  		    		logger.info("bulkCompleted = "+tpStatsBean.getCompleted);
+  		      }
+  		    }
+  		}
+  		catch(Exception e)
+  		{
+  			logger.warn("failed to load Thread Pool stats data", e);
+  		}
+  		tpStatsReporter.threadPoolBean.set(tpStatsBean);
+	}
+  	
+    public class ThreadPoolStatsReporter
+    {
+        private final AtomicReference<ThreadPoolStatsBean> threadPoolBean;
+
+        public ThreadPoolStatsReporter()
+        {
+        		threadPoolBean = new AtomicReference<ThreadPoolStatsBean>(new ThreadPoolStatsBean());
+        }
+        
+        @Monitor(name="IndexThreads", type=DataSourceType.GAUGE)
+        public long getIndexThreads()
+        {
+            return threadPoolBean.get().indexThreads;
+        }
+        
+        @Monitor(name="IndexQueue", type=DataSourceType.GAUGE)
+        public long getIndexQueue()
+        {
+            return threadPoolBean.get().indexQueue;
+        }
+        @Monitor(name="indexActive", type=DataSourceType.GAUGE)
+        public long getIndexActive()
+        {
+            return threadPoolBean.get().indexActive;
+        }
+        @Monitor(name="indexRejected", type=DataSourceType.GAUGE)
+        public long getIndexRejected()
+        {
+            return threadPoolBean.get().indexRejected;
+        }
+        @Monitor(name="indexLargest", type=DataSourceType.GAUGE)
+        public long getIndexLargest()
+        {
+            return threadPoolBean.get().indexLargest;
+        }
+        @Monitor(name="indexCompleted", type=DataSourceType.GAUGE)
+        public long getIndexCompleted()
+        {
+            return threadPoolBean.get().indexCompleted;
+        }
+
+        @Monitor(name="getThreads", type=DataSourceType.GAUGE)
+        public long getGetThreads()
+        {
+            return threadPoolBean.get().getThreads;
+        }
+        @Monitor(name="getQueue", type=DataSourceType.GAUGE)
+        public long getGetQueue()
+        {
+            return threadPoolBean.get().getQueue;
+        }
+        @Monitor(name="getActive", type=DataSourceType.GAUGE)
+        public long getGetActive()
+        {
+            return threadPoolBean.get().getActive;
+        }
+        @Monitor(name="getRejected", type=DataSourceType.GAUGE)
+        public long getGetRejected()
+        {
+            return threadPoolBean.get().getRejected;
+        }
+        @Monitor(name="getLargest", type=DataSourceType.GAUGE)
+        public long getGetLargest()
+        {
+            return threadPoolBean.get().getLargest;
+        }
+        @Monitor(name="getCompleted", type=DataSourceType.GAUGE)
+        public long getGetCompleted()
+        {
+            return threadPoolBean.get().getCompleted;
+        }
+
+        @Monitor(name="searchThreads", type=DataSourceType.GAUGE)
+        public long getSearchThreads()
+        {
+            return threadPoolBean.get().searchThreads;
+        }
+        @Monitor(name="searchQueue", type=DataSourceType.GAUGE)
+        public long getSearchQueue()
+        {
+            return threadPoolBean.get().searchQueue;
+        }
+        @Monitor(name="searchActive", type=DataSourceType.GAUGE)
+        public long getSearchActive()
+        {
+            return threadPoolBean.get().searchActive;
+        }
+        @Monitor(name="searchRejected", type=DataSourceType.GAUGE)
+        public long getSearchRejected()
+        {
+            return threadPoolBean.get().searchRejected;
+        }
+        @Monitor(name="searchLargest", type=DataSourceType.GAUGE)
+        public long getSearchLargest()
+        {
+            return threadPoolBean.get().searchLargest;
+        }
+        @Monitor(name="searchCompleted", type=DataSourceType.GAUGE)
+        public long getSearchCompleted()
+        {
+            return threadPoolBean.get().searchCompleted;
+        }
+
+        @Monitor(name="bulkThreads", type=DataSourceType.GAUGE)
+        public long getBulkThreads()
+        {
+            return threadPoolBean.get().bulkThreads;
+        }
+        @Monitor(name="bulkQueue", type=DataSourceType.GAUGE)
+        public long getBulkQueue()
+        {
+            return threadPoolBean.get().bulkQueue;
+        }
+        @Monitor(name="bulkActive", type=DataSourceType.GAUGE)
+        public long getBulkActive()
+        {
+            return threadPoolBean.get().bulkActive;
+        }
+        	@Monitor(name="bulkRejected", type=DataSourceType.GAUGE)
+        public long getBulkRejected()
+        {
+            return threadPoolBean.get().bulkRejected;
+        }
+        	@Monitor(name="bulkLargest", type=DataSourceType.GAUGE)
+        public long getBulkLargest()
+        {
+            return threadPoolBean.get().bulkLargest;
+        }
+        	@Monitor(name="bulkCompleted", type=DataSourceType.GAUGE)
+        public long getBulkCompleted()
+        {
+            return threadPoolBean.get().bulkCompleted;
+        }
+    }
+    
+    private static class ThreadPoolStatsBean
+    {
+    	  private long indexThreads;
+    	  private long indexQueue;
+    	  private long indexActive;
+    	  private long indexRejected;
+    	  private long indexLargest;
+    	  private long indexCompleted;
+
+    	  private long getThreads;
+    	  private long getQueue;
+    	  private long getActive;
+    	  private long getRejected;
+    	  private long getLargest;
+    	  private long getCompleted;
+
+    	  private long searchThreads;
+    	  private long searchQueue;
+    	  private long searchActive;
+    	  private long searchRejected;
+    	  private long searchLargest;
+    	  private long searchCompleted;
+
+    	  private long bulkThreads;
+    	  private long bulkQueue;
+    	  private long bulkActive;
+    	  private long bulkRejected;
+    	  private long bulkLargest;
+    	  private long bulkCompleted;    
+    }
+
+	public static TaskTimer getTimer(String name)
+	{
+		return new SimpleTimer(name, 60 * 1000);
+	}
+
+	@Override
+	public String getName()
+	{
+		return METRIC_NAME;
+	}
+
+}

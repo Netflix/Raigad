@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.elasticcar;
-
-import java.util.List;
+package com.netflix.elasticcar.configuration;
 
 import com.google.inject.ImplementedBy;
-import com.netflix.elasticcar.defaultimpl.ElasticCarConfiguration;
+
+import java.util.List;
 
 
 @ImplementedBy(ElasticCarConfiguration.class)
@@ -171,4 +170,9 @@ public interface IConfiguration
     public String getClusterRoutingAttributes();
     
     public boolean isAsgBasedDedicatedDeployment();
+
+    public boolean isCustomShardAllocationPolicyEnabled();
+
+    public String getClusterShardAllocationAttribute();
+
 }

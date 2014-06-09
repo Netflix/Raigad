@@ -15,27 +15,7 @@
  */
 package com.netflix.elasticcar.aws;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.simpledb.AmazonSimpleDBClient;
-import com.amazonaws.services.simpledb.model.Attribute;
-import com.amazonaws.services.simpledb.model.DeleteAttributesRequest;
-import com.amazonaws.services.simpledb.model.Item;
-import com.amazonaws.services.simpledb.model.PutAttributesRequest;
-import com.amazonaws.services.simpledb.model.ReplaceableAttribute;
-import com.amazonaws.services.simpledb.model.SelectRequest;
-import com.amazonaws.services.simpledb.model.SelectResult;
-import com.amazonaws.services.simpledb.model.UpdateCondition;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.ICredential;
-import com.netflix.elasticcar.identity.ElasticCarInstance;
 
 /**
  * DAO for handling Instance identity information such as token, zone, region

@@ -8,13 +8,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.netflix.elasticcar.configuration.IConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.IElasticsearchProcess;
 import com.netflix.elasticcar.utils.Sleeper;
 

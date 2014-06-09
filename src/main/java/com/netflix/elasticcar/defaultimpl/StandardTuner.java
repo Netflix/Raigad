@@ -1,20 +1,18 @@
 package com.netflix.elasticcar.defaultimpl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
+import com.google.inject.Inject;
+import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.utils.IElasticsearchTuner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import com.google.inject.Inject;
-import com.netflix.elasticcar.IConfiguration;
-import com.netflix.elasticcar.utils.IElasticsearchTuner;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
 
 public class StandardTuner implements IElasticsearchTuner
 {
@@ -46,6 +44,8 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("index.number_of_shards", config.getNumOfShards());
         map.put("index.number_of_replicas", config.getNumOfReplicas());
         map.put("index.refresh_interval", config.getIndexRefreshInterval());
+        if(config.isCustomShardAllocationPolicyEnabled())
+            map.put("cluster.routing.allocation.enable", config.getClusterShardAllocationAttribute());
         //NOTE: When using awareness attributes, shards will not be allocated to nodes 
         //that do not have values set for those attributes.
         //*** Important in dedicated master nodes deployment

@@ -15,19 +15,19 @@
  */
 package com.netflix.elasticcar;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
+import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.defaultimpl.ElasticSearchShardAllocationManager;
 import com.netflix.elasticcar.identity.InstanceManager;
-import com.netflix.elasticcar.monitoring.FsStatsMonitor;
-import com.netflix.elasticcar.monitoring.NetworkStatsMonitor;
+import com.netflix.elasticcar.monitoring.*;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Start all tasks here - Property update task - Backup task - Restore task -
@@ -95,13 +95,18 @@ public class ElasticCarServer
 			logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually ...");        
 
         /*
-         *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch
+         *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
-        
+
+        if(config.isCustomShardAllocationPolicyEnabled())
+            scheduler.addTaskWithDelay(ElasticSearchShardAllocationManager.JOBNAME, ElasticSearchShardAllocationManager.class, ElasticSearchShardAllocationManager.getTimer(), ES_MONITORING_INITIAL_DELAY);
         /*
-         * Starting Monitoring Jobs
-         */
+        * Starting Monitoring Jobs
+        */
+        scheduler.addTask(ThreadPoolStatsMonitor.METRIC_NAME, ThreadPoolStatsMonitor.class, ThreadPoolStatsMonitor.getTimer("ThreadPoolStatsMonitor"));
+        scheduler.addTask(TransportStatsMonitor.METRIC_NAME, TransportStatsMonitor.class, TransportStatsMonitor.getTimer("TransportStatsMonitor"));
+        scheduler.addTask(NodeIndicesStatsMonitor.METRIC_NAME, NodeIndicesStatsMonitor.class, NodeIndicesStatsMonitor.getTimer("NodeIndicesStatsMonitor"));
         scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
         scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));      
     }

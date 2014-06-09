@@ -13,35 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.elasticcar.defaultimpl;
-
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.netflix.elasticcar.configuration;
 
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.AvailabilityZone;
-import com.amazonaws.services.ec2.model.DescribeAvailabilityZonesResult;
-import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
-import com.amazonaws.services.ec2.model.DescribeInstancesResult;
-import com.amazonaws.services.ec2.model.Instance;
-import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.IConfigSource;
-import com.netflix.elasticcar.IConfiguration;
-import com.netflix.elasticcar.ICredential;
+import com.netflix.elasticcar.aws.ICredential;
 import com.netflix.elasticcar.utils.RetryableCallable;
 import com.netflix.elasticcar.utils.SystemUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 @Singleton
 public class ElasticCarConfiguration implements IConfiguration
 {
+    @Override
+    public boolean isCustomShardAllocationPolicyEnabled() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public static final String ESCAR_PRE = "escar";
 
     private static final String CONFIG_ES_HOME_DIR = ESCAR_PRE + ".elasticsearch.home";
@@ -440,6 +438,10 @@ public class ElasticCarConfiguration implements IConfiguration
 		return false;
 	}
 
+    @Override
+    public String getClusterShardAllocationAttribute() {
+        return null;
+    }
 
-   
+
 }

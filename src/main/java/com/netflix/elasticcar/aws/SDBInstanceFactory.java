@@ -15,22 +15,7 @@
  */
 package com.netflix.elasticcar.aws;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.amazonaws.AmazonServiceException;
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfiguration;
-import com.netflix.elasticcar.identity.ElasticCarInstance;
-import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 
 /**
  * SimpleDB based instance factory. Requires 'InstanceIdentity' domain to be

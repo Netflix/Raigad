@@ -15,28 +15,22 @@
  */
 package com.netflix.elasticcar.utils;
 
-import static org.elasticsearch.common.settings.ImmutableSettings.Builder.EMPTY_SETTINGS;
-
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilder;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.env.Environment;
-import org.elasticsearch.node.internal.InternalSettingsPreparer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfiguration;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 //import org.json.simple.JSONArray;
 //import org.json.simple.JSONObject;
 

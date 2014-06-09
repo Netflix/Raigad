@@ -1,4 +1,4 @@
-package com.netflix.elasticcar.aws;
+package com.netflix.elasticcar.defaultimpl;
 
 import java.io.Serializable;
 

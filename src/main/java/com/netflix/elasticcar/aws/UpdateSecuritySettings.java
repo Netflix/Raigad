@@ -17,13 +17,13 @@ package com.netflix.elasticcar.aws;
 
 import java.util.List;
 
+import com.netflix.elasticcar.configuration.IConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfiguration;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.netflix.elasticcar.identity.IMembership;

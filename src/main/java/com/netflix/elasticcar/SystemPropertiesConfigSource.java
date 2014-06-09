@@ -5,7 +5,7 @@ import java.util.Properties;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
-import com.netflix.elasticcar.defaultimpl.ElasticCarConfiguration;
+import com.netflix.elasticcar.configuration.ElasticCarConfiguration;
 
 /**
  * Loads {@link System#getProperties()} as a source.

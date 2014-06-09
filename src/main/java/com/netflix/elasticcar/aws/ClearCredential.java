@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.netflix.elasticcar.ICredential;
 
 /**
  * This is a basic implementation of ICredentials. User should prefer to
