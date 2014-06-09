@@ -1,6 +1,7 @@
 package com.netflix.elasticcar.defaultimpl;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
@@ -15,6 +16,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Singleton
 public class ElasticSearchShardAllocationManager extends Task {
 
     public static final String JOBNAME = "ES_SHARDALLOCATOR_THREAD";
