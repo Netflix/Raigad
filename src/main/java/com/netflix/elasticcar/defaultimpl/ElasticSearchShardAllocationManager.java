@@ -72,7 +72,7 @@ public class ElasticSearchShardAllocationManager extends Task {
 
     public static TaskTimer getTimer()
     {
-        return new SimpleTimer(JOBNAME, 10L * 1000);
+        return new SimpleTimer(JOBNAME, 60 * 1000);
     }
 
     @Override

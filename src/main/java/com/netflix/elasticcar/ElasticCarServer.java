@@ -19,7 +19,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.defaultimpl.ElasticSearchShardAllocationManager;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.monitoring.*;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
@@ -99,8 +98,8 @@ public class ElasticCarServer
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
-        if(config.isCustomShardAllocationPolicyEnabled())
-            scheduler.addTaskWithDelay(ElasticSearchShardAllocationManager.JOBNAME, ElasticSearchShardAllocationManager.class, ElasticSearchShardAllocationManager.getTimer(), ES_MONITORING_INITIAL_DELAY);
+//        if(config.isCustomShardAllocationPolicyEnabled())
+//            scheduler.addTask(ElasticSearchShardAllocationManager.JOBNAME, ElasticSearchShardAllocationManager.class, ElasticSearchShardAllocationManager.getTimer());
         /*
         * Starting Monitoring Jobs
         */

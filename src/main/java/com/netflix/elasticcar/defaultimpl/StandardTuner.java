@@ -44,8 +44,8 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("index.number_of_shards", config.getNumOfShards());
         map.put("index.number_of_replicas", config.getNumOfReplicas());
         map.put("index.refresh_interval", config.getIndexRefreshInterval());
-        if(config.isCustomShardAllocationPolicyEnabled())
-            map.put("cluster.routing.allocation.enable", config.getClusterShardAllocationAttribute());
+//        if(config.isCustomShardAllocationPolicyEnabled())
+//            map.put("cluster.routing.allocation.enable", config.getClusterShardAllocationAttribute());
         //NOTE: When using awareness attributes, shards will not be allocated to nodes 
         //that do not have values set for those attributes.
         //*** Important in dedicated master nodes deployment
