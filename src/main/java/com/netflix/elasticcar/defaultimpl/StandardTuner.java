@@ -58,7 +58,7 @@ public class StandardTuner implements IElasticsearchTuner
 		}        
 		else
         {
-			map.put("node.name", config.getDC() + "." + config.getInstanceId());
+			map.put("node.name", config.getRac() + "." + config.getInstanceId());
 			map.put("node.rack_id", config.getRac());
         }
 		

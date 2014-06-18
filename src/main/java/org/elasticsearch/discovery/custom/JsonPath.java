@@ -18,13 +18,13 @@
  */
 package org.elasticsearch.discovery.custom;
 
+import org.elasticsearch.common.collect.Lists;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.elasticsearch.common.xcontent.json.JsonXContent;
-
-import com.google.common.collect.Lists;
 
 /**
  * Holds a json object and allows to extract specific values from it

@@ -1,9 +1,9 @@
 package org.elasticsearch.discovery.custom;
 
-import java.util.List;
-
+import com.netflix.elasticcar.identity.ElasticCarInstance;
 import org.elasticsearch.Version;
 import org.elasticsearch.cluster.node.DiscoveryNode;
+import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
@@ -11,12 +11,9 @@ import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.discovery.zen.ping.unicast.UnicastHostsProvider;
 import org.elasticsearch.discovery.zen.ping.unicast.UnicastZenPing;
 import org.elasticsearch.transport.TransportService;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
-import com.google.common.collect.Lists;
-import com.netflix.elasticcar.identity.ElasticCarInstance;
-import com.netflix.elasticcar.utils.EsUtils;
+import java.util.List;
+
 
 public class CustomUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
 	private final TransportService transportService;

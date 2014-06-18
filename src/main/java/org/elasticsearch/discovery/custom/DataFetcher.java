@@ -15,15 +15,14 @@
  */
 package org.elasticsearch.discovery.custom;
 
+import org.elasticsearch.common.logging.ESLogger;
+import org.apache.commons.lang.CharEncoding;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
-import org.elasticsearch.common.logging.ESLogger;
-
-import com.google.common.base.Charsets;
 
 public class DataFetcher
 {
@@ -46,7 +45,7 @@ public class DataFetcher
             int c = 0;
             while ((c = responseStream.read(b, 0, b.length)) != -1)
                 bos.write(b, 0, c);
-            String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
+            String return_ = new String(bos.toByteArray(), CharEncoding.UTF_8);
             logger.info(String.format("Calling URL API: %s returns: %s", url, return_));
             conn.disconnect();
             return return_;
