@@ -81,14 +81,31 @@ public class StandardTuner implements IElasticsearchTuner
 				map.put("node.data", false);
 			}
 		}
-        
-//        List<?> seedp = (List) map.get("seed_provider");
-//        Map<String, String> m = (Map<String, String>) seedp.get(0);
-//        m.put("class_name", seedProvider);
+
+        addExtraEsParams(map);
 
         logger.info(yaml.dump(map));
         yaml.dump(map, new FileWriter(yamlFile));
     }
 
+    public void addExtraEsParams(Map map)
+    {
+        	String params = config.getExtraConfigParams();
+        	if (params == null) {
+            		logger.info("Updating yaml: no extra ES params");
+            		return;
+            }
 
+            String[] pairs = params.split(",");
+        	logger.info("Updating yaml: adding extra ES params");
+        	for(int i=0; i<pairs.length; i++)
+            {
+                String[] pair = pairs[i].split("=");
+        	    String escarKey = pair[0];
+        		String esKey = pair[1];
+        		String esVal = config.getEsKeyName(escarKey);
+        		logger.info("Updating yaml: Elasticcarkey[" + escarKey + "], EsKey[" + esKey + "], Val[" + esVal + "]");
+        		map.put(esKey, esVal);
+        	}
+        }
 }

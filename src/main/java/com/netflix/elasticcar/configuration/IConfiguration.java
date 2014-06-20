@@ -175,4 +175,11 @@ public interface IConfiguration
 
     public String getClusterShardAllocationAttribute();
 
+    /**
+     * Providing a way to add New Config Params without any code change
+     */
+    public String getExtraConfigParams();
+
+    public String getEsKeyName(String escarKey);
+
 }

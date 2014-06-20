@@ -56,7 +56,8 @@ public class ElasticCarConfiguration implements IConfiguration
     private static final String CONFIG_ES_PROCESS_NAME = ESCAR_PRE + ".elasticsearch.process";
     private static final String CONFIG_YAML_LOCATION = ESCAR_PRE + ".yamlLocation";
     private static final String CONFIG_PARTITIONER = ESCAR_PRE + ".partitioner";
-   
+    private static final String CONFIG_EXTRA_PARAMS = ESCAR_PRE + ".extra.params";
+
     // Amazon specific
     private static final String CONFIG_ASG_NAME = ESCAR_PRE + ".az.asgname";
     private static final String CONFIG_REGION_NAME = ESCAR_PRE + ".az.region";
@@ -441,6 +442,16 @@ public class ElasticCarConfiguration implements IConfiguration
     @Override
     public String getClusterShardAllocationAttribute() {
         return null;
+    }
+
+    @Override
+    public String getExtraConfigParams() {
+        return config.get(CONFIG_EXTRA_PARAMS);
+    }
+
+    @Override
+    public String getEsKeyName(String escarKey) {
+        return config.get(escarKey);
     }
 
 
