@@ -454,5 +454,9 @@ public class ElasticCarConfiguration implements IConfiguration
         return config.get(escarKey);
     }
 
+    @Override
+    public boolean isDebugEnabled() {
+        return false;
+    }
 
 }

@@ -182,4 +182,5 @@ public interface IConfiguration
 
     public String getEsKeyName(String escarKey);
 
+    public boolean isDebugEnabled();
 }
