@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.defaultimpl.ElasticSearchShardAllocationManager;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.monitoring.*;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
@@ -40,21 +41,23 @@ public class ElasticCarServer
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
+    private final ElasticSearchShardAllocationManager esShardAllocationManager;
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchShardAllocationManager esShardAllocationManager)
     {
         this.config = config;
         this.scheduler = scheduler;
         this.esProcess = esProcess;
         this.sleeper = sleeper;
         this.instanceManager = instanceManager;
+        this.esShardAllocationManager = esShardAllocationManager;
     }
     
-    public void intialize() throws Exception
+    public void initialize() throws Exception
     {     
     		//Check If it's really needed
         if (instanceManager.getInstance().isOutOfService())
@@ -98,8 +101,6 @@ public class ElasticCarServer
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
-//        if(config.isCustomShardAllocationPolicyEnabled())
-//            scheduler.addTask(ElasticSearchShardAllocationManager.JOBNAME, ElasticSearchShardAllocationManager.class, ElasticSearchShardAllocationManager.getTimer());
         /*
         * Starting Monitoring Jobs
         */

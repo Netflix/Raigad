@@ -15,21 +15,20 @@
  */
 package com.netflix.elasticcar.aws;
 
-import java.util.List;
-
-import com.netflix.elasticcar.configuration.IConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.identity.IElasticCarInstanceFactory;
 import com.netflix.elasticcar.identity.IMembership;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 
 @Singleton
@@ -56,9 +55,7 @@ public class UpdateSecuritySettings extends Task
         // if seed dont execute.
         int port = config.getTransportTcpPort();
         List<String> acls = membership.listACL(port, port);
-        
-        logger.info("*** Done Listing .... ");
-        
+
         List<ElasticCarInstance> instances = factory.getAllIds(config.getAppName());
 
         // iterate to add...

@@ -44,9 +44,7 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("index.number_of_shards", config.getNumOfShards());
         map.put("index.number_of_replicas", config.getNumOfReplicas());
         map.put("index.refresh_interval", config.getIndexRefreshInterval());
-//        if(config.isCustomShardAllocationPolicyEnabled())
-//            map.put("cluster.routing.allocation.enable", config.getClusterShardAllocationAttribute());
-        //NOTE: When using awareness attributes, shards will not be allocated to nodes 
+        //NOTE: When using awareness attributes, shards will not be allocated to nodes
         //that do not have values set for those attributes.
         //*** Important in dedicated master nodes deployment
         map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
@@ -104,8 +102,13 @@ public class StandardTuner implements IElasticsearchTuner
         	    String escarKey = pair[0];
         		String esKey = pair[1];
         		String esVal = config.getEsKeyName(escarKey);
-        		logger.info("Updating yaml: Elasticcarkey[" + escarKey + "], EsKey[" + esKey + "], Val[" + esVal + "]");
-        		map.put(esKey, esVal);
+            	logger.info("Updating yaml: Elasticcarkey[" + escarKey + "], EsKey[" + esKey + "], Val[" + esVal + "]");
+                if(escarKey==null || esKey==null || esVal==null)
+                {
+                    logger.error("One of the Keys/values is null and hence not adding to yml and moving on ...");
+                    continue;
+                }
+                map.put(esKey, esVal);
         	}
         }
 }

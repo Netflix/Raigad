@@ -1,5 +1,14 @@
 package com.netflix.elasticcar.defaultimpl;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import com.netflix.elasticcar.IElasticsearchProcess;
+import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.utils.Sleeper;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -7,16 +16,6 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import com.netflix.elasticcar.configuration.IConfiguration;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.netflix.elasticcar.IElasticsearchProcess;
-import com.netflix.elasticcar.utils.Sleeper;
 
 public class ElasticSearchProcessManager implements IElasticsearchProcess
 {
@@ -66,7 +65,7 @@ public class ElasticSearchProcessManager implements IElasticsearchProcess
 			logProcessOutput(starter);
 		} catch (Exception e) 
                 {
-                     logger.warn("Starting Elasticsearch has an error", e);
+                     logger.warn("Starting Elasticsearch has an error", e.getMessage());
 		}
     }
 

@@ -15,34 +15,25 @@
  */
 package com.netflix.elasticcar.aws;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
+import com.amazonaws.services.autoscaling.AmazonAutoScaling;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
+import com.amazonaws.services.autoscaling.model.*;
+import com.amazonaws.services.autoscaling.model.Instance;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2Client;
+import com.amazonaws.services.ec2.model.*;
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.identity.IMembership;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest;
-import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult;
-import com.amazonaws.services.autoscaling.model.Instance;
-import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest;
-import com.amazonaws.services.ec2.AmazonEC2;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest;
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult;
-import com.amazonaws.services.ec2.model.IpPermission;
-import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest;
-import com.amazonaws.services.ec2.model.SecurityGroup;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-import com.netflix.elasticcar.identity.IMembership;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Class to query amazon ASG for its members to provide - Number of valid nodes
@@ -174,23 +165,15 @@ public class AWSMembership implements IMembership
         {
             client = getEc2Client();
             List<String> ipPermissions = new ArrayList<String>();
-            logger.info("***ACL Group Name = "+config.getACLGroupName());
             DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
             DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
             for (SecurityGroup group : result.getSecurityGroups())
-            {   logger.info("***Grp Desc = ("+group.getDescription()+")");
-            		logger.info("Grp Id = ("+group.getGroupId()+")");
-            		logger.info("Grp Name = ("+group.getGroupName()+")");
-            		logger.info("Grp Owner Id = ("+group.getOwnerId()+")");
+            {
                 for (IpPermission perm : group.getIpPermissions())
-                {  if(perm == null)
-                	    logger.info("***IpPermission is  NULL ... ");
+                {
                     if (perm.getFromPort() == from && perm.getToPort() == to)
                     {
-                    		logger.info("From : ("+from+") To : ("+to+")");
-                    		for(String ip:perm.getIpRanges())
-                    			logger.info("IP : ["+ip+"]");
-                    		ipPermissions.addAll(perm.getIpRanges());
+                   		ipPermissions.addAll(perm.getIpRanges());
                     }
                 }
             }

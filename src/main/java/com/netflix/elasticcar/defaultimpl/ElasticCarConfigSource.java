@@ -9,10 +9,10 @@ import com.netflix.elasticcar.SystemPropertiesConfigSource;
 
 public class ElasticCarConfigSource extends CompositeConfigSource {
 
-  @Inject
-  public ElasticCarConfigSource(final PropertiesConfigSource simpleDBConfigSource,
-                           final PropertiesConfigSource propertiesConfigSource,
-                           final SystemPropertiesConfigSource systemPropertiesConfigSource) {
-    super(simpleDBConfigSource, propertiesConfigSource, systemPropertiesConfigSource);
-  }
+    @Inject
+    public ElasticCarConfigSource(final PropertiesConfigSource simpleDBConfigSource,
+                                  final PropertiesConfigSource propertiesConfigSource,
+                                  final SystemPropertiesConfigSource systemPropertiesConfigSource) {
+        super(simpleDBConfigSource, propertiesConfigSource, systemPropertiesConfigSource);
+    }
 }

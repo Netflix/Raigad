@@ -19,14 +19,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.netflix.elasticcar.configuration.ElasticCarConfiguration;
-import com.netflix.elasticcar.configuration.IConfiguration;
+import org.elasticsearch.common.collect.Lists;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -34,6 +32,8 @@ import com.google.inject.Module;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.netflix.elasticcar.ElasticCarServer;
+import com.netflix.elasticcar.configuration.ElasticCarConfiguration;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
@@ -41,7 +41,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 public class InjectedWebListener extends GuiceServletContextListener
 {
     protected static final Logger logger = LoggerFactory.getLogger(InjectedWebListener.class);
-    
+
     @Override
     protected Injector getInjector()
     {
@@ -65,26 +65,27 @@ public class InjectedWebListener extends GuiceServletContextListener
     private void startJobs(Injector injector) throws Exception
     {
     		ElasticCarServer escarServer = injector.getInstance(ElasticCarServer.class);
-    		
+
     		logger.info("**Now starting to initialize escarserver from OSS");
-    		escarServer.intialize();
-            
+    		escarServer.initialize();
+
     }
-    
+
     public static class JaxServletModule extends ServletModule
     {
         @Override
         protected void configureServlets()
         {
             Map<String, String> params = new HashMap<String, String>();
-            params.put(PackagesResourceConfig.PROPERTY_PACKAGES, "unbound");
+            params.put(PackagesResourceConfig.PROPERTY_PACKAGES
+                    , "unbound");
             params.put("com.sun.jersey.config.property.packages", "com.netflix.escar.resources");
             params.put(ServletContainer.PROPERTY_FILTER_CONTEXT_PATH, "/REST");
             serve("/REST/*").with(GuiceContainer.class, params);
         }
     }
 
-    
+
     public static class ElasticCarGuiceModule extends AbstractModule
     {
         @Override
@@ -96,5 +97,5 @@ public class InjectedWebListener extends GuiceServletContextListener
 //            bind(IElasticCarInstanceFactory.class).to(CassandraInstanceFactory.class);
 //            bind(ICredential.class).to(IAMCredential.class);
         }
-    } 
+    }
 }

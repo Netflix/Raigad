@@ -1,9 +1,9 @@
 package com.netflix.elasticcar;
 
-import java.util.List;
-
 import com.google.inject.ImplementedBy;
 import com.netflix.elasticcar.defaultimpl.ElasticCarConfigSource;
+
+import java.util.List;
 
 /**
  * Defines the configurations for an application.

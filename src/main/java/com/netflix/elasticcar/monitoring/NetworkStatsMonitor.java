@@ -1,13 +1,5 @@
 package com.netflix.elasticcar.monitoring;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
-import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
-import org.elasticsearch.monitor.network.NetworkStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
@@ -19,6 +11,13 @@ import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
+import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.monitor.network.NetworkStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class NetworkStatsMonitor extends Task
@@ -75,16 +74,6 @@ public class NetworkStatsMonitor extends Task
 			networkStatsBean.retransSegs = networkStats.getTcp().getRetransSegs();
 			networkStatsBean.inErrs = networkStats.getTcp().getInErrs();
 			networkStatsBean.outRsts = networkStats.getTcp().getOutRsts();
-	    	  	logger.info("activeOpens = "+networkStatsBean.activeOpens);
-	    	  	logger.info("passiveOpens = "+networkStatsBean.passiveOpens);
-	    	  	logger.info("attemptFails = "+networkStatsBean.attemptFails);
-	    	  	logger.info("estabResets = "+networkStatsBean.estabResets);
-	    	  	logger.info("currEstab = "+networkStatsBean.currEstab);
-	    	  	logger.info("inSegs = "+networkStatsBean.inSegs);
-	    	  	logger.info("outSegs = "+networkStatsBean.outSegs);
-	    	  	logger.info("retransSegs = "+networkStatsBean.retransSegs);
-	    	  	logger.info("inErrs = "+networkStatsBean.inErrs);
-	    	  	logger.info("outRsts = "+networkStatsBean.outRsts);
   		}
   		catch(Exception e)
   		{

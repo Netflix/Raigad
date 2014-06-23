@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Loads the 'Dynomite.properties' file as a source.
  */
-public class PropertiesConfigSource extends AbstractConfigSource 
+public class PropertiesConfigSource extends AbstractConfigSource
 {
     private static final Logger logger = LoggerFactory.getLogger(PropertiesConfigSource.class.getName());
 
@@ -26,12 +26,12 @@ public class PropertiesConfigSource extends AbstractConfigSource
     private final Map<String, String> data = Maps.newConcurrentMap();
     private final String floridaFile;
 
-    public PropertiesConfigSource() 
+    public PropertiesConfigSource()
     {
         this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
     }
 
-    public PropertiesConfigSource(final Properties properties) 
+    public PropertiesConfigSource(final Properties properties)
     {
         checkNotNull(properties);
         this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
@@ -39,43 +39,43 @@ public class PropertiesConfigSource extends AbstractConfigSource
     }
 
     @VisibleForTesting
-    PropertiesConfigSource(final String file) 
+    PropertiesConfigSource(final String file)
     {
         this.floridaFile = checkNotNull(file);
     }
 
     @Override
-    public void intialize(final String asgName, final String region) 
+    public void intialize(final String asgName, final String region)
     {
         super.intialize(asgName, region);
         Properties properties = new Properties();
         URL url = PropertiesConfigSource.class.getClassLoader().getResource(floridaFile);
-        if (url != null) 
+        if (url != null)
         {
-            try 
+            try
             {
                 properties.load(url.openStream());
                 clone(properties);
-            } 
-            catch (IOException e) 
+            }
+            catch (IOException e)
             {
                 logger.info("No Dynomite.properties. Ignore!");
             }
-        } 
-        else 
+        }
+        else
         {
             logger.info("No Dynomite.properties. Ignore!");
         }
     }
 
     @Override
-    public String get(final String prop) 
+    public String get(final String prop)
     {
         return data.get(prop);
     }
 
     @Override
-    public void set(final String key, final String value) 
+    public void set(final String key, final String value)
     {
         Preconditions.checkNotNull(value, "Value can not be null for configurations.");
         data.put(key, value);
@@ -83,13 +83,13 @@ public class PropertiesConfigSource extends AbstractConfigSource
 
 
     @Override
-    public int size() 
+    public int size()
     {
         return data.size();
     }
 
     @Override
-    public boolean contains(final String prop) 
+    public boolean contains(final String prop)
     {
         return data.containsKey(prop);
     }
@@ -99,16 +99,16 @@ public class PropertiesConfigSource extends AbstractConfigSource
      *
      * @param properties to clone
      */
-    private void clone(final Properties properties) 
+    private void clone(final Properties properties)
     {
         if (properties.isEmpty()) return;
 
-        synchronized (properties) 
+        synchronized (properties)
         {
-            for (final String key : properties.stringPropertyNames()) 
+            for (final String key : properties.stringPropertyNames())
             {
                 final String value = properties.getProperty(key);
-                if (!Strings.isNullOrEmpty(value)) 
+                if (!Strings.isNullOrEmpty(value))
                 {
                     data.put(key, value);
                 }

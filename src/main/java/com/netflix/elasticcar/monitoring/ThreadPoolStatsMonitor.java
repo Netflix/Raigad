@@ -1,17 +1,8 @@
 package com.netflix.elasticcar.monitoring;
 
-import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicReference;
-
-import com.netflix.elasticcar.configuration.IConfiguration;
-import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
-import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
-import org.elasticsearch.threadpool.ThreadPoolStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -20,6 +11,14 @@ import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
+import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.threadpool.ThreadPoolStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class ThreadPoolStatsMonitor extends Task
@@ -74,12 +73,6 @@ public class ThreadPoolStatsMonitor extends Task
   		    	  	tpStatsBean.indexRejected = stat.getRejected();
   		    	  	tpStatsBean.indexLargest = stat.getLargest();
   		    	  	tpStatsBean.indexCompleted = stat.getCompleted();
-  		    	  	logger.info("indexThreads = "+tpStatsBean.indexThreads);
-  		    	  	logger.info("indexQueue = "+tpStatsBean.indexQueue);
-  		    	  	logger.info("indexActive = "+tpStatsBean.indexActive);
-  		    		logger.info("indexRejected = "+tpStatsBean.indexRejected);
-  		    		logger.info("indexLargest = "+tpStatsBean.indexLargest);
-  		    		logger.info("indexCompleted = "+tpStatsBean.indexCompleted);
   		      }
   		      else if( stat.getName().equals("get") ) {
   		    	  	tpStatsBean.getThreads = stat.getThreads();
@@ -88,12 +81,6 @@ public class ThreadPoolStatsMonitor extends Task
   		    	  	tpStatsBean.getRejected = stat.getRejected();
   		    	  	tpStatsBean.getLargest = stat.getLargest();
   		    	  	tpStatsBean.getCompleted = stat.getCompleted();
-  		    	  	logger.info("getThreads = "+tpStatsBean.getThreads);
-  		    	  	logger.info("getQueue = "+tpStatsBean.getQueue);
-  		    	  	logger.info("getActive = "+tpStatsBean.getActive);
-  		    		logger.info("getRejected = "+tpStatsBean.getRejected);
-  		    		logger.info("getLargest = "+tpStatsBean.getLargest);
-  		    		logger.info("getCompleted = "+tpStatsBean.getCompleted);
   		      }
   		      else if( stat.getName().equals("search") ) {
   		    	  	tpStatsBean.searchThreads = stat.getThreads();
@@ -102,12 +89,6 @@ public class ThreadPoolStatsMonitor extends Task
   		    	  	tpStatsBean.searchRejected = stat.getRejected();
   		    	  	tpStatsBean.searchLargest = stat.getLargest();
   		    	  	tpStatsBean.searchCompleted = stat.getCompleted();
-  		    	  	logger.info("searchThreads = "+tpStatsBean.getThreads);
-  		    	  	logger.info("searchQueue = "+tpStatsBean.getQueue);
-  		    	  	logger.info("searchActive = "+tpStatsBean.getActive);
-  		    		logger.info("searchRejected = "+tpStatsBean.getRejected);
-  		    		logger.info("searchLargest = "+tpStatsBean.getLargest);
-  		    		logger.info("searchCompleted = "+tpStatsBean.getCompleted);
   		      }
   		      else if( stat.getName().equals("bulk") ) {
   		    	  	tpStatsBean.bulkThreads = stat.getThreads();
@@ -116,12 +97,6 @@ public class ThreadPoolStatsMonitor extends Task
   		    	  	tpStatsBean.bulkRejected = stat.getRejected();
   		    	  	tpStatsBean.bulkLargest = stat.getLargest();
   		    	  	tpStatsBean.bulkCompleted = stat.getCompleted();
-  		    	  	logger.info("bulkThreads = "+tpStatsBean.getThreads);
-  		    	  	logger.info("bulkQueue = "+tpStatsBean.getQueue);
-  		    	  	logger.info("bulkActive = "+tpStatsBean.getActive);
-  		    		logger.info("bulkRejected = "+tpStatsBean.getRejected);
-  		    		logger.info("bulkLargest = "+tpStatsBean.getLargest);
-  		    		logger.info("bulkCompleted = "+tpStatsBean.getCompleted);
   		      }
   		    }
   		}

@@ -3,9 +3,6 @@ package com.netflix.elasticcar.defaultimpl;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.scheduler.SimpleTimer;
-import com.netflix.elasticcar.scheduler.Task;
-import com.netflix.elasticcar.scheduler.TaskTimer;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.elasticcar.utils.SystemUtils;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
@@ -16,69 +13,85 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Singleton
-public class ElasticSearchShardAllocationManager extends Task {
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    public static final String JOBNAME = "ES_SHARDALLOCATOR_THREAD";
+@Singleton
+public class ElasticSearchShardAllocationManager {
+
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchShardAllocationManager.class);
+    private static final int ES_MONITORING_INITIAL_DELAY = 180;
+    private static final String DELAYED_TIMEOUT = "60000";
+    private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    static ScheduledFuture<?> scheduledFuture;
+    private static final AtomicBoolean isShardAllocationEnabled = new AtomicBoolean(false);
 
     @Inject
     protected ElasticSearchShardAllocationManager(IConfiguration config) {
-        super(config);
+        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", config.getAppName()).build();
+        TransportClient localClient = new TransportClient(settings);
+        localClient.addTransportAddress(new InetSocketTransportAddress(config.getHostIP(),config.getTransportTcpPort()));
+        init(localClient);
     }
 
-    @Override
-    public void execute() throws Exception {
+    private void init(TransportClient client) {
 
-        try
-        {
-            logger.info("Running ElasticSearchShardAllocationManager task ...");
-            // If Elasticsearch is started then only start the shard allocation
-            if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-                String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-                logger.info(exceptionMsg);
-                return;
-            }
+        scheduledFuture = executor.scheduleWithFixedDelay(new ShardAllocator(client), ES_MONITORING_INITIAL_DELAY, 60, TimeUnit.SECONDS);
 
-            Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", config.getAppName()).build();
-            TransportClient localClient = new TransportClient(settings);
-            localClient.addTransportAddress(new InetSocketTransportAddress(config.getHostIP(),config.getTransportTcpPort()));
+    }
 
-            ClusterHealthStatus healthStatus = localClient.admin().cluster().prepareHealth().setTimeout("1000").execute().get().getStatus();
+    static class ShardAllocator implements Runnable {
+
+        private final TransportClient localClient;
+
+        ShardAllocator(TransportClient client){
+           this.localClient = client;
+        }
+
+        public void run() {
+            try
+            {
+                logger.info("Running ElasticSearchShardAllocationManager task ...");
+                // If Elasticsearch is started then only start the shard allocation
+                if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+                    String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+                    logger.info(exceptionMsg);
+                    return;
+                }
+
+                if(!isShardAllocationEnabled.get()) {
+                    String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Elasticcar/REST/v1/esadmin/shard_allocation_enable/transient");
+                    logger.info("Response from REST call = [" + response + "]. Successfully Enabled cluster.routing.allocation.enable property.");
+                    isShardAllocationEnabled.set(true);
+                }
+
+                ClusterHealthStatus healthStatus = localClient.admin().cluster().prepareHealth().setTimeout(DELAYED_TIMEOUT).execute().get().getStatus();
             /*
                 Following check means Shards are getting rebalanced
              */
-            if (healthStatus != ClusterHealthStatus.GREEN)
-            {
-                logger.info("Shards are still getting rebalanced. Hence not disabling cluster.routing.allocation.enable property");
-                return;
+                if (healthStatus != ClusterHealthStatus.GREEN)
+                {
+                    logger.info("Shards are still getting rebalanced. Hence not disabling cluster.routing.allocation.enable property");
+                    return;
+                }
+
+                String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Elasticcar/REST/v1/esadmin/shard_allocation_disable/transient");
+
+                logger.info("Response from REST call = ["+ response +"]. Successfully disabled cluster.routing.allocation.enable property.");
+                //Closing TransportClient
+                localClient.close();
+                //Job is done, hence Cancel the Running Scheduled Job
+                logger.info("Cancelling the current running thread because cluster.routing.allocation.enable property is already disabled");
+                scheduledFuture.cancel(false);
             }
-
-            String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Elasticcar/REST/v1/esadmin/shard_allocation_disable/transient");
-
-            logger.info("Response from REST call = ["+ response +"]. Successfully disabled cluster.routing.allocation.enable property.");
-            //Closing TransportClient
-            localClient.close();
-            //Job is done, hence Interrupt the current thread
-            logger.info("Interrupting the current running thread because cluster.routing.allocation.enable property is already disabled");
-            Thread.currentThread().interrupt();
+            catch(Exception e)
+            {
+                logger.warn("Exception thrown while checking whether it's safe to turn off cluster.routing.allocation.enable property or not", e);
+            }
         }
-        catch(Exception e)
-        {
-            logger.warn("Exception thrown while checking whether it's safe to turn off cluster.routing.allocation.enable property or not", e);
-        }
-
-    }
-
-    public static TaskTimer getTimer()
-    {
-        return new SimpleTimer(JOBNAME, 60 * 1000);
-    }
-
-    @Override
-    public String getName()
-    {
-        return JOBNAME;
     }
 
 }

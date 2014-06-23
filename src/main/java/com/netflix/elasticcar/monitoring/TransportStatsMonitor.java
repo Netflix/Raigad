@@ -1,16 +1,8 @@
 package com.netflix.elasticcar.monitoring;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import com.netflix.elasticcar.configuration.IConfiguration;
-import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
-import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
-import org.elasticsearch.transport.TransportStats;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -19,6 +11,13 @@ import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
+import org.elasticsearch.action.admin.cluster.node.stats.NodeStats;
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.transport.TransportStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class TransportStatsMonitor extends Task
@@ -71,17 +70,10 @@ public class TransportStatsMonitor extends Task
 			transportStatsBean.txCount = transportStats.getTxCount();
 			transportStatsBean.txSize = transportStats.getTxSize().getBytes();
 			transportStatsBean.txSizeDelta = transportStats.getTxSize().getBytes() - transportStatsBean.txSize;  	
-	    	  	logger.info("serverOpen = "+transportStatsBean.serverOpen);
-	    	  	logger.info("rxCount = "+transportStatsBean.rxCount);
-	    	  	logger.info("rxSize = "+transportStatsBean.rxSize);
-	    	  	logger.info("rxSizeDelta = "+transportStatsBean.rxSizeDelta);
-	    	  	logger.info("txCount = "+transportStatsBean.txCount);
-	    	  	logger.info("txSize = "+transportStatsBean.txSize);
-	    	  	logger.info("txSizeDelta = "+transportStatsBean.txSizeDelta);
   		}
   		catch(Exception e)
   		{
-  			logger.warn("failed to load Trasport stats data", e);
+  			logger.warn("failed to load Transport stats data", e);
   		}
 
   		transportStatsReporter.transportStatsBean.set(transportStatsBean);

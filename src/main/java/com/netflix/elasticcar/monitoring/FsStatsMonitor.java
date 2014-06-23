@@ -72,15 +72,6 @@ public class FsStatsMonitor extends Task
 			fsStatsBean.diskWriteBytes = fsStats.getTotal().getDiskWriteSizeInBytes();  	
 			fsStatsBean.diskQueue = fsStats.getTotal().getDiskQueue();
 			fsStatsBean.diskServiceTime = fsStats.getTotal().getDiskServiceTime();
-	    	  	logger.info("total = "+fsStatsBean.total);
-	    	  	logger.info("free = "+fsStatsBean.free);
-	    	  	logger.info("available = "+fsStatsBean.available);
-	    	  	logger.info("diskReads = "+fsStatsBean.diskReads);
-	    	  	logger.info("diskWrites = "+fsStatsBean.diskWrites);
-	    	  	logger.info("diskReadBytes = "+fsStatsBean.diskReadBytes);
-	    	  	logger.info("diskWriteBytes = "+fsStatsBean.diskWriteBytes);
-	    	  	logger.info("diskQueue = "+fsStatsBean.diskQueue);
-	    	  	logger.info("diskServiceTime = "+fsStatsBean.diskServiceTime);
   		}
   		catch(Exception e)
   		{

@@ -96,7 +96,7 @@ public class SystemUtils
         conn.setDoInput(true);
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestMethod("POST");
+        conn.setRequestMethod("PUT");
         OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
         wr.write(jsonBody.toString());
         wr.flush();
