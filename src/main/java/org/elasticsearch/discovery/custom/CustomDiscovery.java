@@ -21,14 +21,11 @@ public class CustomDiscovery extends ZenDiscovery {
                          ClusterService clusterService, NodeSettingsService nodeSettingsService, ZenPingService pingService,
                          DiscoveryNodeService discoveryNodeService, Version version, DiscoverySettings discoverySettings) {
     super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, version, discoverySettings);
-    logger.info("In constructor CustomDiscovery ... Now using PingService to zenPings");
     org.elasticsearch.common.collect.ImmutableList<? extends ZenPing> zenPings = pingService.zenPings();
-    logger.info("After ZenPingsss ....");
     UnicastZenPing unicastZenPing = null;
     for (ZenPing zenPing : zenPings) {
       if (zenPing instanceof UnicastZenPing) {
         unicastZenPing = (UnicastZenPing) zenPing;
-        logger.info("***Node Name = "+unicastZenPing.nodeName());
         break;
       }
     }
@@ -36,11 +33,8 @@ public class CustomDiscovery extends ZenDiscovery {
     if (unicastZenPing != null) {
       // update the unicast zen ping to add cloud hosts provider
       // and, while we are at it, use only it and not the multicast for example
-    	  logger.info("### Adding Host Provider ...");
       unicastZenPing.addHostsProvider(new CustomUnicastHostsProvider(settings, transportService, version));
-      logger.info("### Added Host Provider ....");
       pingService.zenPings(org.elasticsearch.common.collect.ImmutableList.of(unicastZenPing));
-      logger.info("### Pinging ZenPings ....");
     } else {
       logger.warn("failed to apply cass unicast discovery, no unicast ping found");
     }

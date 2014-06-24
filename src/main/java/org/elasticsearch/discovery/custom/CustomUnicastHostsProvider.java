@@ -22,27 +22,23 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
   @Inject
   public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
     super(settings);
-    logger.info("&&& Inside CustomUnicastHostsProvider ......");
     this.transportService = transportService;
     this.version = version;
   }
 
   @Override
   public List<DiscoveryNode> buildDynamicNodes() {
-		logger.info("&&& Inside buildDynamicNodes .....");
 		List<DiscoveryNode> discoNodes = Lists.newArrayList();
-		logger.info("&&& Before getting All Ids .....");
 		try {
 		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Elasticcar/REST/v1/esconfig/get_nodes",logger);
 		List<ElasticCarInstance> instances = ElasticsearchUtil.getEsCarInstancesFromJsonString(strNodes, logger);
 			for (ElasticCarInstance instance : instances) {
 				try {
-					logger.info("---Host Ip = " + instance.getHostIP());
 					TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
 					// we only limit to 1 addresses, makes no sense to ping 100
 					// ports
 					for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
-						logger.info(
+						logger.debug(
 								"adding {}, address {}, transport_address {}",
 								instance.getId(), instance.getHostIP(),addresses[i]);
 						discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version));
