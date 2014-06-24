@@ -62,19 +62,19 @@ public class ElasticSearchShardAllocationManager {
                     return;
                 }
 
-                if(!isShardAllocationEnabled.get()) {
-                    String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Elasticcar/REST/v1/esadmin/shard_allocation_enable/transient");
-                    logger.info("Response from REST call = [" + response + "]. Successfully Enabled cluster.routing.allocation.enable property.");
-                    isShardAllocationEnabled.set(true);
-                }
-
                 ClusterHealthStatus healthStatus = localClient.admin().cluster().prepareHealth().setTimeout(DELAYED_TIMEOUT).execute().get().getStatus();
             /*
                 Following check means Shards are getting rebalanced
              */
                 if (healthStatus != ClusterHealthStatus.GREEN)
                 {
-                    logger.info("Shards are still getting rebalanced. Hence not disabling cluster.routing.allocation.enable property");
+                    //Following block should execute only once
+                    if(!isShardAllocationEnabled.get()) {
+                        String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Elasticcar/REST/v1/esadmin/shard_allocation_enable/transient");
+                        logger.info("Response from REST call = [" + response + "]. Successfully Enabled cluster.routing.allocation.enable property.");
+                        isShardAllocationEnabled.set(true);
+                    }
+                    logger.info("Shards are still getting rebalanced. Hence not disabling cluster.routing.allocation.enable property yet");
                     return;
                 }
 
@@ -84,7 +84,7 @@ public class ElasticSearchShardAllocationManager {
                 //Closing TransportClient
                 localClient.close();
                 //Job is done, hence Cancel the Running Scheduled Job
-                logger.info("Cancelling the current running thread because cluster.routing.allocation.enable property is already disabled");
+                logger.info("Stopping the current running thread because cluster.routing.allocation.enable property is already disabled");
                 scheduledFuture.cancel(false);
             }
             catch(Exception e)

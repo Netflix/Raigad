@@ -361,7 +361,12 @@ public class ElasticCarConfiguration implements IConfiguration
 		return 0;
 	}
 
-	@Override
+    @Override
+    public int getTotalShardsPerNode() {
+        return 0;
+    }
+
+    @Override
 	public String getRefreshInterval() {
 		// TODO Auto-generated method stub
 		return null;
@@ -456,6 +461,11 @@ public class ElasticCarConfiguration implements IConfiguration
 
     @Override
     public boolean isDebugEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isShardPerNodeEnabled() {
         return false;
     }
 

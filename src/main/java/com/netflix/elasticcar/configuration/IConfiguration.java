@@ -52,7 +52,9 @@ public interface IConfiguration
     public int getNumOfShards();
     
     public int getNumOfReplicas();
-    
+
+    public int getTotalShardsPerNode();
+
     public String getRefreshInterval();
     
     public boolean isMasterQuorumEnabled();
@@ -183,4 +185,8 @@ public interface IConfiguration
     public String getEsKeyName(String escarKey);
 
     public boolean isDebugEnabled();
+
+    public boolean isShardPerNodeEnabled();
+
+
 }
