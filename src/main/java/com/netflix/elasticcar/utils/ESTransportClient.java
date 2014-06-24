@@ -54,13 +54,11 @@ public class ESTransportClient
      */
     public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
     {
-    		logger.info("***Inside ESTransportClient ctr ...");
         Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
         TransportClient client = new TransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(host,port));
         
         ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
-        logger.info("***Done constructing NodesStatsRequestBuilder...");
     }
 
     @Inject
@@ -75,7 +73,6 @@ public class ESTransportClient
      */
     public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException
     {
-   		logger.info("***Inside ESTransportClient instance ...");
    		if (esTransportClient.get() == null)
         		esTransportClient.set(connect(config));
         
@@ -84,7 +81,6 @@ public class ESTransportClient
 
     public static NodesStatsResponse getNodesStatsResponse(IConfiguration config)
     {
-   		logger.info("***Inside ESTransportClient getNodesStatsResponse ...");
    		try
         {
              return ESTransportClient.instance(config).ndStatsRequestBuilder.execute().actionGet();
@@ -115,7 +111,6 @@ public class ESTransportClient
 							public ESTransportClient retriableCall() throws Exception
 							{
 								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(),config.getAppName());
-						   		logger.info("***Returning ESTransportClient from connect ...");
 						   		return esTransportClientLocal;
 							}
 						}.call();
@@ -125,7 +120,6 @@ public class ESTransportClient
 			}
     		return ESTransportClient;
     }
-
 
     private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status, String state, String load, String owns, String token) throws JSONException
     {
@@ -141,38 +135,4 @@ public class ESTransportClient
         return object;
     }
 
-
-
-//  /**
-//   * This method will test if you can connect and query something before handing over the connection,
-//   * This is required for our retry logic.
-//   * @return
-//   */
-//  private static boolean testConnection()
-//  {
-//      // connecting first time hence return false.
-//      if (esTransportClient.get() == null)
-//          return false;
-//      
-//      try
-//      {
-//      		esTransportClient.get().isInitialized();
-//      }
-//      catch (Throwable ex)
-//      {
-//          SystemUtils.closeQuietly(tool);
-//          return false;
-//      }
-//      return true;
-//  }
-
-//    @Override
-//    public void close() throws IOException
-//    {
-//        synchronized (ESTransportClient.class)
-//        {
-//            tool = null;
-//            super.close();
-//        }
-//    }
 }
