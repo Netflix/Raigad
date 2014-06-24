@@ -48,6 +48,10 @@ public class StandardTuner implements IElasticsearchTuner
         //that do not have values set for those attributes.
         //*** Important in dedicated master nodes deployment
         map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
+
+        if(config.isShardPerNodeEnabled())
+            map.put("index.routing.allocation.total_shards_per_node",config.getTotalShardsPerNode());
+
 		if (config.isMultiDC()) 
 		{
 			map.put("node.name", config.getRac() + "." + config.getInstanceId());
