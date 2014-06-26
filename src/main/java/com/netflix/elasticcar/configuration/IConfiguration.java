@@ -136,10 +136,14 @@ public interface IConfiguration
 
    
     /**
-     * @return Get host IP
+     * @return Get host Public IP
      */
     public String getHostIP();
 
+    /**
+     * @return Get host Local IP
+     */
+    public String getHostLocalIP();
    
     /**
      * @return Bootstrap cluster name (depends on another cass cluster)

@@ -307,6 +307,11 @@ public class ElasticCarConfiguration implements IConfiguration
         return PUBLIC_IP;
     }
 
+    @Override
+    public String getHostLocalIP() {
+        return LOCAL_IP;
+    }
+
 
     @Override
     public String getBootClusterName()
