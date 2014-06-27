@@ -85,44 +85,52 @@ public class ElasticSearchIndexManager {
                         scheduledFuture.cancel(false);
                     }
                     //TODO Needs to be more robust
-                    String ip = response.split(SPACE_DELIMITER)[2];
-                    if (ip == null || ip.isEmpty()) {
-                        logger.error("ip from URL : <"+URL+"> is Null or Empty, hence stopping the current running thread");
-                        scheduledFuture.cancel(false);
-                    }
-                    if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP()))
-                        isMasterNode.set(true);
-                    else {
-                        //TODO Change to Debug after testing
-                        logger.info("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledDelaySeconds() + " Seconds");
+                    if(response.split(SPACE_DELIMITER).length < 3) {
+                        logger.error("Response has less number of fields than required, hence returning.");
+                        return;
+                    } else {
+                        String ip = response.split(SPACE_DELIMITER)[2];
+                        if (ip == null || ip.isEmpty()) {
+                            logger.error("ip from URL : <" + URL + "> is Null or Empty, hence stopping the current running thread");
+                            scheduledFuture.cancel(false);
+                        }
+                        logger.info("*** IP of Master Node = "+ip);
+                        if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP()))
+                            isMasterNode.set(true);
+                        else {
+                            //TODO Change to Debug after testing
+                            logger.info("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledDelaySeconds() + " Seconds");
+                            return;
+                        }
                     }
                 }
 
                 if (isMasterNode.get()) {
+
                    logger.info("Current node is a Master Node. Now start Creating/Checking Indices.");
-                }
 
-                List<IndexMetadata> infoList;
-                try {
-                    infoList = buildInfo(config.getIndexMetadata());
-                } catch (Exception e) {
-                    //TODO Add Servo Monitoring so that it can be verified from dashboard
-                    logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
-                    return;
-                }
-
-                for (IndexMetadata indexMetadata : infoList) {
+                    List<IndexMetadata> infoList;
                     try {
-                        if (client != null) {
-                            checkIndexRetention(indexMetadata);
-                            if (indexMetadata.isPreCreate()) {
-                                preCreateIndex(indexMetadata);
-                            }
-                        }
+                        infoList = buildInfo(config.getIndexMetadata());
                     } catch (Exception e) {
                         //TODO Add Servo Monitoring so that it can be verified from dashboard
                         logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
                         return;
+                    }
+
+                    for (IndexMetadata indexMetadata : infoList) {
+                        try {
+                            if (client != null) {
+                                checkIndexRetention(indexMetadata);
+                                if (indexMetadata.isPreCreate()) {
+                                    preCreateIndex(indexMetadata);
+                                }
+                            }
+                        } catch (Exception e) {
+                            //TODO Add Servo Monitoring so that it can be verified from dashboard
+                            logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
+                            return;
+                        }
                     }
                 }
             }
