@@ -35,11 +35,6 @@ import java.util.List;
 @Singleton
 public class ElasticCarConfiguration implements IConfiguration
 {
-    @Override
-    public boolean isCustomShardAllocationPolicyEnabled() {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
     public static final String ESCAR_PRE = "escar";
 
     private static final String CONFIG_ES_HOME_DIR = ESCAR_PRE + ".elasticsearch.home";
@@ -486,5 +481,21 @@ public class ElasticCarConfiguration implements IConfiguration
     public int getAutoCreateIndexTimeout() {
         return 0;
     }
+
+    @Override
+    public int getAutoCreateIndexInitialStartDelaySeconds() {
+        return 0;
+    }
+
+    @Override
+    public int getAutoCreateIndexPeriodicScheduledDelaySeconds() {
+        return 0;
+    }
+
+    @Override
+    public boolean isCustomShardAllocationPolicyEnabled() {
+        return false;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
 
 }
