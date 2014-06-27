@@ -312,11 +312,10 @@ public class ElasticCarConfiguration implements IConfiguration
         return LOCAL_IP;
     }
 
-
     @Override
     public String getBootClusterName()
     {
-        return config.get(CONFIG_BOOTCLUSTER_NAME, "cass_turtle");
+        return config.get(CONFIG_BOOTCLUSTER_NAME, "cass_abc");
     }
 
     @Override
@@ -335,7 +334,6 @@ public class ElasticCarConfiguration implements IConfiguration
 	public String getElasticsearchProcessName() {
         return config.get(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
 	}
-
 
 
     public String getYamlLocation()
@@ -472,6 +470,21 @@ public class ElasticCarConfiguration implements IConfiguration
     @Override
     public boolean isShardPerNodeEnabled() {
         return false;
+    }
+
+    @Override
+    public boolean isIndexAutoCreationEnabled() {
+        return false;
+    }
+
+    @Override
+    public String getIndexMetadata() {
+        return null;
+    }
+
+    @Override
+    public int getAutoCreateIndexTimeout() {
+        return 0;
     }
 
 }

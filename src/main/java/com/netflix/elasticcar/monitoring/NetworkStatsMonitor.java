@@ -30,7 +30,6 @@ public class NetworkStatsMonitor extends Task
     public NetworkStatsMonitor(IConfiguration config)
     {
         super(config);
-        logger.info("***Inside constructor NetworkStatsMonitor");
         networkStatsReporter = new NetworkStatsReporter();
     		Monitors.registerObject(networkStatsReporter);
     }

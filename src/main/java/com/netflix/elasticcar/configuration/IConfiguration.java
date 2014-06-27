@@ -192,5 +192,14 @@ public interface IConfiguration
 
     public boolean isShardPerNodeEnabled();
 
+    public boolean isIndexAutoCreationEnabled();
+
+    public String getIndexMetadata();
+
+    public int getAutoCreateIndexTimeout();
+
+    public int getAutoCreateIndexInitialStartDelaySeconds();
+
+    public int getAutoCreateIndexPeriodicScheduledDelaySeconds();
 
 }

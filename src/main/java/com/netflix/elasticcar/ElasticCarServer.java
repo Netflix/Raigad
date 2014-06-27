@@ -19,7 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.defaultimpl.ElasticSearchIndexManager;
+import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
 import com.netflix.elasticcar.defaultimpl.ElasticSearchShardAllocationManager;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.monitoring.*;
