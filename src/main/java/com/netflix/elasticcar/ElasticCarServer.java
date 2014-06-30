@@ -19,9 +19,8 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
-import com.netflix.elasticcar.defaultimpl.ElasticSearchShardAllocationManager;
 import com.netflix.elasticcar.identity.InstanceManager;
+import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
 import com.netflix.elasticcar.monitoring.*;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
@@ -42,21 +41,19 @@ public class ElasticCarServer
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
-    private final ElasticSearchShardAllocationManager esShardAllocationManager;
     private final ElasticSearchIndexManager esIndexManager;
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchShardAllocationManager esShardAllocationManager,ElasticSearchIndexManager esIndexManager)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchIndexManager esIndexManager)
     {
         this.config = config;
         this.scheduler = scheduler;
         this.esProcess = esProcess;
         this.sleeper = sleeper;
         this.instanceManager = instanceManager;
-        this.esShardAllocationManager = esShardAllocationManager;
         this.esIndexManager = esIndexManager;
     }
     

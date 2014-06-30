@@ -61,7 +61,6 @@ public class ElasticSearchIndexManager {
         public void run() {
             try
             {
-                logger.info("Running ElasticSearchIndexManager task ...");
                 if(!config.isIndexAutoCreationEnabled()) {
                     logger.info("AutoCreation of Indices is disabled, hence stopping the current running thread.");
                     scheduledFuture.cancel(false);
@@ -94,12 +93,13 @@ public class ElasticSearchIndexManager {
                             logger.error("ip from URL : <" + URL + "> is Null or Empty, hence stopping the current running thread");
                             scheduledFuture.cancel(false);
                         }
-                        logger.info("*** IP of Master Node = "+ip);
+                        if(config.isDebugEnabled())
+                            logger.debug("*** IP of Master Node = "+ip);
                         if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP()))
                             isMasterNode.set(true);
                         else {
-                            //TODO Change to Debug after testing
-                            logger.info("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledDelaySeconds() + " Seconds");
+                            if(config.isDebugEnabled())
+                                logger.debug("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledDelaySeconds() + " Seconds");
                             return;
                         }
                     }
@@ -107,7 +107,8 @@ public class ElasticSearchIndexManager {
 
                 if (isMasterNode.get()) {
 
-                   logger.info("Current node is a Master Node. Now start Creating/Checking Indices.");
+                    if(config.isDebugEnabled())
+                        logger.debug("Current node is a Master Node. Now start Creating/Checking Indices.");
 
                     List<IndexMetadata> infoList;
                     try {
@@ -159,29 +160,34 @@ public class ElasticSearchIndexManager {
 
             //Calculate the Past Retention date
             int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
-            logger.info("Past Date = "+pastRetentionCutoffDateDate);
+            if(config.isDebugEnabled())
+                logger.debug("Past Date = "+pastRetentionCutoffDateDate);
             //Find all the indices
             IndicesStatusResponse getIndicesResponse = client.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
             Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
             if (!indexStatusMap.isEmpty()) {
                 for (String indexName : indexStatusMap.keySet()) {
-                    logger.info("Index Name = <"+indexName+">");
+                    if(config.isDebugEnabled())
+                        logger.debug("Index Name = <"+indexName+">");
                     if (indexMetadata.getIndexNameFilter().filter(indexName) &&
                             indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
                         //Extract date from Index Name
                         int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
-                        logger.info("Date extracted from Index <"+indexName+"> = <"+indexDate+">");
+                        if(config.isDebugEnabled())
+                            logger.debug("Date extracted from Index <"+indexName+"> = <"+indexDate+">");
                         //Delete old indices
                         if (indexDate <= pastRetentionCutoffDateDate) {
-                            logger.info("Date extracted from index <"+indexDate+"> is past the retention date <"+pastRetentionCutoffDateDate+", hence deleting index now.");
+                            if(config.isDebugEnabled())
+                                logger.debug("Date extracted from index <"+indexDate+"> is past the retention date <"+pastRetentionCutoffDateDate+", hence deleting index now.");
                             deleteIndices(client, indexName, config.getAutoCreateIndexTimeout());
                         }
                     }
                 }
-            }//TODO : Remove after testing
+            }
             else{
-                logger.info("Indexes Map is empty ... No Indices found");
+                if(config.isDebugEnabled())
+                    logger.debug("Indexes Map is empty ... No Indices found");
             }
         }
 
@@ -202,17 +208,18 @@ public class ElasticSearchIndexManager {
          * Courtesy Jae Bae
          */
         public void preCreateIndex(IndexMetadata indexMetadata) throws UnsupportedAutoIndexException {
-            logger.info("trying to preCreate");
             IndicesStatusResponse getIndicesResponse = client.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
             Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
             if (!indexStatusMap.isEmpty()) {
                 for (String indexNameWithDateSuffix : indexStatusMap.keySet()) {
-                    logger.info("Index Name = <"+indexNameWithDateSuffix+">");
+                    if(config.isDebugEnabled())
+                        logger.debug("Index Name = <"+indexNameWithDateSuffix+">");
                     if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                         indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
                         int futureRetentionDate = IndexUtils.getFutureRetentionDate(indexMetadata);
-                        logger.info("Future Date = "+futureRetentionDate);
+                        if(config.isDebugEnabled())
+                            logger.debug("Future Date = "+futureRetentionDate);
                         if (!client.admin().indices().prepareExists(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                             client.admin().indices().prepareCreate(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout());
                             logger.info(indexMetadata.getIndexName() + futureRetentionDate + " is created");
