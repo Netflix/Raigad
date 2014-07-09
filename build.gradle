@@ -11,11 +11,12 @@ apply plugin: 'jetty'
 apply plugin: 'eclipse'
 
 nebula {
+  readyForJava7 = true
   useBlueprintLayout true
   moduleEmail = 'sloke@netflix.com'
   moduleOwner = 'sloke'
   versioningGenerational=true
-  generation='1.0.0'
+  generation='1.0.1'
   versioningPosition=3
 }
 
