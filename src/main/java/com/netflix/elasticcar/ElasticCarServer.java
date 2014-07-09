@@ -17,6 +17,7 @@ package com.netflix.elasticcar;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.elasticcar.aws.SnapshotBackup;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.identity.InstanceManager;
@@ -100,6 +101,11 @@ public class ElasticCarServer
          *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
+
+        // Start the snapshot backup schedule - Always run this.
+        if (config.getBackupHour() >= 0) {
+            scheduler.addTask(SnapshotBackup.JOBNAME, SnapshotBackup.class, SnapshotBackup.getTimer(config));
+        }
 
         /*
         * Starting Monitoring Jobs

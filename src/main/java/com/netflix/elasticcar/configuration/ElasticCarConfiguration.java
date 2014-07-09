@@ -93,7 +93,7 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
-    public void intialize()
+    public void initialize()
     {
         setupEnvVars();
         this.config.intialize(ASG_NAME, REGION);
@@ -336,7 +336,12 @@ public class ElasticCarConfiguration implements IConfiguration
         return config.get(CONFIG_YAML_LOCATION, getElasticsearchHome() + "/conf/elasticsearch.yaml");
     }
 
-	@Override
+    @Override
+    public String getBackupLocation() {
+        return null;
+    }
+
+    @Override
 	public boolean isMultiDC() {
 		// TODO Auto-generated method stub
 		return false;
@@ -489,6 +494,36 @@ public class ElasticCarConfiguration implements IConfiguration
 
     @Override
     public int getAutoCreateIndexPeriodicScheduledDelaySeconds() {
+        return 0;
+    }
+
+    @Override
+    public String getCommaSeparatedIndicesToBackup() {
+        return null;
+    }
+
+    @Override
+    public String ignoreUnavailableIndicesDuringBackup() {
+        return null;
+    }
+
+    @Override
+    public boolean includeGlobalStateDuringBackup() {
+        return false;
+    }
+
+    @Override
+    public boolean waitForCompletionOfBackup() {
+        return false;
+    }
+
+    @Override
+    public boolean includeIndexNameInSnapshot() {
+        return false;
+    }
+
+    @Override
+    public int getBackupHour() {
         return 0;
     }
 

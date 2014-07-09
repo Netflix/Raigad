@@ -4,6 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.indexmanagement.exception.UnsupportedAutoIndexException;
+import com.netflix.elasticcar.objectmapper.DefaultIndexMapper;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
 import com.netflix.elasticcar.utils.SystemUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -78,6 +79,9 @@ public class ElasticSearchIndexManager {
                 if (!isMasterNode.get()) {
                     String URL =  "http://127.0.0.1:"+config.getHttpPort()+"/_cat/master";
                     String response = SystemUtils.runHttpGetCommand(URL);
+                    if(config.isDebugEnabled()) {
+                        logger.debug("Calling URL API: {} returns: {}", URL, response);
+                    }
                     //Split the response on Spaces to get IP
                     if(response == null || response.isEmpty()) {
                         logger.error("Response from URL : <"+URL+"> is Null or Empty, hence stopping the current running thread");
@@ -148,7 +152,7 @@ public class ElasticSearchIndexManager {
          * @throws IOException
          */
         public static List<IndexMetadata> buildInfo(String infoStr) throws IOException {
-            ObjectMapper jsonMapper = new DefaultObjectMapper();
+            ObjectMapper jsonMapper = new DefaultIndexMapper();
             TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {};
             return jsonMapper.readValue(infoStr, typeRef);
         }
@@ -161,25 +165,25 @@ public class ElasticSearchIndexManager {
             //Calculate the Past Retention date
             int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
             if(config.isDebugEnabled())
-                logger.debug("Past Date = "+pastRetentionCutoffDateDate);
+                logger.debug("Past Date = " + pastRetentionCutoffDateDate);
             //Find all the indices
             IndicesStatusResponse getIndicesResponse = client.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
             Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
             if (!indexStatusMap.isEmpty()) {
                 for (String indexName : indexStatusMap.keySet()) {
                     if(config.isDebugEnabled())
-                        logger.debug("Index Name = <"+indexName+">");
+                        logger.debug("Index Name = <" + indexName + ">");
                     if (indexMetadata.getIndexNameFilter().filter(indexName) &&
                             indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
                         //Extract date from Index Name
                         int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
                         if(config.isDebugEnabled())
-                            logger.debug("Date extracted from Index <"+indexName+"> = <"+indexDate+">");
+                            logger.debug("Date extracted from Index <" + indexName + "> = <" + indexDate + ">");
                         //Delete old indices
                         if (indexDate <= pastRetentionCutoffDateDate) {
                             if(config.isDebugEnabled())
-                                logger.debug("Date extracted from index <"+indexDate+"> is past the retention date <"+pastRetentionCutoffDateDate+", hence deleting index now.");
+                                logger.debug("Date extracted from index <" + indexDate + "> is past the retention date <" + pastRetentionCutoffDateDate + ", hence deleting index now.");
                             deleteIndices(client, indexName, config.getAutoCreateIndexTimeout());
                         }
                     }
@@ -213,13 +217,13 @@ public class ElasticSearchIndexManager {
             if (!indexStatusMap.isEmpty()) {
                 for (String indexNameWithDateSuffix : indexStatusMap.keySet()) {
                     if(config.isDebugEnabled())
-                        logger.debug("Index Name = <"+indexNameWithDateSuffix+">");
+                        logger.debug("Index Name = <" + indexNameWithDateSuffix + ">");
                     if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                         indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
                         int futureRetentionDate = IndexUtils.getFutureRetentionDate(indexMetadata);
                         if(config.isDebugEnabled())
-                            logger.debug("Future Date = "+futureRetentionDate);
+                            logger.debug("Future Date = " + futureRetentionDate);
                         if (!client.admin().indices().prepareExists(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                             client.admin().indices().prepareCreate(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout());
                             logger.info(indexMetadata.getIndexName() + futureRetentionDate + " is created");

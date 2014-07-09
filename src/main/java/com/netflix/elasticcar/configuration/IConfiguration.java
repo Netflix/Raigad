@@ -24,7 +24,7 @@ import java.util.List;
 public interface IConfiguration
 {
 	
-    public void intialize();
+    public void initialize();
 
     /**
      * @return Path to the home dir of Elasticsearch
@@ -32,6 +32,8 @@ public interface IConfiguration
     public String getElasticsearchHome();
 
     public String getYamlLocation();
+
+    public String getBackupLocation();
 
     /**
      * @return Path to Elasticsearch startup script
@@ -201,5 +203,24 @@ public interface IConfiguration
     public int getAutoCreateIndexInitialStartDelaySeconds();
 
     public int getAutoCreateIndexPeriodicScheduledDelaySeconds();
+
+    /*
+        Backup related Config properties
+    */
+    public String getCommaSeparatedIndicesToBackup();
+
+    public String ignoreUnavailableIndicesDuringBackup();
+
+    public boolean includeGlobalStateDuringBackup();
+
+    public boolean waitForCompletionOfBackup();
+
+    public boolean includeIndexNameInSnapshot();
+
+    /**
+     * @return Backup hour for snapshot backups (0 - 23)
+     */
+    public int getBackupHour();
+
 
 }

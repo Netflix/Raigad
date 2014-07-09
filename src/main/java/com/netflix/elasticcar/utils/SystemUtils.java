@@ -21,7 +21,9 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.json.simple.JSONObject;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,12 +85,12 @@ public class SystemUtils
             while ((c = d.read(b, 0, b.length)) != -1)
                 bos.write(b, 0, c);
             String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-            logger.info("Calling URL API: {} returns: {}", url, return_);
+            logger.debug("Calling URL API: {} returns: {}", url, return_);
             conn.disconnect();
             return return_;
     }
 
-    public static String runHttpPutCommand(String url,JSONObject jsonBody) throws IOException {
+    public static String runHttpPutCommand(String url,String jsonBody) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setConnectTimeout(1000);
         conn.setReadTimeout(1000);
@@ -98,7 +100,7 @@ public class SystemUtils
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestMethod("PUT");
         OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
-        wr.write(jsonBody.toString());
+        wr.write(jsonBody);
         wr.flush();
         wr.close();
 
@@ -113,7 +115,37 @@ public class SystemUtils
         while ((c = d.read(b, 0, b.length)) != -1)
             bos.write(b, 0, c);
         String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-        logger.info("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
+        logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
+        conn.disconnect();
+        return return_;
+    }
+
+    public static String runHttpPostCommand(String url,String jsonBody) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setConnectTimeout(1000);
+        conn.setReadTimeout(1000);
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
+        conn.setRequestMethod("POST");
+        OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
+        wr.write(jsonBody);
+        wr.flush();
+        wr.close();
+
+        if (conn.getResponseCode() != 200)
+        {
+            throw new ESHttpException("Unable to execute PUT URL ("+url+") Exception Message: ("+conn.getResponseMessage()+")");
+        }
+        byte[] b = new byte[2048];
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
+        int c = 0;
+        while ((c = d.read(b, 0, b.length)) != -1)
+            bos.write(b, 0, c);
+        String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
+        logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
         conn.disconnect();
         return return_;
     }
@@ -200,6 +232,10 @@ public class SystemUtils
         return new String(encoded);
     }
 
- 
-    
+    public static String formatDate(DateTime dateTime,String dateFormat)
+    {
+        DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
+        return dateTime.toString(fmt);
+    }
+
 }
