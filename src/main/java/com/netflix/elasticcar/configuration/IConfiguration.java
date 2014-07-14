@@ -209,7 +209,7 @@ public interface IConfiguration
     */
     public String getCommaSeparatedIndicesToBackup();
 
-    public String ignoreUnavailableIndicesDuringBackup();
+    public boolean partiallyBackupIndices();
 
     public boolean includeGlobalStateDuringBackup();
 

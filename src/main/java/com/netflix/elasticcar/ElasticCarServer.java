@@ -17,14 +17,15 @@ package com.netflix.elasticcar;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.aws.SnapshotBackup;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
+import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
 import com.netflix.elasticcar.monitoring.*;
 import com.netflix.elasticcar.scheduler.ElasticCarScheduler;
 import com.netflix.elasticcar.utils.ElasticsearchProcessMonitor;
+import com.netflix.elasticcar.utils.HttpModule;
 import com.netflix.elasticcar.utils.Sleeper;
 import com.netflix.elasticcar.utils.TuneElasticsearch;
 import org.slf4j.Logger;
@@ -43,12 +44,15 @@ public class ElasticCarServer
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
     private final ElasticSearchIndexManager esIndexManager;
+    private final SnapshotBackupManager snapshotBackupManager;
+    private final HttpModule httpModule;
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
+    private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchIndexManager esIndexManager)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchIndexManager esIndexManager,SnapshotBackupManager snapshotBackupManager)
     {
         this.config = config;
         this.scheduler = scheduler;
@@ -56,8 +60,10 @@ public class ElasticCarServer
         this.sleeper = sleeper;
         this.instanceManager = instanceManager;
         this.esIndexManager = esIndexManager;
+        this.snapshotBackupManager = snapshotBackupManager;
+        this.httpModule = httpModule;
     }
-    
+
     public void initialize() throws Exception
     {     
     		//Check If it's really needed
@@ -102,9 +108,22 @@ public class ElasticCarServer
          */
         scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
-        // Start the snapshot backup schedule - Always run this.
-        if (config.getBackupHour() >= 0) {
-            scheduler.addTask(SnapshotBackup.JOBNAME, SnapshotBackup.class, SnapshotBackup.getTimer(config));
+        /*
+         *  Run Snapshot Backup task
+         */
+        if (config.isAsgBasedDedicatedDeployment())
+        {
+            if (config.getASGName().toLowerCase().contains("master"))
+            {   // Run Snapshot task only on Master Nodes
+                scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
+                // Run Index Management task only on Master Nodes
+                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            }
+        }
+        else
+        {
+            scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
+            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
         }
 
         /*

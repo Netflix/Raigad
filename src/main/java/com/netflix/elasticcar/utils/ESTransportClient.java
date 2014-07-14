@@ -43,6 +43,7 @@ public class ESTransportClient
     private static final Logger logger = LoggerFactory.getLogger(ESTransportClient.class);
     private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<ESTransportClient>(null);
     private NodesStatsRequestBuilder ndStatsRequestBuilder;
+    private final TransportClient client;
 
     /**
      * Hostname and Port to talk to will be same server for now optionally we
@@ -55,7 +56,7 @@ public class ESTransportClient
     public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
     {
         Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
-        TransportClient client = new TransportClient(settings);
+        client = new TransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(host,port));
         
         ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
@@ -133,6 +134,10 @@ public class ESTransportClient
         object.put("owns", owns);
         object.put("token", token.toString());
         return object;
+    }
+
+    public TransportClient getTransportClient(){
+        return client;
     }
 
 }

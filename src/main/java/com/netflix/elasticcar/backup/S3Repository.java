@@ -1,12 +1,14 @@
-package com.netflix.elasticcar.aws;
+package com.netflix.elasticcar.backup;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.backup.RepositorySettingsDO;
-import com.netflix.elasticcar.backup.RepositoryWrapperDO;
 import com.netflix.elasticcar.backup.exception.CreateRepositoryException;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.utils.ESTransportClient;
 import com.netflix.elasticcar.utils.SystemUtils;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.ImmutableSettings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -72,19 +74,39 @@ public class S3Repository extends AbstractRepository
             s3RepoName = getRemoteRepositoryName();
             //Check if Repository Exists
             if (!doesRepositoryExists(s3RepoName, repositoryType)) {
-                //Creating New Repository now
-                String URL = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/" + s3RepoName;
-                RepositorySettingsDO repositorySettingsDO = new RepositorySettingsDO(region, basePath, bucket);
-                RepositoryWrapperDO repositoryWrapperDO = new RepositoryWrapperDO(type.toString().toLowerCase(), repositorySettingsDO);
-                String jsonBody = mapper.writeValueAsString(repositoryWrapperDO);
-                if (config.isDebugEnabled())
-                    logger.info("Create Repository JSON : " + jsonBody);
-                String response = SystemUtils.runHttpPostCommand(URL, jsonBody);
-                if (response == null || response.isEmpty()) {
-                    logger.error("Response from URL : <" + URL + "> is Null or Empty, hence stopping the current running thread");
-                    throw new CreateRepositoryException("Response from URL : <" + URL + "> is Null or Empty, Creation of Repository failed !!");
+
+                TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+
+
+                PutRepositoryResponse putRepositoryResponse = esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
+                        .setType(repositoryType.toString()).setSettings(ImmutableSettings.settingsBuilder()
+                                        .put("base_path", basePath)
+                                        .put("region", region)
+                                        .put("bucket", bucket)
+                        ).get();
+
+
+                if(putRepositoryResponse.isAcknowledged())
+                {
+                    logger.info("Successfully created a repository : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
                 }
-                logger.info("Response from URL : <" + URL + ">  = [" + response + "]. Successfully created a repository <" + s3RepoName + ">");
+                else {
+                    throw new CreateRepositoryException("Creation of repository : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
+                }
+//                //Creating New Repository now
+//                String URL = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/" + s3RepoName;
+//                RepositorySettingsDO repositorySettingsDO = new RepositorySettingsDO(region, basePath, bucket);
+//                RepositoryWrapperDO repositoryWrapperDO = new RepositoryWrapperDO(type.toString().toLowerCase(), repositorySettingsDO);
+//                String jsonBody = mapper.writeValueAsString(repositoryWrapperDO);
+//                if (config.isDebugEnabled())
+//                    logger.debug("Create Repository JSON : " + jsonBody);
+//                String response = SystemUtils.runHttpPostCommand(URL, jsonBody);
+//                if (response == null || response.isEmpty()) {
+//                    logger.error("Response from URL : <" + URL + "> is Null or Empty, hence stopping the current running thread");
+//                    throw new CreateRepositoryException("Response from URL : <" + URL + "> is Null or Empty, Creation of Repository failed !!");
+//                }
+//                logger.info("Response from URL : <" + URL + ">  = [" + response + "]. Successfully created a repository <" + s3RepoName + ">");
             }
         }
         catch (Exception e)
@@ -101,5 +123,4 @@ public class S3Repository extends AbstractRepository
         DateTime dtGmt = dt.withZone(currentZone);
         return SystemUtils.formatDate(dtGmt,S3_REPO_DATE_FORMAT);
     }
-
 }

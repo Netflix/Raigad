@@ -1,4 +1,4 @@
-package com.netflix.elasticcar.aws;
+package com.netflix.elasticcar.backup;
 
 import com.netflix.elasticcar.backup.exception.DuplicateRepositoryNameException;
 

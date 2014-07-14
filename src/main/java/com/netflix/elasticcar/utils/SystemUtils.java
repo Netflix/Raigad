@@ -21,6 +21,16 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -30,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
 
@@ -70,83 +81,132 @@ public class SystemUtils
 
     public static String runHttpGetCommand(String url) throws Exception
     {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setConnectTimeout(1000);
-            conn.setReadTimeout(1000);
-            conn.setRequestMethod("GET");
-            if (conn.getResponseCode() != 200)
-            {
-                throw new ESHttpException("Unable to get data for URL " + url);
+        String return_;
+        DefaultHttpClient client = new DefaultHttpClient();
+        InputStream isStream = null;
+        try {
+            HttpParams httpParameters = new BasicHttpParams();
+            int timeoutConnection = 1000;
+            int timeoutSocket = 1000;
+            HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+            HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+            client.setParams(httpParameters);
+
+            HttpGet getRequest = new HttpGet(url);
+            getRequest.setHeader("Content-type", "application/json");
+
+            HttpResponse resp = client.execute(getRequest);
+
+            if (resp == null || resp.getEntity() == null) {
+                throw new ESHttpException("Unable to execute GET URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
             }
-            byte[] b = new byte[2048];
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
-            int c = 0;
-            while ((c = d.read(b, 0, b.length)) != -1)
-                bos.write(b, 0, c);
-            String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-            logger.debug("Calling URL API: {} returns: {}", url, return_);
-            conn.disconnect();
-            return return_;
-    }
 
-    public static String runHttpPutCommand(String url,String jsonBody) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(1000);
-        conn.setReadTimeout(1000);
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestMethod("PUT");
-        OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
-        wr.write(jsonBody);
-        wr.flush();
-        wr.close();
+            isStream = resp.getEntity().getContent();
 
-        if (conn.getResponseCode() != 200)
-        {
-            throw new ESHttpException("Unable to execute PUT URL ("+url+") Exception Message: ("+conn.getResponseMessage()+")");
+            if (resp.getStatusLine().getStatusCode() != 200) {
+
+                throw new ESHttpException("Unable to execute GET URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+            }
+
+            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
+            logger.debug("GET URL API: {} returns: {}", url, return_);
         }
-        byte[] b = new byte[2048];
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
-        int c = 0;
-        while ((c = d.read(b, 0, b.length)) != -1)
-            bos.write(b, 0, c);
-        String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-        logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
-        conn.disconnect();
+        catch(Exception e)
+        {
+            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+        }
+        finally{
+            if (isStream != null)
+                isStream.close();
+        }
         return return_;
     }
 
-    public static String runHttpPostCommand(String url,String jsonBody) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(1000);
-        conn.setReadTimeout(1000);
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestMethod("POST");
-        OutputStreamWriter wr= new OutputStreamWriter(conn.getOutputStream());
-        wr.write(jsonBody);
-        wr.flush();
-        wr.close();
+    public static String runHttpPutCommand(String url,String jsonBody) throws IOException
+    {
+        String return_;
+        DefaultHttpClient client = new DefaultHttpClient();
+        InputStream isStream = null;
+        try {
+            HttpParams httpParameters = new BasicHttpParams();
+            int timeoutConnection = 1000;
+            int timeoutSocket = 1000;
+            HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+            HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+            client.setParams(httpParameters);
 
-        if (conn.getResponseCode() != 200)
-        {
-            throw new ESHttpException("Unable to execute PUT URL ("+url+") Exception Message: ("+conn.getResponseMessage()+")");
+            HttpPut putRequest = new HttpPut(url);
+            putRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
+            putRequest.setHeader("Content-type", "application/json");
+
+            HttpResponse resp = client.execute(putRequest);
+
+            if (resp == null || resp.getEntity() == null) {
+                throw new ESHttpException("Unable to execute PUT URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
+            }
+
+            isStream = resp.getEntity().getContent();
+
+            if (resp.getStatusLine().getStatusCode() != 200) {
+
+                throw new ESHttpException("Unable to execute PUT URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+            }
+
+            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
+            logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody, return_);
         }
-        byte[] b = new byte[2048];
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
-        int c = 0;
-        while ((c = d.read(b, 0, b.length)) != -1)
-            bos.write(b, 0, c);
-        String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-        logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody.toString(), return_);
-        conn.disconnect();
+        catch(Exception e)
+        {
+            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+        }
+        finally{
+            if (isStream != null)
+                isStream.close();
+        }
+        return return_;
+    }
+
+    public static String runHttpPostCommand(String url,String jsonBody) throws IOException
+    {
+        String return_;
+        DefaultHttpClient client = new DefaultHttpClient();
+        InputStream isStream = null;
+        try {
+            HttpParams httpParameters = new BasicHttpParams();
+            int timeoutConnection = 1000;
+            int timeoutSocket = 1000;
+            HttpConnectionParams.setConnectionTimeout(httpParameters, timeoutConnection);
+            HttpConnectionParams.setSoTimeout(httpParameters, timeoutSocket);
+            client.setParams(httpParameters);
+
+            HttpPost postRequest = new HttpPost(url);
+            postRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
+            postRequest.setHeader("Content-type", "application/json");
+
+            HttpResponse resp = client.execute(postRequest);
+
+            if (resp == null || resp.getEntity() == null) {
+                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
+            }
+
+            isStream = resp.getEntity().getContent();
+
+            if (resp.getStatusLine().getStatusCode() != 200) {
+
+                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+            }
+
+            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
+            logger.debug("POST URL API: {} with JSONBody {} returns: {}", url, jsonBody, return_);
+        }
+        catch(Exception e)
+        {
+            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+        }
+        finally{
+            if (isStream != null)
+                isStream.close();
+        }
         return return_;
     }
 

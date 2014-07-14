@@ -1,6 +1,12 @@
 package com.netflix.elasticcar.utils;
 
+import com.netflix.elasticcar.backup.exception.MultipleMasterNodesException;
+import com.netflix.elasticcar.backup.exception.NoMasterNodeException;
+import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.dataobjects.MasterNodeInformationDO;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
+import com.netflix.elasticcar.objectmapper.DefaultSnapshotMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -95,6 +101,46 @@ public class EsUtils
     }
 
 
+    public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception
+    {
+        boolean iAmTheMaster = false;
+        final DefaultSnapshotMapper defaultSnapshotMapper = new DefaultSnapshotMapper();
+        String URL = httpModule.findMasterNodeURL();
+        String response = SystemUtils.runHttpGetCommand(URL);
+        if (config.isDebugEnabled()) {
+            logger.debug("Calling URL API: {} returns: {}", URL, response);
+        }
+        //Check the response
+        if (response == null || response.isEmpty()) {
+            logger.error("Response from URL : <" + URL + "> is Null or Empty, hence returning.");
+            return iAmTheMaster;
+        }
+        //Map MasterNodeInfo response to DO
+        TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
+        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultSnapshotMapper.readValue(response,typeRef);
+
+        if (masterNodeInformationDOList.size() == 0 )
+            throw new NoMasterNodeException("No Master Node found. Something went wrong !!");
+
+        if (masterNodeInformationDOList.size() > 1 )
+            throw new MultipleMasterNodesException("Multiple Master Nodes found. Something went wrong !!");
+
+        //Get MasterNode Ip
+        String ip = masterNodeInformationDOList.get(0).getIp();
+        if (ip == null || ip.isEmpty()) {
+            logger.error("ip from URL : <" + URL + "> is Null or Empty, hence can not run Snapshot Backup");
+            return iAmTheMaster;
+        }
+        if (config.isDebugEnabled())
+            logger.debug("*** IP of Master Node = " + ip);
+
+        //Confirm if Current Node is a Master Node
+        if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP())) {
+            iAmTheMaster = true;
+        }
+
+        return iAmTheMaster;
+    }
     /**
      * Repository Name is Today's Date in yyyyMMdd format eg. 20140630
      * @return Repository Name

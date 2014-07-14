@@ -503,8 +503,8 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
-    public String ignoreUnavailableIndicesDuringBackup() {
-        return null;
+    public boolean partiallyBackupIndices() {
+        return false;
     }
 
     @Override

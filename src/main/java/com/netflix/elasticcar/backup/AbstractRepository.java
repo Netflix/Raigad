@@ -1,8 +1,7 @@
-package com.netflix.elasticcar.aws;
+package com.netflix.elasticcar.backup;
 
 import com.google.inject.Inject;
 import com.netflix.elasticcar.objectmapper.DefaultRepositoryMapper;
-import com.netflix.elasticcar.backup.RepositoryWrapperDO;
 import com.netflix.elasticcar.backup.exception.DuplicateRepositoryNameException;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.SystemUtils;
@@ -42,14 +41,14 @@ public abstract class AbstractRepository implements IRepository
 
     public void initializeRepository(RepositoryType repositoryType)
     {
-        //        this.bucket = config.getBackupLocation();
+        this.bucket = config.getBackupLocation();
         this.clusterName = config.getAppName();
         this.region = config.getDC();
         this.type = repositoryType;
         this.basePath = config.getAppName().toLowerCase();//basePathLocator.getSnapshotBackupBasePath();
     }
 
-    public boolean doesRepositoryExists(String repositoryName,RepositoryType repositoryType) throws DuplicateRepositoryNameException
+    public boolean  doesRepositoryExists(String repositoryName,RepositoryType repositoryType) throws DuplicateRepositoryNameException
     {
         boolean doesRepoExists = false;
 
