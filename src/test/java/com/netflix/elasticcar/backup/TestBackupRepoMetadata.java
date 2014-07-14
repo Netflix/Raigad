@@ -1,6 +1,5 @@
 package com.netflix.elasticcar.backup;
 
-import com.netflix.elasticcar.aws.AbstractRepository;
 import com.netflix.elasticcar.objectmapper.DefaultRepositoryMapper;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
