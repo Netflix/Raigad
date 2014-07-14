@@ -15,7 +15,7 @@ public class TestIndexMetadata {
     @Test
     public void testDailyRetention() throws IOException {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("a20141233"));
@@ -29,7 +29,7 @@ public class TestIndexMetadata {
     @Test
     public void testMonthlyRetention() throws IOException {
         String str = "[    {        \"retentionType\": \"monthly\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
@@ -44,7 +44,7 @@ public class TestIndexMetadata {
     @Test
     public void testYearlyRetention() throws IOException {
         String str = "[    {        \"retentionType\": \"yearly\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index2013"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
@@ -62,7 +62,7 @@ public class TestIndexMetadata {
         String str = "[   {        \"retentionType\": \"yearly\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }," +
                          "{        \"retentionType\": \"monthly\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }," +
                          "{        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 3);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index2013"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
@@ -96,7 +96,7 @@ public class TestIndexMetadata {
     @Test
     public void testPreCreate() throws IOException {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\", \"preCreate\": \"true\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("a20141233"));
@@ -107,7 +107,7 @@ public class TestIndexMetadata {
     public void testBackupRepo() throws IOException
     {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.IndexAllocator.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
 
     }
