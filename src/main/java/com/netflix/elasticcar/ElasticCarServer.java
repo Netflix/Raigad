@@ -18,6 +18,7 @@ package com.netflix.elasticcar;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
+import com.netflix.elasticcar.backup.RestoreBackupManager;
 import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.identity.InstanceManager;
@@ -52,16 +53,19 @@ public class ElasticCarServer
 
 
     @Inject
-    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper, InstanceManager instanceManager,ElasticSearchIndexManager esIndexManager,SnapshotBackupManager snapshotBackupManager)
+    public ElasticCarServer(IConfiguration config, ElasticCarScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper,
+                            InstanceManager instanceManager,
+                            ElasticSearchIndexManager esIndexManager,
+                            SnapshotBackupManager snapshotBackupManager)
     {
         this.config = config;
         this.scheduler = scheduler;
+        this.httpModule = httpModule;
         this.esProcess = esProcess;
         this.sleeper = sleeper;
         this.instanceManager = instanceManager;
         this.esIndexManager = esIndexManager;
         this.snapshotBackupManager = snapshotBackupManager;
-        this.httpModule = httpModule;
     }
 
     public void initialize() throws Exception
@@ -98,10 +102,14 @@ public class ElasticCarServer
         
         logger.info("Trying to start Elastic Search now ...");
         
-		if (!config.doesElasticsearchStartManually())
-			esProcess.start(true); // Start elasticsearch.
-		else
-			logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually ...");        
+		if (!config.doesElasticsearchStartManually()) {
+            esProcess.start(true); // Start elasticsearch.
+            if (config.isRestoreEnabled())
+                scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME, RestoreBackupManager.class, RestoreBackupManager.getTimer(config), config.getRestoreTaskInitialDelayInSeconds());
+        }
+		else {
+            logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually. Restore task needs to be started manually as well (if needed).");
+        }
 
         /*
          *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process

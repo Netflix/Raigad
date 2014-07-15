@@ -3,26 +3,26 @@ package com.netflix.elasticcar.backup.exception;
 /**
  * Created by sloke on 6/26/14.
  */
-public class CreateSnapshotException extends Exception {
+public class RestoreBackupException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public CreateSnapshotException(String msg, Throwable th)
+    public RestoreBackupException(String msg, Throwable th)
     {
         super(msg, th);
     }
 
-    public CreateSnapshotException(String msg)
+    public RestoreBackupException(String msg)
     {
         super(msg);
     }
 
-    public CreateSnapshotException(Exception ex)
+    public RestoreBackupException(Exception ex)
     {
         super(ex);
     }
 
-    public CreateSnapshotException(Throwable th)
+    public RestoreBackupException(Throwable th)
     {
         super(th);
     }

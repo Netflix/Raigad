@@ -42,22 +42,23 @@ public class ElasticSearchIndexManager extends Task {
     @Override
     public void execute() {
         try {
-            TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
-            if (config.getBackupHour() < 0) {
-                logger.info("BackupHour property is disabled, hence can not start Snapshot Backup.");
-                return;
-            }
-            // If Elasticsearch is started then only start Snapshot Backup
-            if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-                String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-                logger.info(exceptionMsg);
-                return;
-            }
             //Confirm if Current Node is a Master Node
-            if (EsUtils.amIMasterNode(config, httpModule)) {
-                if (config.isDebugEnabled())
-                    logger.debug("Current node is a Master Node.");
+            if (EsUtils.amIMasterNode(config, httpModule))
+            {
+                // If Elasticsearch is started then only start Snapshot Backup
+                if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+                    String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Index Management Operation";
+                    logger.info(exceptionMsg);
+                    return;
+                }
+
+                logger.info("Current node is the Master Node.");
+
+                if (!config.isIndexAutoCreationEnabled()) {
+                    logger.info("Autocreation of Indices is disabled, hence moving on");
+                    return;
+                }
+                logger.info("Starting Index Maintenance ...");
 
                 List<IndexMetadata> infoList;
                 try {
@@ -68,6 +69,7 @@ public class ElasticSearchIndexManager extends Task {
                     return;
                 }
 
+                TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
                 for (IndexMetadata indexMetadata : infoList) {
                     try {
                         if (esTransportClient != null) {

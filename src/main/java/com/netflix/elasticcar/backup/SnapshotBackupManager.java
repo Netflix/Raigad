@@ -32,6 +32,7 @@ public class SnapshotBackupManager extends Task
     private static final AtomicBoolean isSnapshotRunning = new AtomicBoolean(false);
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_FOLDER_DATE_FORMAT = "yyyyMMddHHmm";
+    private static final String ALL_INDICES_TAG = "_all";
 
     @Inject
     public SnapshotBackupManager(IConfiguration config, IRepository repository, HttpModule httpModule) {
@@ -44,20 +45,24 @@ public class SnapshotBackupManager extends Task
     public void execute()
     {
         try {
-            if (config.getBackupHour() < 0) {
-                logger.info("BackupHour property is disabled, hence can not start Snapshot Backup.");
-                return;
-            }
-            // If Elasticsearch is started then only start Snapshot Backup
-            if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-                String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-                logger.info(exceptionMsg);
-                return;
-            }
             //Confirm if Current Node is a Master Node
             if (EsUtils.amIMasterNode(config,httpModule))
             {
-                logger.info("Current node is the Master Node. Running Snapshot now ...");
+                // If Elasticsearch is started then only start Snapshot Backup
+                if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+                    String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Snapshot Operation";
+                    logger.info(exceptionMsg);
+                    return;
+                }
+
+                logger.info("Current node is the Master Node.");
+
+                if (config.getBackupHour() < 0) {
+                    logger.info("BackupHour property is disabled, hence can not start Snapshot Backup.");
+                    return;
+                }
+
+                logger.info("Running Snapshot now ...");
 
                 // Create or Get Repository
                 String repositoryName = repository.createOrGetRepository(IRepository.RepositoryType.s3);
@@ -76,14 +81,17 @@ public class SnapshotBackupManager extends Task
                 logger.info("Snapshot Status = "+createSnapshotResponse.status().toString());
                 if(createSnapshotResponse.status() == RestStatus.OK)
                 {
+                    //TODO Add Servo Monitoring so that it can be verified from dashboard
                     printSnapshotDetails(createSnapshotResponse);
                 }
                 else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
+                    //TODO Add Servo Monitoring so that it can be verified from dashboard
                     logger.info("Snapshot Completely Failed");
             }
             else
             {
-                logger.info("Current node is not a Master Node yet, hence not running a Snapshot");
+                if(config.isDebugEnabled())
+                    logger.debug("Current node is not a Master Node yet, hence not running a Snapshot");
             }
         } catch (Exception e) {
             logger.warn("Exception thrown while running Snapshot Backup", e);

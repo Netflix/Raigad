@@ -222,5 +222,17 @@ public interface IConfiguration
      */
     public int getBackupHour();
 
+    /*
+        Restore related Config properties
+     */
 
+    public boolean isRestoreEnabled();
+
+    public String getRestoreRepositoryName();
+
+    public String getRestoreSnapshotName();
+
+    public String getCommaSeparatedIndicesToRestore();
+
+    public int getRestoreTaskInitialDelayInSeconds();
 }

@@ -528,6 +528,31 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public boolean isRestoreEnabled() {
+        return false;
+    }
+
+    @Override
+    public String getRestoreRepositoryName() {
+        return null;
+    }
+
+    @Override
+    public String getRestoreSnapshotName() {
+        return null;
+    }
+
+    @Override
+    public String getCommaSeparatedIndicesToRestore() {
+        return null;
+    }
+
+    @Override
+    public int getRestoreTaskInitialDelayInSeconds() {
+        return 0;
+    }
+
+    @Override
     public boolean isCustomShardAllocationPolicyEnabled() {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }
