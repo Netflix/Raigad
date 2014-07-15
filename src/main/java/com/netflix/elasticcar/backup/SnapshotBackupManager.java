@@ -62,12 +62,12 @@ public class SnapshotBackupManager extends Task
                     return;
                 }
 
-                logger.info("Running Snapshot now ...");
-
                 // Create or Get Repository
                 String repositoryName = repository.createOrGetRepository(IRepository.RepositoryType.s3);
                 // StartBackup
                 String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
+
+                logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> \nRunning Snapshot now ... ");
 
                 TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 

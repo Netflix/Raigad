@@ -77,8 +77,7 @@ public class S3Repository extends AbstractRepository
 
                 TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
-
-
+                //Creating New Repository now
                 PutRepositoryResponse putRepositoryResponse = esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
                         .setType(repositoryType.toString()).setSettings(ImmutableSettings.settingsBuilder()
                                         .put("base_path", basePath)
@@ -86,27 +85,13 @@ public class S3Repository extends AbstractRepository
                                         .put("bucket", bucket)
                         ).get();
 
-
                 if(putRepositoryResponse.isAcknowledged())
                 {
                     logger.info("Successfully created a repository : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
                 }
                 else {
-                    throw new CreateRepositoryException("Creation of repository : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
+                    throw new CreateRepositoryException("Creation of repository failed : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
                 }
-//                //Creating New Repository now
-//                String URL = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/" + s3RepoName;
-//                RepositorySettingsDO repositorySettingsDO = new RepositorySettingsDO(region, basePath, bucket);
-//                RepositoryWrapperDO repositoryWrapperDO = new RepositoryWrapperDO(type.toString().toLowerCase(), repositorySettingsDO);
-//                String jsonBody = mapper.writeValueAsString(repositoryWrapperDO);
-//                if (config.isDebugEnabled())
-//                    logger.debug("Create Repository JSON : " + jsonBody);
-//                String response = SystemUtils.runHttpPostCommand(URL, jsonBody);
-//                if (response == null || response.isEmpty()) {
-//                    logger.error("Response from URL : <" + URL + "> is Null or Empty, hence stopping the current running thread");
-//                    throw new CreateRepositoryException("Response from URL : <" + URL + "> is Null or Empty, Creation of Repository failed !!");
-//                }
-//                logger.info("Response from URL : <" + URL + ">  = [" + response + "]. Successfully created a repository <" + s3RepoName + ">");
             }
         }
         catch (Exception e)

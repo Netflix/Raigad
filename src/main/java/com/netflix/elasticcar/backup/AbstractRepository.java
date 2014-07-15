@@ -1,17 +1,18 @@
 package com.netflix.elasticcar.backup;
 
 import com.google.inject.Inject;
-import com.netflix.elasticcar.objectmapper.DefaultRepositoryMapper;
-import com.netflix.elasticcar.backup.exception.DuplicateRepositoryNameException;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.utils.SystemUtils;
+import com.netflix.elasticcar.objectmapper.DefaultRepositoryMapper;
+import com.netflix.elasticcar.utils.ESTransportClient;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.metadata.MetaData;
+import org.elasticsearch.cluster.metadata.RepositoriesMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * Created by sloke on 7/1/14.
@@ -48,45 +49,23 @@ public abstract class AbstractRepository implements IRepository
         this.basePath = config.getAppName().toLowerCase();//basePathLocator.getSnapshotBackupBasePath();
     }
 
-    public boolean  doesRepositoryExists(String repositoryName,RepositoryType repositoryType) throws DuplicateRepositoryNameException
+    public boolean  doesRepositoryExists(String repositoryName,RepositoryType repositoryType) //throws DuplicateRepositoryNameException
     {
         boolean doesRepoExists = false;
 
         try {
-            String URL =  "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/";
-            String response = SystemUtils.runHttpGetCommand(URL);
-            if (config.isDebugEnabled()) {
-                logger.debug("Calling URL API: {} returns: {}", URL, response);
+
+            TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+            ClusterStateResponse clusterStateResponse = esTransportClient.admin().cluster().prepareState().clear().setMetaData(true).get();
+            MetaData metaData = clusterStateResponse.getState().getMetaData();
+            RepositoriesMetaData repositoriesMetaData = metaData.custom(RepositoriesMetaData.TYPE);
+
+            if(repositoriesMetaData.repository(repositoryName).type().equalsIgnoreCase(repositoryType.toString()))
+            {
+                logger.info("Repository <"+repositoryName+"> already exists");
+                doesRepoExists = true;
             }
-            //Split the response on Spaces to get IP
-            if (response == null || response.isEmpty()) {
-                logger.error("Response from URL : <" + URL + "> is Null or Empty, hence repository does not exist");
-                return false;
-            }
-
-            TypeReference<Map<String, RepositoryWrapperDO>> typeReference = new TypeReference<Map<String, RepositoryWrapperDO>>() {};
-
-            Map<String, RepositoryWrapperDO> existingRepositoryMap = mapper.readValue(response, typeReference);
-
-            if(existingRepositoryMap != null) {
-                for (String existingRepoName : existingRepositoryMap.keySet()) {
-                    if (existingRepoName.toLowerCase().equalsIgnoreCase(repositoryName)) {
-                        if(!existingRepositoryMap.get(existingRepoName).getType().equalsIgnoreCase(repositoryType.toString()))
-                        {
-                            throw new DuplicateRepositoryNameException("Repository with name : <"+repositoryName+"> already exists but with Type : <"+existingRepositoryMap.get(existingRepoName).getType()+">");
-                        }
-                        if (config.isDebugEnabled())
-                            logger.debug("Repository = <" + repositoryName + "> already exists.");
-
-                        doesRepoExists = true;
-                        break;
-                    }
-                }
-            }
-        }
-        catch(DuplicateRepositoryNameException drne)
-        {
-            throw drne;
         }
         catch(Exception e)
         {
