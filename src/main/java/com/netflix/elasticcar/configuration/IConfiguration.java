@@ -230,6 +230,8 @@ public interface IConfiguration
 
     public String getRestoreRepositoryName();
 
+    public String getRestoreRepositoryType();
+
     public String getRestoreSnapshotName();
 
     public String getCommaSeparatedIndicesToRestore();

@@ -9,6 +9,7 @@ import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.cluster.metadata.RepositoriesMetaData;
+import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +53,7 @@ public abstract class AbstractRepository implements IRepository
     public boolean  doesRepositoryExists(String repositoryName,RepositoryType repositoryType) //throws DuplicateRepositoryNameException
     {
         boolean doesRepoExists = false;
+        logger.info("Checking if repository <"+repositoryName+"> exists for type <"+repositoryType.name()+">");
 
         try {
 
@@ -61,11 +63,24 @@ public abstract class AbstractRepository implements IRepository
             MetaData metaData = clusterStateResponse.getState().getMetaData();
             RepositoriesMetaData repositoriesMetaData = metaData.custom(RepositoriesMetaData.TYPE);
 
-            if(repositoriesMetaData.repository(repositoryName).type().equalsIgnoreCase(repositoryType.toString()))
+            for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
             {
-                logger.info("Repository <"+repositoryName+"> already exists");
-                doesRepoExists = true;
+                if(repositoryMetaData.name().equalsIgnoreCase(repositoryName) && repositoryMetaData.type().equalsIgnoreCase(IRepository.RepositoryType.s3.toString()))
+                {
+                    doesRepoExists = true;
+                    break;
+                }
             }
+
+            if(config.isDebugEnabled())
+                for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
+                    logger.debug("Repository <" + repositoryMetaData.name() + ">");
+
+            if (doesRepoExists)
+                logger.info("Repository <" + repositoryName + "> already exists");
+            else
+                logger.info("Repository <" + repositoryName + "> does NOT exist");
+
         }
         catch(Exception e)
         {

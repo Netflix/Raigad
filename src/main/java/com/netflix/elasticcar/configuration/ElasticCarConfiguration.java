@@ -538,6 +538,11 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public String getRestoreRepositoryType() {
+        return null;
+    }
+
+    @Override
     public String getRestoreSnapshotName() {
         return null;
     }

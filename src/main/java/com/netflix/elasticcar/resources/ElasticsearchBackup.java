@@ -23,10 +23,10 @@ public class ElasticsearchBackup
 {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchBackup.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
-    private static final String REST_REPOSITORY_NAME = "repository";
+    private static final String REST_REPOSITORY_NAME = "repository_name";
+    private static final String REST_REPOSITORY_TYPE = "repository_type";
     private static final String REST_SNAPSHOT_NAME = "snapshot";
     private static final String REST_INDICES_NAME = "indices";
-    private static final String REST_REPOSITORY_TYPE = "type";
     private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
     private final SnapshotBackupManager snapshotBackupManager;
@@ -55,12 +55,13 @@ public class ElasticsearchBackup
     @GET
     @Path("/do_restore")
     public Response restore(@QueryParam(REST_REPOSITORY_NAME) String repoName,
+                            @QueryParam(REST_REPOSITORY_TYPE) String repoType,
                            @QueryParam(REST_SNAPSHOT_NAME) String snapName,
                            @QueryParam(REST_INDICES_NAME) String indicesName)
             throws Exception
     {
 		logger.info("Running Restore through REST call ...");
-        restoreBackupManager.runRestore(repoName,snapName,indicesName);
+        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

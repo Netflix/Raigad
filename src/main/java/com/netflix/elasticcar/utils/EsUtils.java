@@ -7,6 +7,10 @@ import com.netflix.elasticcar.dataobjects.MasterNodeInformationDO;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.objectmapper.DefaultSnapshotMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.common.collect.Lists;
+import org.elasticsearch.snapshots.SnapshotInfo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -100,7 +104,6 @@ public class EsUtils
     		return esCarInstances;
     }
 
-
     public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception
     {
         boolean iAmTheMaster = false;
@@ -141,6 +144,22 @@ public class EsUtils
 
         return iAmTheMaster;
     }
+
+    public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName)
+    {
+        List<String> snapshots = Lists.newArrayList();
+        GetSnapshotsResponse getSnapshotsResponse = transportClient.admin().cluster()
+                .prepareGetSnapshots(repositoryName)
+                .get();
+
+        for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots())
+        {
+            snapshots.add(snapshotInfo.name());
+        }
+
+        return snapshots;
+    }
+
     /**
      * Repository Name is Today's Date in yyyyMMdd format eg. 20140630
      * @return Repository Name

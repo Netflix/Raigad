@@ -68,6 +68,8 @@ public class S3Repository extends AbstractRepository
     @Override
     public String createOrGetRepository(RepositoryType repositoryType) throws Exception
     {
+        logger.info("Trying to create or get repository of type <"+repositoryType.name()+">");
+
         String s3RepoName = null;
         try {
             initializeRepository(repositoryType);
