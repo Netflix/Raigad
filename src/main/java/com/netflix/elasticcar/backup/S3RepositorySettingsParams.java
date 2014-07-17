@@ -94,5 +94,4 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
         DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
         return dateTime.toString(fmt);
     }
-
 }
