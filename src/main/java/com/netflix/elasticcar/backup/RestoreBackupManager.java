@@ -35,6 +35,8 @@ public class RestoreBackupManager extends Task
     private final HttpModule httpModule;
     private static final AtomicBoolean isRestoreRunning = new AtomicBoolean(false);
     private static final String ALL_INDICES_TAG = "_all";
+    private static final String SUFFIX_SEPARATOR_TAG = "-";
+
 
     @Inject
     public RestoreBackupManager(IConfiguration config,  @Named("s3")AbstractRepository repository, HttpModule httpModule) {
@@ -81,6 +83,9 @@ public class RestoreBackupManager extends Task
         if(StringUtils.isBlank(repoN))
             throw new RestoreBackupException("Repository Name is Null or Empty");
 
+        //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
+        repoN = repoN + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
+
         String repoType = StringUtils.isBlank(repositoryType) ? config.getRestoreRepositoryType().toLowerCase() : repositoryType;
         if(StringUtils.isBlank(repoType))
         {
@@ -110,6 +115,7 @@ public class RestoreBackupManager extends Task
             //Use the Last available snapshot
             snapshotN = snapshots.get(0);
         }
+        logger.info("Snapshot Name : <"+snapshotN+">");
 
         // Get Names of Indices
         String commaSeparatedIndices =  StringUtils.isBlank(indices) ? config.getCommaSeparatedIndicesToRestore() : indices;
