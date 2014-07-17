@@ -120,7 +120,11 @@ public class RestoreBackupManager extends Task
         // Get Names of Indices
         String commaSeparatedIndices =  StringUtils.isBlank(indices) ? config.getCommaSeparatedIndicesToRestore() : indices;
         if(StringUtils.isBlank(commaSeparatedIndices) || commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG))
-            logger.info("Restoring all Indices. Param : <"+commaSeparatedIndices+">");
+        {
+            commaSeparatedIndices = null;
+            logger.info("Restoring all Indices.");
+        }
+        logger.info("Indices param : <"+commaSeparatedIndices+">");
 
         //This is a blocking call. It'll wait until Restore is finished.
         RestoreSnapshotResponse restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoN, snapshotN)
