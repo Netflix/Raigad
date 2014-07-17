@@ -2,6 +2,7 @@ package com.netflix.elasticcar.backup;
 
 import com.google.inject.ImplementedBy;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.ESTransportClient;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
@@ -29,7 +30,7 @@ public abstract class AbstractRepository
     protected final AbstractRepositorySettingsParams repositorySettingsParams;
 
     @Inject
-    protected AbstractRepository(IConfiguration config, AbstractRepositorySettingsParams repositorySettingsParams)
+    protected AbstractRepository(IConfiguration config, @Named("s3")AbstractRepositorySettingsParams repositorySettingsParams)
     {
         this.config = config;
         this.repositorySettingsParams = repositorySettingsParams;
