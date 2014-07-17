@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.indexmanagement.exception.UnsupportedAutoIndexException;
 import com.netflix.elasticcar.objectmapper.DefaultIndexMapper;
-import com.netflix.elasticcar.scheduler.SimpleTimer;
+import com.netflix.elasticcar.scheduler.CronTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
 import com.netflix.elasticcar.utils.ESTransportClient;
@@ -89,7 +89,7 @@ public class ElasticSearchIndexManager extends Task {
             {
                 //TODO:Update config property
                 if (config.isDebugEnabled())
-                    logger.debug("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledDelaySeconds() + " Seconds");
+                    logger.debug("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledHour() + " Seconds");
             }
         } catch (Exception e)
         {
@@ -104,11 +104,11 @@ public class ElasticSearchIndexManager extends Task {
 
     public static TaskTimer getTimer(IConfiguration config)
     {
-        //Remove after testing
-        return new SimpleTimer(JOBNAME, 30L * 1000);
+//        //Remove after testing
+//        return new SimpleTimer(JOBNAME, 30L * 1000);
 
-//        int hour = config.getBackupHour();
-//        return new CronTimer(hour, 1, 0);
+        int hour = config.getAutoCreateIndexPeriodicScheduledHour();
+        return new CronTimer(hour, 1, 0);
     }
 
     /**

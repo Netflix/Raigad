@@ -493,7 +493,7 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
-    public int getAutoCreateIndexPeriodicScheduledDelaySeconds() {
+    public int getAutoCreateIndexPeriodicScheduledHour() {
         return 0;
     }
 
