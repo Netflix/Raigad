@@ -102,11 +102,11 @@ public class S3Repository extends AbstractRepository
     }
 
     @Override
-    public void createRestoreRepository(String s3RepoName) throws Exception
+    public void createRestoreRepository(String s3RepoName, String basePathSuffix) throws Exception
     {
         try {
             //Set Restore related parameters
-            repositorySettingsParams.setRestoreParams(s3RepoName);
+            repositorySettingsParams.setRestoreParams(basePathSuffix);
 
             //Check if Repository Exists
             createNewRepository(s3RepoName);

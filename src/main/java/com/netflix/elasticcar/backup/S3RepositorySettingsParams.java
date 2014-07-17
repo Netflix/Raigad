@@ -39,7 +39,7 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
     }
 
     @Override
-    public void setRestoreParams(String repoName) throws RestoreBackupException {
+    public void setRestoreParams(String basePathSuffix) throws RestoreBackupException {
         if(StringUtils.isNotBlank(config.getRestoreLocation()))
             this.bucket = config.getRestoreLocation();
         else {
@@ -53,7 +53,7 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
             logger.info("config.getRestoreSourceRepositoryRegion() is Blank, hence setting region = config.getDC()");
             this.region = config.getDC();
         }
-        this.base_path = getRestoreBackupBasePath(repoName);
+        this.base_path = getRestoreBackupBasePath(basePathSuffix);
         logger.info("Bucket : <"+bucket+"> Region : <"+region+"> Base_path : <"+base_path+">");
     }
 
@@ -70,14 +70,14 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
     }
 
     //"base_path": "es_{source_cluster_name}/20140410"
-    public String getRestoreBackupBasePath(String repoName) throws RestoreBackupException {
+    public String getRestoreBackupBasePath(String basePathSuffix) throws RestoreBackupException {
         StringBuilder basePath = new StringBuilder();
         if(StringUtils.isNotBlank(config.getRestoreSourceClusterName()))
             basePath.append(config.getRestoreSourceClusterName());
         else
             throw new RestoreBackupException("No Source Cluster for Restore yet chosen.");
         basePath.append(PATH_SEP);
-        basePath.append(repoName);
+        basePath.append(basePathSuffix);
         logger.info("S3 Repository Restore Base Path : <"+basePath.toString()+">");
         return basePath.toString();
     }

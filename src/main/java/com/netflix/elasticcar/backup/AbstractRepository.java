@@ -45,7 +45,7 @@ public abstract class AbstractRepository
 
     public abstract String createOrGetSnapshotRepository() throws Exception;
 
-    public abstract void createRestoreRepository(String s3RepoName) throws Exception;
+    public abstract void createRestoreRepository(String s3RepoName, String basePathSuffix) throws Exception;
 
     public boolean  doesRepositoryExists(String repositoryName,RepositoryType repositoryType)
     {
@@ -60,18 +60,19 @@ public abstract class AbstractRepository
             MetaData metaData = clusterStateResponse.getState().getMetaData();
             RepositoriesMetaData repositoriesMetaData = metaData.custom(RepositoriesMetaData.TYPE);
 
-            for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
-            {
-                if(repositoryMetaData.name().equalsIgnoreCase(repositoryName) && repositoryMetaData.type().equalsIgnoreCase(repositoryType.name()))
-                {
-                    doesRepoExists = true;
-                    break;
+            if(repositoriesMetaData != null) {
+                for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories()) {
+                    if (repositoryMetaData.name().equalsIgnoreCase(repositoryName) && repositoryMetaData.type().equalsIgnoreCase(repositoryType.name())) {
+                        doesRepoExists = true;
+                        break;
+                    }
                 }
-            }
 
-            if(config.isDebugEnabled())
-                for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
-                    logger.debug("Repository <" + repositoryMetaData.name() + ">");
+                if (config.isDebugEnabled())
+                    for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
+                        logger.debug("Repository <" + repositoryMetaData.name() + ">");
+
+            }
 
             if (doesRepoExists)
                 logger.info("Repository <" + repositoryName + "> already exists");

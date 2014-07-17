@@ -84,7 +84,8 @@ public class RestoreBackupManager extends Task
             throw new RestoreBackupException("Repository Name is Null or Empty");
 
         //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
-        repoN = repoN + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
+        String basePathSuffix = SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
+        repoN = repoN + basePathSuffix;
 
         String repoType = StringUtils.isBlank(repositoryType) ? config.getRestoreRepositoryType().toLowerCase() : repositoryType;
         if(StringUtils.isBlank(repoType))
@@ -96,7 +97,7 @@ public class RestoreBackupManager extends Task
         if(!repository.doesRepositoryExists(repoN, AbstractRepository.RepositoryType.valueOf(repoType.toLowerCase())))
         {
             //If repository does not exist, create new one
-            repository.createRestoreRepository(repoN);
+            repository.createRestoreRepository(repoN,basePathSuffix);
 
         }
 

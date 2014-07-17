@@ -32,7 +32,7 @@ public abstract class AbstractRepositorySettingsParams
 
     public abstract void setBackupParams();
 
-    public abstract void setRestoreParams(String repoName) throws RestoreBackupException;
+    public abstract void setRestoreParams(String basePathSuffix) throws RestoreBackupException;
 
     public String getBucket() {
         return bucket;
