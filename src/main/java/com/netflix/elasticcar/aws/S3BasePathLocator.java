@@ -15,6 +15,7 @@ import java.io.File;
 /**
  * Created by sloke on 7/2/14.
  */
+@Deprecated
 @Singleton
 public class S3BasePathLocator implements IBasePathLocator
 {
@@ -42,6 +43,7 @@ public class S3BasePathLocator implements IBasePathLocator
         return dateTime.toString(fmt);
     }
 
+    //"base_path": "es_{current_cluster_name}/20140410"
     @Override
     public String getSnapshotBackupBasePath()
     {
@@ -51,7 +53,21 @@ public class S3BasePathLocator implements IBasePathLocator
         String repoSuffix = getS3RepositoryName();
         basePath.append(repoSuffix);
         if(config.isDebugEnabled())
-            logger.debug("S3 Repository Name : <"+basePath.toString()+">");
+            logger.debug("S3 Repository Snapshot Base Path : <"+basePath.toString()+">");
+        return basePath.toString();
+    }
+
+    //"base_path": "es_{source_cluster_name}/20140410"
+    @Override
+    public String getRestoreBackupBasePath() {
+        StringBuilder basePath = new StringBuilder();
+
+        basePath.append(config.getRestoreSourceClusterName());
+        basePath.append(PATH_SEP);
+        String repoSuffix = config.getRestoreRepositoryName();
+        basePath.append(repoSuffix);
+        if(config.isDebugEnabled())
+            logger.debug("S3 Repository Restore Base Path : <"+basePath.toString()+">");
         return basePath.toString();
     }
 }

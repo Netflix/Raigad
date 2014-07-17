@@ -39,21 +39,15 @@ public class S3Repository extends AbstractRepository
     private static final Logger logger = LoggerFactory.getLogger(S3Repository.class);
     private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
+    private RepositoryType type;
+    private AbstractRepositorySettingsParams repositorySettingsParams;
 
     @Inject
-    private S3Repository(IConfiguration config)
+    private S3Repository(IConfiguration config,AbstractRepositorySettingsParams repositorySettingsParams)
     {
-        super(config);
-    }
-
-    @Override
-    public void initializeRepository(RepositoryType repositoryType)
-    {
-        this.bucket = config.getBackupLocation();
-        this.clusterName = config.getAppName();
-        this.region = config.getDC();
-        this.type = repositoryType;
-        this.basePath = config.getAppName().toLowerCase() + PATH_SEP + getRemoteRepositoryName();//basePathLocator.getSnapshotBackupBasePath();
+        super(config,repositorySettingsParams);
+        this.type = RepositoryType.s3;
+        this.repositorySettingsParams = repositorySettingsParams;
     }
 
     /**
@@ -65,43 +59,84 @@ public class S3Repository extends AbstractRepository
      *                }
      * }
      */
-    @Override
-    public String createOrGetRepository(RepositoryType repositoryType) throws Exception
-    {
-        logger.info("Trying to create or get repository of type <"+repositoryType.name()+">");
+//    @Override
+//    public String createOrGetRepository(ActionType actionType) throws Exception
+//    {
+//        logger.info("Trying to create or get repository of type <"+getRepositoryType().name()+">");
+//
+//        String s3RepoName = null;
+//           if(actionType == ActionType.SNAPSHOT)
+//            {
+//                s3RepoName = createOrGetSnapshotRepository();
+//            } else if (actionType == ActionType.RESTORE)
+//            {
+//                s3RepoName = createOrGetRestoreRepository();
+//            }
+//
+//        return s3RepoName;
+//    }
 
+    @Override
+    public String createOrGetSnapshotRepository() throws Exception
+    {
         String s3RepoName = null;
         try {
-            initializeRepository(repositoryType);
+
             s3RepoName = getRemoteRepositoryName();
+            logger.info("Snapshot Repository Name : <"+s3RepoName+">");
+
+            //Set Snapshot Backup related parameters
+            repositorySettingsParams.setBackupParams();
+
             //Check if Repository Exists
-            if (!doesRepositoryExists(s3RepoName, repositoryType)) {
-
-                TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
-                //Creating New Repository now
-                PutRepositoryResponse putRepositoryResponse = esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
-                        .setType(repositoryType.toString()).setSettings(ImmutableSettings.settingsBuilder()
-                                        .put("base_path", basePath)
-                                        .put("region", region)
-                                        .put("bucket", bucket)
-                        ).get();
-
-                if(putRepositoryResponse.isAcknowledged())
-                {
-                    logger.info("Successfully created a repository : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
-                }
-                else {
-                    throw new CreateRepositoryException("Creation of repository failed : <" + s3RepoName + "> bucket : <"+bucket+"> base_path : <"+basePath+"> region : <"+region+">");
-                }
+            if (!doesRepositoryExists(s3RepoName, getRepositoryType())) {
+                createNewRepository(s3RepoName);
             }
         }
         catch (Exception e)
         {
-            throw new CreateRepositoryException("Creation of Repository failed !!",e);
+            throw new CreateRepositoryException("Creation of Snapshot Repository failed !!",e);
         }
 
         return s3RepoName;
+    }
+
+    @Override
+    public void createRestoreRepository(String s3RepoName) throws Exception
+    {
+        try {
+            //Set Restore related parameters
+            repositorySettingsParams.setRestoreParams(s3RepoName);
+
+            //Check if Repository Exists
+            createNewRepository(s3RepoName);
+        }
+        catch (Exception e)
+        {
+            throw new CreateRepositoryException("Creation of Restore Repository failed !!",e);
+        }
+    }
+
+    public void createNewRepository(String s3RepoName) throws Exception
+    {
+        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+        //Creating New Repository now
+        PutRepositoryResponse putRepositoryResponse = esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
+                .setType(getRepositoryType().name()).setSettings(ImmutableSettings.settingsBuilder()
+                                .put("base_path", repositorySettingsParams.getBase_path())
+                                .put("region", repositorySettingsParams.getRegion())
+                                .put("bucket", repositorySettingsParams.getBucket())
+                ).get();
+
+        if(putRepositoryResponse.isAcknowledged())
+        {
+            logger.info("Successfully created a repository : <" + s3RepoName + "> " + getRepoParamPrint());
+        }
+        else {
+            throw new CreateRepositoryException("Creation of repository failed : <" + s3RepoName + "> " +
+                    getRepoParamPrint());
+        }
     }
 
     @Override
@@ -110,4 +145,17 @@ public class S3Repository extends AbstractRepository
         DateTime dtGmt = dt.withZone(currentZone);
         return SystemUtils.formatDate(dtGmt,S3_REPO_DATE_FORMAT);
     }
+
+    public RepositoryType getRepositoryType()
+    {
+        return type;
+    }
+
+    public String getRepoParamPrint()
+    {
+        return  "bucket : <"+repositorySettingsParams.getBucket()+"> " +
+                "base_path : <"+repositorySettingsParams.getBase_path()+"> " +
+                "region : <"+repositorySettingsParams.getRegion()+">";
+    }
+
 }

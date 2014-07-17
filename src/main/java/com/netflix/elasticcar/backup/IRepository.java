@@ -1,10 +1,9 @@
 package com.netflix.elasticcar.backup;
 
-import com.netflix.elasticcar.backup.exception.DuplicateRepositoryNameException;
-
 /**
  * Created by sloke on 7/2/14.
  */
+@Deprecated
 public interface IRepository
 {
     public enum RepositoryType
@@ -12,9 +11,7 @@ public interface IRepository
         s3, fs, azure
     }
 
-    public boolean doesRepositoryExists(String repositoryName,RepositoryType repositoryType) throws DuplicateRepositoryNameException;
-
-    public void initializeRepository(RepositoryType repositoryType);
+    public boolean doesRepositoryExists(String repositoryName,RepositoryType repositoryType) ;
 
     /**
      *

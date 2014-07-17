@@ -2,7 +2,9 @@ package com.netflix.elasticcar.backup;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.monitoring.ElasticcarMonitor;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -27,15 +29,15 @@ public class SnapshotBackupManager extends Task
 {
     private static final Logger logger = LoggerFactory.getLogger(SnapshotBackupManager.class);
     public static String JOBNAME = "SnapshotBackupManager";
-    private final IRepository repository;
+    private final AbstractRepository repository;
     private final HttpModule httpModule;
+    private ElasticcarMonitor elasticcarMonitor = new ElasticcarMonitor();
     private static final AtomicBoolean isSnapshotRunning = new AtomicBoolean(false);
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_FOLDER_DATE_FORMAT = "yyyyMMddHHmm";
-    private static final String ALL_INDICES_TAG = "_all";
 
     @Inject
-    public SnapshotBackupManager(IConfiguration config, IRepository repository, HttpModule httpModule) {
+    public SnapshotBackupManager(IConfiguration config, @Named("s3")AbstractRepository repository, HttpModule httpModule) {
         super(config);
         this.repository = repository;
         this.httpModule = httpModule;
@@ -63,7 +65,8 @@ public class SnapshotBackupManager extends Task
                 }
 
                 // Create or Get Repository
-                String repositoryName = repository.createOrGetRepository(IRepository.RepositoryType.s3);
+                String repositoryName = repository.createOrGetSnapshotRepository();
+
                 // StartBackup
                 String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
 
@@ -83,10 +86,13 @@ public class SnapshotBackupManager extends Task
                 {
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     printSnapshotDetails(createSnapshotResponse);
+                    elasticcarMonitor.snapshotSuccess.incrementAndGet();
                 }
-                else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
+                else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     logger.info("Snapshot Completely Failed");
+                    elasticcarMonitor.snapshotFailure.incrementAndGet();
+                }
             }
             else
             {
@@ -94,6 +100,7 @@ public class SnapshotBackupManager extends Task
                     logger.debug("Current node is not a Master Node yet, hence not running a Snapshot");
             }
         } catch (Exception e) {
+            elasticcarMonitor.snapshotFailure.incrementAndGet();
             logger.warn("Exception thrown while running Snapshot Backup", e);
         }
     }
@@ -134,7 +141,7 @@ public class SnapshotBackupManager extends Task
     public static TaskTimer getTimer(IConfiguration config)
     {
         //Remove after testing
-        return new SimpleTimer(JOBNAME, 30L * 1000);
+        return new SimpleTimer(JOBNAME, 90L * 1000);
 
 //        int hour = config.getBackupHour();
 //        return new CronTimer(hour, 1, 0);

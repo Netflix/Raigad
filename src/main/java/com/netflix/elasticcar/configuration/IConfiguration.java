@@ -228,7 +228,14 @@ public interface IConfiguration
 
     public boolean isRestoreEnabled();
 
+
     public String getRestoreRepositoryName();
+
+    public String getRestoreSourceClusterName();
+
+    public String getRestoreSourceRepositoryRegion();
+
+    public String getRestoreLocation();
 
     public String getRestoreRepositoryType();
 

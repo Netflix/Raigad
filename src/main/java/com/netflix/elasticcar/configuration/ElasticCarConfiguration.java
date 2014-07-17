@@ -538,6 +538,21 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public String getRestoreSourceClusterName() {
+        return null;
+    }
+
+    @Override
+    public String getRestoreSourceRepositoryRegion() {
+        return null;
+    }
+
+    @Override
+    public String getRestoreLocation() {
+        return null;
+    }
+
+    @Override
     public String getRestoreRepositoryType() {
         return null;
     }
