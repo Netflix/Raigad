@@ -56,7 +56,7 @@ public class CronTimer implements TaskTimer
      */
     public CronTimer(int hour, int minute, int sec, String triggerName)
     {
-        triggerName = triggerName;
+        this.triggerName = triggerName;
         cronExpression = sec + " " + minute + " " + hour + " * * ?";
     }
 
