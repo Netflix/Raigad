@@ -24,13 +24,13 @@ public class FsStatsMonitor extends Task
 {
 	private static final Logger logger = LoggerFactory.getLogger(FsStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_FsStatsMonitor";
-    private final FsStatsReporter fsStatsReporter;
-    
+    private final Elasticsearch_FsStatsReporter fsStatsReporter;
+
     @Inject
     public FsStatsMonitor(IConfiguration config)
     {
         super(config);
-        fsStatsReporter = new FsStatsReporter();
+        fsStatsReporter = new Elasticsearch_FsStatsReporter();
     		Monitors.registerObject(fsStatsReporter);
     }
 
@@ -42,8 +42,8 @@ public class FsStatsMonitor extends Task
 			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
 			logger.info(exceptionMsg);
 			return;
-		}        		
-	
+		}
+
   		FsStatsBean fsStatsBean = new FsStatsBean();
   		try
   		{
@@ -62,14 +62,14 @@ public class FsStatsMonitor extends Task
 				logger.info("FsStats is null,hence returning (No FsStats).");
 				return;
 			}
-	
+
 			fsStatsBean.total = fsStats.getTotal().getTotal().getBytes();
 			fsStatsBean.free = fsStats.getTotal().getFree().getBytes();
 			fsStatsBean.available = fsStats.getTotal().getAvailable().getBytes();
 			fsStatsBean.diskReads = fsStats.getTotal().getDiskReads();
 			fsStatsBean.diskWrites = fsStats.getTotal().getDiskWrites();
 			fsStatsBean.diskReadBytes = fsStats.getTotal().getDiskReadSizeInBytes();
-			fsStatsBean.diskWriteBytes = fsStats.getTotal().getDiskWriteSizeInBytes();  	
+			fsStatsBean.diskWriteBytes = fsStats.getTotal().getDiskWriteSizeInBytes();
 			fsStatsBean.diskQueue = fsStats.getTotal().getDiskQueue();
 			fsStatsBean.diskServiceTime = fsStats.getTotal().getDiskServiceTime();
   		}
@@ -80,12 +80,12 @@ public class FsStatsMonitor extends Task
 
   		fsStatsReporter.fsStatsBean.set(fsStatsBean);
 	}
-  	
-    public class FsStatsReporter
+
+    public class Elasticsearch_FsStatsReporter
     {
         private final AtomicReference<FsStatsBean> fsStatsBean;
 
-        public FsStatsReporter()
+        public Elasticsearch_FsStatsReporter()
         {
         		fsStatsBean = new AtomicReference<FsStatsBean>(new FsStatsBean());
         }

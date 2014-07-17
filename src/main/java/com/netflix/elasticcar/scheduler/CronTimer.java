@@ -15,11 +15,12 @@
  */
 package com.netflix.elasticcar.scheduler;
 
-import java.text.ParseException;
-
+import org.apache.commons.lang.StringUtils;
 import org.quartz.CronTrigger;
 import org.quartz.Scheduler;
 import org.quartz.Trigger;
+
+import java.text.ParseException;
 
 /**
  * Runs jobs at the specified absolute time and frequency
@@ -27,6 +28,7 @@ import org.quartz.Trigger;
 public class CronTimer implements TaskTimer
 {
     private String cronExpression;
+    private String triggerName;
 
     public enum DayOfWeek
     {
@@ -50,6 +52,15 @@ public class CronTimer implements TaskTimer
     }
 
     /**
+     * Daily Cron with explicit TriggerName
+     */
+    public CronTimer(int hour, int minute, int sec, String triggerName)
+    {
+        triggerName = triggerName;
+        cronExpression = sec + " " + minute + " " + hour + " * * ?";
+    }
+
+    /**
      * Weekly cron jobs
      */
     public CronTimer(DayOfWeek dayofweek, int hour, int minute, int sec)
@@ -67,6 +78,10 @@ public class CronTimer implements TaskTimer
 
     public Trigger getTrigger() throws ParseException
     {
-        return new CronTrigger("CronTrigger", Scheduler.DEFAULT_GROUP, cronExpression);
+        if (StringUtils.isNotBlank(triggerName))
+            return new CronTrigger("CronTrigger"+triggerName, Scheduler.DEFAULT_GROUP, cronExpression);
+        else
+            return new CronTrigger("CronTrigger", Scheduler.DEFAULT_GROUP, cronExpression);
+
     }
 }

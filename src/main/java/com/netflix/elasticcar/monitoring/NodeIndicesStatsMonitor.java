@@ -24,13 +24,13 @@ public class NodeIndicesStatsMonitor extends Task
 {
 	private static final Logger logger = LoggerFactory.getLogger(NodeIndicesStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_NodeIndicesMonitor";
-    private final NodeIndicesStatsReporter nodeIndicesStatsReporter;
+    private final Elasticsearch_NodeIndicesStatsReporter nodeIndicesStatsReporter;
     
     @Inject
     public NodeIndicesStatsMonitor(IConfiguration config)
     {
         super(config);
-        nodeIndicesStatsReporter = new NodeIndicesStatsReporter();
+        nodeIndicesStatsReporter = new Elasticsearch_NodeIndicesStatsReporter();
     		Monitors.registerObject(nodeIndicesStatsReporter);
     }
 
@@ -116,11 +116,11 @@ public class NodeIndicesStatsMonitor extends Task
   		nodeIndicesStatsReporter.nodeIndicesStatsBean.set(nodeIndicesStatsBean);
 	}
   	
-    public class NodeIndicesStatsReporter
+    public class Elasticsearch_NodeIndicesStatsReporter
     {
         private final AtomicReference<NodeIndicesStatsBean> nodeIndicesStatsBean;
 
-        public NodeIndicesStatsReporter()
+        public Elasticsearch_NodeIndicesStatsReporter()
         {
         		nodeIndicesStatsBean = new AtomicReference<NodeIndicesStatsBean>(new NodeIndicesStatsBean());
         }

@@ -24,13 +24,13 @@ public class TransportStatsMonitor extends Task
 {
 	private static final Logger logger = LoggerFactory.getLogger(TransportStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_TransportMonitor";
-    private final TransportStatsReporter transportStatsReporter;
+    private final Elasticsearch_TransportStatsReporter transportStatsReporter;
     
     @Inject
     public TransportStatsMonitor(IConfiguration config)
     {
         super(config);
-        transportStatsReporter = new TransportStatsReporter();
+        transportStatsReporter = new Elasticsearch_TransportStatsReporter();
     		Monitors.registerObject(transportStatsReporter);
     }
 
@@ -79,11 +79,11 @@ public class TransportStatsMonitor extends Task
   		transportStatsReporter.transportStatsBean.set(transportStatsBean);
 	}
   	
-    public class TransportStatsReporter
+    public class Elasticsearch_TransportStatsReporter
     {
         private final AtomicReference<TransportStatsBean> transportStatsBean;
 
-        public TransportStatsReporter()
+        public Elasticsearch_TransportStatsReporter()
         {
         		transportStatsBean = new AtomicReference<TransportStatsBean>(new TransportStatsBean());
         }

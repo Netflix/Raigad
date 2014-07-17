@@ -24,13 +24,13 @@ public class NetworkStatsMonitor extends Task
 {
 	private static final Logger logger = LoggerFactory.getLogger(NetworkStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_FsMonitor";
-    private final NetworkStatsReporter networkStatsReporter;
+    private final Elasticsearch_NetworkStatsReporter networkStatsReporter;
     
     @Inject
     public NetworkStatsMonitor(IConfiguration config)
     {
         super(config);
-        networkStatsReporter = new NetworkStatsReporter();
+        networkStatsReporter = new Elasticsearch_NetworkStatsReporter();
     		Monitors.registerObject(networkStatsReporter);
     }
 
@@ -82,11 +82,11 @@ public class NetworkStatsMonitor extends Task
   		networkStatsReporter.networkStatsBean.set(networkStatsBean);
 	}
   	
-    public class NetworkStatsReporter
+    public class Elasticsearch_NetworkStatsReporter
     {
         private final AtomicReference<NetworkStatsBean> networkStatsBean;
 
-        public NetworkStatsReporter()
+        public Elasticsearch_NetworkStatsReporter()
         {
         		networkStatsBean = new AtomicReference<NetworkStatsBean>(new NetworkStatsBean());
         }

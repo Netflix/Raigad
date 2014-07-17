@@ -108,7 +108,7 @@ public class ElasticSearchIndexManager extends Task {
 //        return new SimpleTimer(JOBNAME, 30L * 1000);
 
         int hour = config.getAutoCreateIndexPeriodicScheduledHour();
-        return new CronTimer(hour, 1, 0);
+        return new CronTimer(hour, 1, 0,JOBNAME);
     }
 
     /**

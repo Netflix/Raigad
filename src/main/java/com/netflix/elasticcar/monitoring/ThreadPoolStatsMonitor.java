@@ -25,13 +25,13 @@ public class ThreadPoolStatsMonitor extends Task
 {
 	private static final Logger logger = LoggerFactory.getLogger(ThreadPoolStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_ThreadPoolMonitor";
-    private final ThreadPoolStatsReporter tpStatsReporter;
+    private final Elasticsearch_ThreadPoolStatsReporter tpStatsReporter;
     
     @Inject
     public ThreadPoolStatsMonitor(IConfiguration config)
     {
         super(config);
-        tpStatsReporter = new ThreadPoolStatsReporter();
+        tpStatsReporter = new Elasticsearch_ThreadPoolStatsReporter();
     		Monitors.registerObject(tpStatsReporter);
     }
 
@@ -107,11 +107,11 @@ public class ThreadPoolStatsMonitor extends Task
   		tpStatsReporter.threadPoolBean.set(tpStatsBean);
 	}
   	
-    public class ThreadPoolStatsReporter
+    public class Elasticsearch_ThreadPoolStatsReporter
     {
         private final AtomicReference<ThreadPoolStatsBean> threadPoolBean;
 
-        public ThreadPoolStatsReporter()
+        public Elasticsearch_ThreadPoolStatsReporter()
         {
         		threadPoolBean = new AtomicReference<ThreadPoolStatsBean>(new ThreadPoolStatsBean());
         }
