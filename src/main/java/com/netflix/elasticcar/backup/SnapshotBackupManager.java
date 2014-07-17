@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.monitoring.ElasticcarMonitor;
-import com.netflix.elasticcar.scheduler.SimpleTimer;
+import com.netflix.elasticcar.scheduler.CronTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
 import com.netflix.elasticcar.utils.*;
@@ -140,11 +140,11 @@ public class SnapshotBackupManager extends Task
 
     public static TaskTimer getTimer(IConfiguration config)
     {
-        //Remove after testing
-        return new SimpleTimer(JOBNAME, 90L * 1000);
+//        //Remove after testing
+//        return new SimpleTimer(JOBNAME, 90L * 1000);
 
-//        int hour = config.getBackupHour();
-//        return new CronTimer(hour, 1, 0);
+        int hour = config.getBackupHour();
+        return new CronTimer(hour, 1, 0);
     }
 
     @Override
