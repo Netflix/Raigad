@@ -127,7 +127,7 @@ public class RestoreBackupManager extends Task
         logger.info("Indices param : <"+commaSeparatedIndices+">");
 
         //This is a blocking call. It'll wait until Restore is finished.
-        RestoreSnapshotResponse restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoN, snapshotN)
+        RestoreSnapshotResponse restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
                 .setWaitForCompletion(true)
                 .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
                 .execute()
