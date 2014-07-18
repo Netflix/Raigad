@@ -207,6 +207,9 @@ public interface IConfiguration
     /*
         Backup related Config properties
     */
+
+    public boolean isSnapshotBackupEnabled();
+
     public String getCommaSeparatedIndicesToBackup();
 
     public boolean partiallyBackupIndices();
@@ -227,7 +230,6 @@ public interface IConfiguration
      */
 
     public boolean isRestoreEnabled();
-
 
     public String getRestoreRepositoryName();
 

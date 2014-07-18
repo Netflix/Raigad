@@ -59,8 +59,8 @@ public class SnapshotBackupManager extends Task
 
                 logger.info("Current node is the Master Node.");
 
-                if (config.getBackupHour() < 0) {
-                    logger.info("BackupHour property is disabled, hence can not start Snapshot Backup.");
+                if (config.isSnapshotBackupEnabled()) {
+                    logger.info("Snapshot Backup is disabled, hence can not start Snapshot Backup.");
                     return;
                 }
 

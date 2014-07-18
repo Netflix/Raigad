@@ -498,6 +498,11 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public boolean isSnapshotBackupEnabled() {
+        return false;
+    }
+
+    @Override
     public String getCommaSeparatedIndicesToBackup() {
         return null;
     }
