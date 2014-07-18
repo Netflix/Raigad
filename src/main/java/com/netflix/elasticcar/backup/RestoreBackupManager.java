@@ -105,9 +105,9 @@ public class RestoreBackupManager extends Task
         if(StringUtils.isBlank(snapshotN))
         {
             //Pick the last Snapshot from the available Snapshots
-            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient,repoN);
+            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient,repoWithSuffix);
             if(snapshots.isEmpty())
-                throw new RestoreBackupException("No available snapshots in <"+repoN+"> repository.");
+                throw new RestoreBackupException("No available snapshots in <"+repoWithSuffix+"> repository.");
 
             //Sorting Snapshot names in Reverse Order
             Collections.sort(snapshots,Collections.reverseOrder());

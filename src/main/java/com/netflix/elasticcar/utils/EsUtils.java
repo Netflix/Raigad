@@ -147,6 +147,7 @@ public class EsUtils
 
     public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName)
     {
+        logger.info("Searching for available snapshots");
         List<String> snapshots = Lists.newArrayList();
         GetSnapshotsResponse getSnapshotsResponse = transportClient.admin().cluster()
                 .prepareGetSnapshots(repositoryName)
