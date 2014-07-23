@@ -3,6 +3,7 @@ package com.netflix.elasticcar.resources;
 import com.google.inject.Inject;
 import com.netflix.elasticcar.IElasticsearchProcess;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
 import com.netflix.elasticcar.utils.SystemUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.json.simple.JSONObject;
@@ -25,13 +26,15 @@ public class ElasticsearchAdmin
     private static final String REST_REPOSITORY_TYPE = "type";
     private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
+    private final ElasticSearchIndexManager esIndexManager;
     private static final String SHARD_REALLOCATION_PROPERTY = "cluster.routing.allocation.enable";
 
     @Inject
-    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess)
+    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess,ElasticSearchIndexManager esIndexManager)
     {
         this.config = config;
         this.esProcess = esProcess;
+        this.esIndexManager = esIndexManager;
     }
 
     @GET
@@ -99,6 +102,7 @@ public class ElasticsearchAdmin
         return Response.ok(JSON_RESPONSE, MediaType.APPLICATION_JSON).build();
     }
 
+    /* TODO: Fix this
     @GET
     @Path("/createRepository")
     public Response esCreateRepository(@QueryParam(REST_REPOSITORY_NAME) String repoName,@QueryParam(REST_REPOSITORY_TYPE) String repoType) throws IOException, InterruptedException, JSONException
@@ -112,7 +116,17 @@ public class ElasticsearchAdmin
 
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
+    */
 
 
+    @GET
+    @Path("/run_indexmanager")
+    public Response manageIndex()
+            throws IOException, InterruptedException, JSONException
+    {
+        logger.info("Running Index Manager through REST call ...");
+        esIndexManager.execute();
+        return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
+    }
 
 }

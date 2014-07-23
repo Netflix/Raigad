@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class HealthMonitor extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_HealthMonitor";
     private static final String MATCH_TAG = "MATCH";
     private static final String MISMATCH_TAG = "MISMATCH";
@@ -41,19 +41,19 @@ public class HealthMonitor extends Task
         Monitors.registerObject(healthReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
 
-  		HealthBean healthBean = new HealthBean();
-  		try
-  		{
+        HealthBean healthBean = new HealthBean();
+        try
+        {
             TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
             ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
@@ -63,21 +63,21 @@ public class HealthMonitor extends Task
             ;
 
             if (clusterHealthStatus == null) {
-				logger.info("ClusterHealthStatus is null,hence returning (No Health).");
-				return;
-			}
+                logger.info("ClusterHealthStatus is null,hence returning (No Health).");
+                return;
+            }
             //Set status to GREEN, YELLOW or RED
             healthBean.status =  clusterHealthStatus.name();
             //Check if there is Node Mismatch between Discovery and ES
             healthBean.nodeMismatch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? MATCH_TAG : MISMATCH_TAG;
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Cluster Health Status", e);
-  		}
+        }
+        catch(Exception e)
+        {
+            logger.warn("failed to load Cluster Health Status", e);
+        }
 
-  		healthReporter.healthBean.set(healthBean);
-	}
+        healthReporter.healthBean.set(healthBean);
+    }
 
     public class Elasticsearch_HealthReporter
     {
@@ -85,9 +85,9 @@ public class HealthMonitor extends Task
 
         public Elasticsearch_HealthReporter()
         {
-        		healthBean = new AtomicReference<HealthBean>(new HealthBean());
+            healthBean = new AtomicReference<HealthBean>(new HealthBean());
         }
-        
+
         @Monitor(name ="es_healthstatus", type=DataSourceType.INFORMATIONAL)
         public String getStatus()
         {
@@ -101,22 +101,22 @@ public class HealthMonitor extends Task
         }
 
     }
-    
+
     private static class HealthBean
     {
-    	private String status = "";
+        private String status = "";
         private String nodeMismatch = "";
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 30 * 1000);
-	}
+    public static TaskTimer getTimer(String name)
+    {
+        return new SimpleTimer(name, 30 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName()
+    {
+        return METRIC_NAME;
+    }
 
 }

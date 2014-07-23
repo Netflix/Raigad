@@ -95,7 +95,6 @@ public class FsStatsMonitor extends Task
         {
             return fsStatsBean.get().total;
         }
-        
         @Monitor(name ="free_bytes", type=DataSourceType.GAUGE)
         public long getFreeBytes()
         {
