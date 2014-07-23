@@ -4,7 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import com.netflix.elasticcar.monitoring.ElasticcarMonitor;
 import com.netflix.elasticcar.scheduler.CronTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
@@ -20,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by sloke on 7/1/14.
@@ -31,7 +32,9 @@ public class SnapshotBackupManager extends Task
     public static String JOBNAME = "SnapshotBackupManager";
     private final AbstractRepository repository;
     private final HttpModule httpModule;
-    private ElasticcarMonitor elasticcarMonitor = new ElasticcarMonitor();
+    private final AtomicInteger snapshotSuccess = new AtomicInteger(0);
+    private final AtomicInteger snapshotFailure = new AtomicInteger(0);
+    private final AtomicLong snapshotDuration = new AtomicLong(0);
     private static final AtomicBoolean isSnapshotRunning = new AtomicBoolean(false);
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_FOLDER_DATE_FORMAT = "yyyyMMddHHmm";
@@ -86,12 +89,13 @@ public class SnapshotBackupManager extends Task
                 {
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     printSnapshotDetails(createSnapshotResponse);
-                    elasticcarMonitor.snapshotSuccess.incrementAndGet();
+                    snapshotSuccess.incrementAndGet();
+                    snapshotDuration.set((createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime())/(1000*60));
                 }
                 else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     logger.info("Snapshot Completely Failed");
-                    elasticcarMonitor.snapshotFailure.incrementAndGet();
+                    snapshotFailure.incrementAndGet();
                 }
             }
             else
@@ -100,7 +104,7 @@ public class SnapshotBackupManager extends Task
                     logger.debug("Current node is not a Master Node yet, hence not running a Snapshot");
             }
         } catch (Exception e) {
-            elasticcarMonitor.snapshotFailure.incrementAndGet();
+            snapshotFailure.incrementAndGet();
             logger.warn("Exception thrown while running Snapshot Backup", e);
         }
     }
@@ -118,7 +122,8 @@ public class SnapshotBackupManager extends Task
         }
         builder.append("\n\t Start Time = "+createSnapshotResponse.getSnapshotInfo().startTime());
         builder.append("\n\t End Time = "+createSnapshotResponse.getSnapshotInfo().endTime());
-        builder.append("\n\t Total Time Taken = "+(createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime())/1000+" Seconds");
+        long minuteDuration =  (createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime())/(1000*60);
+        builder.append("\n\t Total Time Taken = " + minuteDuration + " Minutes");
         builder.append("\n\t Total Shards = "+createSnapshotResponse.getSnapshotInfo().totalShards());
         builder.append("\n\t Successful Shards = "+createSnapshotResponse.getSnapshotInfo().successfulShards());
         builder.append("\n\t Total Failed Shards = "+createSnapshotResponse.getSnapshotInfo().failedShards());
@@ -153,7 +158,7 @@ public class SnapshotBackupManager extends Task
         return JOBNAME;
     }
 
-    public static String getSnapshotName(String indices,boolean includeIndexNameInSnapshot) {
+    public String getSnapshotName(String indices,boolean includeIndexNameInSnapshot) {
         StringBuilder snapshotName = new StringBuilder();
         if (includeIndexNameInSnapshot) {
             String indexName;
@@ -171,6 +176,17 @@ public class SnapshotBackupManager extends Task
         return snapshotName.toString();
     }
 
+    public int getNumSnapshotSuccess(){
+        return snapshotSuccess.get();
+    }
+
+    public int getNumSnapshotFailure(){
+        return snapshotFailure.get();
+    }
+
+    public long getSnapshotDuration() {
+        return snapshotDuration.get();
+    }
 
     //                (esTransportClient.admin().cluster().prepareGetSnapshots("test-repo").setSnapshots("test-snap").get().getSnapshots().get(0).state());//, equalTo(SnapshotState.SUCCESS));
 

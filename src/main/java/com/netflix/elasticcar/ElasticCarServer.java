@@ -49,6 +49,7 @@ public class ElasticCarServer
     private final HttpModule httpModule;
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
+    private static final int ES_HEALTH_MONITOR_DELAY = 600;
     private static final Logger logger = LoggerFactory.getLogger(ElasticCarServer.class);
 
 
@@ -141,7 +142,15 @@ public class ElasticCarServer
         scheduler.addTask(TransportStatsMonitor.METRIC_NAME, TransportStatsMonitor.class, TransportStatsMonitor.getTimer("TransportStatsMonitor"));
         scheduler.addTask(NodeIndicesStatsMonitor.METRIC_NAME, NodeIndicesStatsMonitor.class, NodeIndicesStatsMonitor.getTimer("NodeIndicesStatsMonitor"));
         scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
-        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));      
+        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));
+        scheduler.addTask(JvmStatsMonitor.METRIC_NAME, JvmStatsMonitor.class, JvmStatsMonitor.getTimer("JvmStatsMonitor"));
+        scheduler.addTask(OsStatsMonitor.METRIC_NAME, OsStatsMonitor.class, OsStatsMonitor.getTimer("OsStatsMonitor"));
+        scheduler.addTask(ProcessStatsMonitor.METRIC_NAME, ProcessStatsMonitor.class, ProcessStatsMonitor.getTimer("ProcessStatsMonitor"));
+        scheduler.addTask(HttpStatsMonitor.METRIC_NAME, HttpStatsMonitor.class, HttpStatsMonitor.getTimer("HttpStatsMonitor"));
+        scheduler.addTask(FieldDataBreakerStatsMonitor.METRIC_NAME, FieldDataBreakerStatsMonitor.class, FieldDataBreakerStatsMonitor.getTimer("FieldDataBreakerStatsMonitor"));
+        scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
+        scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+
     }
 
     public InstanceManager getInstanceManager()

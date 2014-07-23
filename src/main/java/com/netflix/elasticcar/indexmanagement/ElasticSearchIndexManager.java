@@ -19,6 +19,7 @@ import org.elasticsearch.action.admin.indices.status.IndexStatus;
 import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,15 +188,39 @@ public class ElasticSearchIndexManager extends Task {
                 if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                         indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
-                    int futureRetentionDate = IndexUtils.getFutureRetentionDate(indexMetadata);
-                    if(config.isDebugEnabled())
-                        logger.debug("Future Date = " + futureRetentionDate);
-                    if (!esTransportClient.admin().indices().prepareExists(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
-                        esTransportClient.admin().indices().prepareCreate(indexMetadata.getIndexName() + futureRetentionDate).execute().actionGet(config.getAutoCreateIndexTimeout());
-                        logger.info(indexMetadata.getIndexName() + futureRetentionDate + " is created");
-                    } else {
-                        //TODO: Change to Debug after Testing
-                        logger.warn(indexMetadata.getIndexName() + futureRetentionDate + " already exists");
+                    for (int i = 0; i < indexMetadata.getRetentionPeriod(); ++i) {
+
+                        DateTime dt = new DateTime();
+                        int addedDate;
+
+                        switch (indexMetadata.getRetentionType()) {
+                            case DAILY:
+                                dt = dt.plusDays(i);
+                                addedDate = Integer.parseInt(String.format("%d%02d%02d", dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth()));
+                                break;
+                            case MONTHLY:
+                                dt = dt.plusMonths(i);
+                                addedDate = Integer.parseInt(String.format("%d%02d", dt.getYear(), dt.getMonthOfYear()));
+                                break;
+                            case YEARLY:
+                                dt = dt.plusYears(i);
+                                addedDate = Integer.parseInt(String.format("%d", dt.getYear()));
+                                break;
+                            default:
+                                throw new UnsupportedAutoIndexException("Given index is not (DAILY or MONTHLY or YEARLY), please check your configuration.");
+
+                        }
+
+                        if(config.isDebugEnabled())
+                            logger.debug("Future Date = " + addedDate);
+
+                        if (!esTransportClient.admin().indices().prepareExists(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
+                            esTransportClient.admin().indices().prepareCreate(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout());
+                            logger.info(indexMetadata.getIndexName() + addedDate + " is created");
+                        } else {
+                            //TODO: Change to Debug after Testing
+                            logger.warn(indexMetadata.getIndexName() + addedDate + " already exists");
+                        }
                     }
                 }
             }

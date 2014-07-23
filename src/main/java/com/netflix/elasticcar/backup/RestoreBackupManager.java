@@ -126,12 +126,21 @@ public class RestoreBackupManager extends Task
         }
         logger.info("Indices param : <"+commaSeparatedIndices+">");
 
-        //This is a blocking call. It'll wait until Restore is finished.
-        RestoreSnapshotResponse restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
-                .setWaitForCompletion(true)
-                .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
-                .execute()
-                .actionGet();
+        RestoreSnapshotResponse restoreSnapshotResponse = null;
+        if (commaSeparatedIndices != null) {
+            //This is a blocking call. It'll wait until Restore is finished.
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
+                    .setWaitForCompletion(true)
+                    .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
+                    .execute()
+                    .actionGet();
+        }else{
+            // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
+                    .setWaitForCompletion(true)
+                    .execute()
+                    .actionGet();
+        }
 
         logger.info("Restore Status = "+restoreSnapshotResponse.status().toString());
         if(restoreSnapshotResponse.status() == RestStatus.OK)
