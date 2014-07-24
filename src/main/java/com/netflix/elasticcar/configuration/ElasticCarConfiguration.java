@@ -528,6 +528,16 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public boolean isHourlySnapshotEnabled() {
+        return false;
+    }
+
+    @Override
+    public long getBackupCronTimerInSeconds() {
+        return 0;
+    }
+
+    @Override
     public int getBackupHour() {
         return 0;
     }

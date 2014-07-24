@@ -179,6 +179,7 @@ public class ElasticSearchIndexManager extends Task {
      * Courtesy Jae Bae
      */
     public void preCreateIndex(IndexMetadata indexMetadata,TransportClient esTransportClient) throws UnsupportedAutoIndexException {
+        logger.info("Running PreCreate Index task");
         IndicesStatusResponse getIndicesResponse = esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
         Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
         if (!indexStatusMap.isEmpty()) {
@@ -212,7 +213,7 @@ public class ElasticSearchIndexManager extends Task {
                         }
 
                         if(config.isDebugEnabled())
-                            logger.debug("Future Date = " + addedDate);
+                            logger.debug("Added Date = " + addedDate);
 
                         if (!esTransportClient.admin().indices().prepareExists(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                             esTransportClient.admin().indices().prepareCreate(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout());
@@ -224,6 +225,8 @@ public class ElasticSearchIndexManager extends Task {
                     }
                 }
             }
+        }else{
+            logger.info("No existing indices, hence can not pre-create any indices");
         }
     }
 }

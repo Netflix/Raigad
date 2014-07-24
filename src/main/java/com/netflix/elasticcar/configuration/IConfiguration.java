@@ -220,6 +220,10 @@ public interface IConfiguration
 
     public boolean includeIndexNameInSnapshot();
 
+    public boolean isHourlySnapshotEnabled();
+
+    public long getBackupCronTimerInSeconds();
+
     /**
      * @return Backup hour for snapshot backups (0 - 23)
      */

@@ -60,8 +60,6 @@ public class HealthMonitor extends Task
 
             ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(MASTER_NODE_TIMEOUT);
 
-            ;
-
             if (clusterHealthStatus == null) {
                 logger.info("ClusterHealthStatus is null,hence returning (No Health).");
                 return;
@@ -89,13 +87,13 @@ public class HealthMonitor extends Task
         }
 
         @Monitor(name ="es_healthstatus", type=DataSourceType.INFORMATIONAL)
-        public String getStatus()
+        public String getEsHealthstatus()
         {
             return healthBean.get().status;
         }
 
         @Monitor(name ="es_nodemismatchstatus", type=DataSourceType.INFORMATIONAL)
-        public String getNodeMismatch()
+        public String getEsNodemismatchstatus()
         {
             return healthBean.get().nodeMismatch;
         }
