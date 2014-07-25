@@ -26,8 +26,6 @@ public class HealthMonitor extends Task
 {
     private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_HealthMonitor";
-    private static final String MATCH_TAG = "MATCH";
-    private static final String MISMATCH_TAG = "MISMATCH";
     private final Elasticsearch_HealthReporter healthReporter;
     private final InstanceManager instanceManager;
     private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
@@ -64,10 +62,17 @@ public class HealthMonitor extends Task
                 logger.info("ClusterHealthStatus is null,hence returning (No Health).");
                 return;
             }
-            //Set status to GREEN, YELLOW or RED
-            healthBean.status =  clusterHealthStatus.name();
+            //Check if status = GREEN, YELLOW or RED
+            if (clusterHealthStatus.name().equalsIgnoreCase("GREEN"))
+                healthBean.status =  0;
+            else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW"))
+                healthBean.status =  1;
+            else if (clusterHealthStatus.name().equalsIgnoreCase("RED"))
+                healthBean.status =  2;
+
             //Check if there is Node Mismatch between Discovery and ES
-            healthBean.nodeMismatch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? MATCH_TAG : MISMATCH_TAG;
+            healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
+
         }
         catch(Exception e)
         {
@@ -86,24 +91,24 @@ public class HealthMonitor extends Task
             healthBean = new AtomicReference<HealthBean>(new HealthBean());
         }
 
-        @Monitor(name ="es_healthstatus", type=DataSourceType.INFORMATIONAL)
-        public String getEsHealthstatus()
+        @Monitor(name ="es_healthstatus", type=DataSourceType.GAUGE)
+        public int getEsHealthstatus()
         {
             return healthBean.get().status;
         }
 
-        @Monitor(name ="es_nodemismatchstatus", type=DataSourceType.INFORMATIONAL)
-        public String getEsNodemismatchstatus()
+        @Monitor(name ="es_nodematchstatus", type=DataSourceType.GAUGE)
+        public int getEsNodematchstatus()
         {
-            return healthBean.get().nodeMismatch;
+            return healthBean.get().nodematch;
         }
 
     }
 
     private static class HealthBean
     {
-        private String status = "";
-        private String nodeMismatch = "";
+        private int status = -1;
+        private int nodematch = -1;
     }
 
     public static TaskTimer getTimer(String name)

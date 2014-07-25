@@ -9,6 +9,7 @@ import com.netflix.elasticcar.scheduler.SimpleTimer;
 import com.netflix.elasticcar.scheduler.Task;
 import com.netflix.elasticcar.scheduler.TaskTimer;
 import com.netflix.elasticcar.utils.*;
+import com.netflix.servo.monitor.*;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -19,9 +20,9 @@ import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by sloke on 7/1/14.
@@ -35,11 +36,14 @@ public class SnapshotBackupManager extends Task
     private final HttpModule httpModule;
     private final AtomicInteger snapshotSuccess = new AtomicInteger(0);
     private final AtomicInteger snapshotFailure = new AtomicInteger(0);
-    private final AtomicLong snapshotDuration = new AtomicLong(0);
     private static final AtomicBoolean isSnapshotRunning = new AtomicBoolean(false);
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_FOLDER_DATE_FORMAT = "yyyyMMddHHmm";
+    private static Timer snapshotDuration = new BasicTimer(MonitorConfig.builder("snapshotDuration").withTag("class","Elasticsearch_SnapshotBackupReporter").build(), TimeUnit.SECONDS);
 
+    static {
+        Monitors.registerObject(snapshotDuration);
+    }
     @Inject
     public SnapshotBackupManager(IConfiguration config, @Named("s3")AbstractRepository repository, HttpModule httpModule) {
         super(config);
@@ -78,6 +82,7 @@ public class SnapshotBackupManager extends Task
 
                 TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
+                Stopwatch snapshotTimer = snapshotDuration.start();
                 //This is a blocking call. It'll wait until Snapshot is finished.
                 CreateSnapshotResponse createSnapshotResponse = esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
                         .setWaitForCompletion(config.waitForCompletionOfBackup())
@@ -91,13 +96,14 @@ public class SnapshotBackupManager extends Task
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     printSnapshotDetails(createSnapshotResponse);
                     snapshotSuccess.incrementAndGet();
-                    snapshotDuration.set((createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime())/(1000*60));
                 }
                 else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
                     //TODO Add Servo Monitoring so that it can be verified from dashboard
                     logger.info("Snapshot Completely Failed");
                     snapshotFailure.incrementAndGet();
                 }
+                //Stop the timer
+                snapshotTimer.stop();
             }
             else
             {
@@ -186,10 +192,6 @@ public class SnapshotBackupManager extends Task
 
     public int getNumSnapshotFailure(){
         return snapshotFailure.get();
-    }
-
-    public long getSnapshotDuration() {
-        return snapshotDuration.get();
     }
 
     //                (esTransportClient.admin().cluster().prepareGetSnapshots("test-repo").setSnapshots("test-snap").get().getSnapshots().get(0).state());//, equalTo(SnapshotState.SUCCESS));

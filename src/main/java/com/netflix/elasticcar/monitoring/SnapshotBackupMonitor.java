@@ -52,7 +52,6 @@ public class SnapshotBackupMonitor extends Task
         {
             snapshotBackupBean.snapshotSuccess = snapshotBackupManager.getNumSnapshotSuccess();
             snapshotBackupBean.snapshotFailure = snapshotBackupManager.getNumSnapshotFailure();
-            snapshotBackupBean.snapshotDuration = snapshotBackupManager.getSnapshotDuration();
         }
         catch(Exception e)
         {
@@ -81,17 +80,12 @@ public class SnapshotBackupMonitor extends Task
             return snapshotBackupBean.get().snapshotFailure;
         }
 
-        @Monitor(name="snapshot_duration", type=DataSourceType.GAUGE)
-        public long getSnapshotDuration() {
-            return snapshotBackupBean.get().snapshotDuration;
-        }
     }
 
     private static class SnapshotBackupBean
     {
         private int snapshotSuccess = -1;
         private int snapshotFailure = -1;
-        private long snapshotDuration = -1;
     }
 
     public static TaskTimer getTimer(String name)
