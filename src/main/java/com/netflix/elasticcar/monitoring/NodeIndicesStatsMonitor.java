@@ -98,11 +98,13 @@ public class NodeIndicesStatsMonitor extends Task
     {
         nodeIndicesStatsBean.refreshTotal = nodeIndicesStats.getRefresh().getTotal();
         nodeIndicesStatsBean.refreshTotalTime = nodeIndicesStats.getRefresh().getTotalTimeInMillis();
-        nodeIndicesStatsBean.refreshAvgTimeInMillisPerRequest = nodeIndicesStatsBean.refreshTotalTime / nodeIndicesStatsBean.refreshTotal;
+        if (nodeIndicesStatsBean.refreshTotal != 0)
+            nodeIndicesStatsBean.refreshAvgTimeInMillisPerRequest = nodeIndicesStatsBean.refreshTotalTime / nodeIndicesStatsBean.refreshTotal;
 
         nodeIndicesStatsBean.flushTotal = nodeIndicesStats.getFlush().getTotal();
         nodeIndicesStatsBean.flushTotalTime = nodeIndicesStats.getFlush().getTotalTimeInMillis();
-        nodeIndicesStatsBean.flushAvgTimeInMillisPerRequest = nodeIndicesStatsBean.flushTotalTime / nodeIndicesStatsBean.flushTotal;
+        if(nodeIndicesStatsBean.flushTotal != 0)
+            nodeIndicesStatsBean.flushAvgTimeInMillisPerRequest = nodeIndicesStatsBean.flushTotalTime / nodeIndicesStatsBean.flushTotal;
     }
 
     private void updateMerge(NodeIndicesStatsBean nodeIndicesStatsBean, NodeIndicesStats nodeIndicesStats)
@@ -129,11 +131,13 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.searchFetchDelta += (nodeIndicesStats.getSearch().getTotal().getFetchCount() - nodeIndicesStatsBean.searchFetchTotal);
         nodeIndicesStatsBean.searchQueryTotal = nodeIndicesStats.getSearch().getTotal().getQueryCount();
         nodeIndicesStatsBean.searchQueryTime = nodeIndicesStats.getSearch().getTotal().getQueryTimeInMillis();
-        nodeIndicesStatsBean.searchQueryAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchQueryTime / nodeIndicesStatsBean.searchQueryTotal;
+        if(nodeIndicesStatsBean.searchQueryTotal != 0)
+            nodeIndicesStatsBean.searchQueryAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchQueryTime / nodeIndicesStatsBean.searchQueryTotal;
         nodeIndicesStatsBean.searchQueryCurrent = nodeIndicesStats.getSearch().getTotal().getQueryCurrent();
         nodeIndicesStatsBean.searchFetchTotal = nodeIndicesStats.getSearch().getTotal().getFetchCount();
         nodeIndicesStatsBean.searchFetchTime = nodeIndicesStats.getSearch().getTotal().getFetchTimeInMillis();
-        nodeIndicesStatsBean.searchFetchAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchFetchTime / nodeIndicesStatsBean.searchFetchTotal;
+        if(nodeIndicesStatsBean.searchFetchTotal != 0)
+            nodeIndicesStatsBean.searchFetchAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchFetchTime / nodeIndicesStatsBean.searchFetchTotal;
         nodeIndicesStatsBean.searchFetchCurrent = nodeIndicesStats.getSearch().getTotal().getFetchCurrent();
     }
 
@@ -144,14 +148,17 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.getMissingDelta += (nodeIndicesStats.getGet().getMissingCount() - nodeIndicesStatsBean.getMissingDelta);
         nodeIndicesStatsBean.getTotal = nodeIndicesStats.getGet().getCount();
         nodeIndicesStatsBean.getTime = nodeIndicesStats.getGet().getTimeInMillis();
-        nodeIndicesStatsBean.getTotalAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getTime / nodeIndicesStatsBean.getTotal;
+        if (nodeIndicesStatsBean.getTotal != 0)
+            nodeIndicesStatsBean.getTotalAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getTime / nodeIndicesStatsBean.getTotal;
         nodeIndicesStatsBean.getCurrent = nodeIndicesStats.getGet().current();
         nodeIndicesStatsBean.getExistsTotal = nodeIndicesStats.getGet().getExistsCount();
         nodeIndicesStatsBean.getExistsTime = nodeIndicesStats.getGet().getExistsTimeInMillis();
-        nodeIndicesStatsBean.getExistsAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getExistsTime / nodeIndicesStatsBean.getExistsTotal;
+        if (nodeIndicesStatsBean.getExistsTotal != 0)
+            nodeIndicesStatsBean.getExistsAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getExistsTime / nodeIndicesStatsBean.getExistsTotal;
         nodeIndicesStatsBean.getMissingTotal = nodeIndicesStats.getGet().getMissingCount();
         nodeIndicesStatsBean.getMissingTime = nodeIndicesStats.getGet().getMissingTimeInMillis();
-        nodeIndicesStatsBean.getMissingAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getMissingTime / nodeIndicesStatsBean.getMissingTotal;
+        if (nodeIndicesStatsBean.getMissingTotal != 0)
+            nodeIndicesStatsBean.getMissingAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getMissingTime / nodeIndicesStatsBean.getMissingTotal;
     }
 
     private void updateIndexing(NodeIndicesStatsBean nodeIndicesStatsBean, NodeIndicesStats nodeIndicesStats)
@@ -159,10 +166,12 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.indexingIndexDelta += (nodeIndicesStats.getIndexing().getTotal().getIndexCount() - nodeIndicesStatsBean.indexingIndexTotal);
         nodeIndicesStatsBean.indexingDeleteDelta += (nodeIndicesStats.getIndexing().getTotal().getDeleteCount() - nodeIndicesStatsBean.indexingDeleteTotal);
         nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis();
-        nodeIndicesStatsBean.indexingAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingIndexTimeInMillis / nodeIndicesStatsBean.indexingIndexTotal;
+        if (nodeIndicesStatsBean.indexingIndexTotal != 0)
+            nodeIndicesStatsBean.indexingAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingIndexTimeInMillis / nodeIndicesStatsBean.indexingIndexTotal;
         nodeIndicesStatsBean.indexingIndexCurrent = nodeIndicesStats.getIndexing().getTotal().getIndexCurrent();
         nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis();
-        nodeIndicesStatsBean.indexingDeleteAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingDeleteTime / nodeIndicesStatsBean.indexingDeleteTotal;
+        if (nodeIndicesStatsBean.indexingDeleteTotal != 0)
+            nodeIndicesStatsBean.indexingDeleteAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingDeleteTime / nodeIndicesStatsBean.indexingDeleteTotal;
         nodeIndicesStatsBean.indexingDeleteCurrent = nodeIndicesStats.getIndexing().getTotal().getDeleteCurrent();
         nodeIndicesStatsBean.indexingIndexTotal = nodeIndicesStats.getIndexing().getTotal().getIndexCount();
         nodeIndicesStatsBean.indexingDeleteTotal = nodeIndicesStats.getIndexing().getTotal().getDeleteCount();
