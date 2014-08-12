@@ -63,12 +63,14 @@ public class HealthMonitor extends Task
                 return;
             }
             //Check if status = GREEN, YELLOW or RED
-            if (clusterHealthStatus.name().equalsIgnoreCase("GREEN"))
-                healthBean.status =  0;
+            if (clusterHealthStatus.name().equalsIgnoreCase("GREEN")) {
+                healthBean.greenorredstatus = 0;
+                healthBean.greenoryellowstatus = 0;
+            }
             else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW"))
-                healthBean.status =  1;
+                healthBean.greenoryellowstatus =  1;
             else if (clusterHealthStatus.name().equalsIgnoreCase("RED"))
-                healthBean.status =  2;
+                healthBean.greenorredstatus =  1;
 
             //Check if there is Node Mismatch between Discovery and ES
             healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
@@ -91,10 +93,16 @@ public class HealthMonitor extends Task
             healthBean = new AtomicReference<HealthBean>(new HealthBean());
         }
 
-        @Monitor(name ="es_healthstatus", type=DataSourceType.GAUGE)
-        public int getEsHealthstatus()
+        @Monitor(name ="es_healthstatus_greenorred", type=DataSourceType.GAUGE)
+        public int getEsHealthstatusGreenorred()
         {
-            return healthBean.get().status;
+            return healthBean.get().greenorredstatus;
+        }
+
+        @Monitor(name ="es_healthstatus_greenoryellow", type=DataSourceType.GAUGE)
+        public int getEsHealthstatusGreenoryellow()
+        {
+            return healthBean.get().greenoryellowstatus;
         }
 
         @Monitor(name ="es_nodematchstatus", type=DataSourceType.GAUGE)
@@ -107,7 +115,8 @@ public class HealthMonitor extends Task
 
     private static class HealthBean
     {
-        private int status = -1;
+        private int greenorredstatus = -1;
+        private int greenoryellowstatus = -1;
         private int nodematch = -1;
     }
 

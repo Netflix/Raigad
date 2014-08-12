@@ -70,12 +70,12 @@ public class SnapshotBackupMonitor extends Task
             snapshotBackupBean = new AtomicReference<SnapshotBackupBean>(new SnapshotBackupBean());
         }
 
-        @Monitor(name="snapshot_success", type= DataSourceType.COUNTER)
+        @Monitor(name="snapshot_success", type= DataSourceType.GAUGE)
         public int getSnapshotSuccess() {
             return snapshotBackupBean.get().snapshotSuccess;
         }
 
-        @Monitor(name="snapshot_failure", type=DataSourceType.COUNTER)
+        @Monitor(name="snapshot_failure", type=DataSourceType.GAUGE)
         public int getSnapshotFailure() {
             return snapshotBackupBean.get().snapshotFailure;
         }
