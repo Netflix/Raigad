@@ -55,10 +55,12 @@ public class ESTransportClient
      */
     public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
     {
-        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
+        Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
+                .put("client.transport.sniff", true)
+                .build();
         client = new TransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(host,port));
-        
+
         ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
     }
 
