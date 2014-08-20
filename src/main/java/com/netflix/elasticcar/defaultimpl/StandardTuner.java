@@ -17,7 +17,6 @@ import java.util.Map;
 public class StandardTuner implements IElasticsearchTuner
 {
     private static final Logger logger = LoggerFactory.getLogger(StandardTuner.class);
-    private static final String CL_BACKUP_PROPS_FILE = "/conf/commitlog_archiving.properties";
     protected final IConfiguration config;
 
     @Inject
@@ -65,6 +64,7 @@ public class StandardTuner implements IElasticsearchTuner
         }
 		
 		//TODO: Create New Tuner for ASG Based Deployment
+        //TODO: Need to come up with better algorithm for Non-ASG based deployments
 		if(config.isAsgBasedDedicatedDeployment())
 		{
 			if(config.getASGName().toLowerCase().contains("master"))

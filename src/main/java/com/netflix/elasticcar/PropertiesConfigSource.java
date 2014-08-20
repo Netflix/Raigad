@@ -15,41 +15,41 @@ import java.util.Properties;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Loads the 'Dynomite.properties' file as a source.
+ * Loads the 'Elasticcar.properties' file as a source.
  */
 public class PropertiesConfigSource extends AbstractConfigSource
 {
     private static final Logger logger = LoggerFactory.getLogger(PropertiesConfigSource.class.getName());
 
-    private static final String DEFAULT_FLORIDA_PROPERTIES = "Dynomite.properties";
+    private static final String DEFAULT_ELASTICCAR_PROPERTIES = "Elasticcar.properties";
 
     private final Map<String, String> data = Maps.newConcurrentMap();
-    private final String floridaFile;
+    private final String elasticcarFile;
 
     public PropertiesConfigSource()
     {
-        this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
+        this.elasticcarFile = DEFAULT_ELASTICCAR_PROPERTIES;
     }
 
     public PropertiesConfigSource(final Properties properties)
     {
         checkNotNull(properties);
-        this.floridaFile = DEFAULT_FLORIDA_PROPERTIES;
+        this.elasticcarFile = DEFAULT_ELASTICCAR_PROPERTIES;
         clone(properties);
     }
 
     @VisibleForTesting
     PropertiesConfigSource(final String file)
     {
-        this.floridaFile = checkNotNull(file);
+        this.elasticcarFile = checkNotNull(file);
     }
 
     @Override
-    public void intialize(final String asgName, final String region)
+    public void initialize(final String asgName, final String region)
     {
-        super.intialize(asgName, region);
+        super.initialize(asgName, region);
         Properties properties = new Properties();
-        URL url = PropertiesConfigSource.class.getClassLoader().getResource(floridaFile);
+        URL url = PropertiesConfigSource.class.getClassLoader().getResource(elasticcarFile);
         if (url != null)
         {
             try
@@ -59,12 +59,12 @@ public class PropertiesConfigSource extends AbstractConfigSource
             }
             catch (IOException e)
             {
-                logger.info("No Dynomite.properties. Ignore!");
+                logger.info("No Elasticcar.properties. Ignore!");
             }
         }
         else
         {
-            logger.info("No Dynomite.properties. Ignore!");
+            logger.info("No Elasticcar.properties. Ignore!");
         }
     }
 

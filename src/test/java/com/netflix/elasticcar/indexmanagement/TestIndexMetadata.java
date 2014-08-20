@@ -1,5 +1,7 @@
 package com.netflix.elasticcar.indexmanagement;
 
+import com.netflix.elasticcar.indexmanagement.exception.UnsupportedAutoIndexException;
+import org.joda.time.DateTime;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -110,5 +112,41 @@ public class TestIndexMetadata {
         List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
 
+    }
+
+    @Test
+    public void testIndexCreation() throws Exception {
+        String str = "[   {        \"retentionType\": \"daily\",        \"retentionPeriod\": 3,    \"indexName\": \"dailyindex\", \"preCreate\": \"true\"     }," +
+                "{        \"retentionType\": \"daily\",        \"retentionPeriod\": 3,    \"indexName\": \"dailyindex2\", \"preCreate\": \"true\"     }," +
+                "{        \"retentionType\": \"monthly\",        \"retentionPeriod\": 3,    \"indexName\": \"monthlyindex\", \"preCreate\": \"true\"     }," +
+                "{        \"retentionType\": \"yearly\",        \"retentionPeriod\": 3,    \"indexName\": \"yearlyindex\", \"preCreate\": \"true\"     }]";
+        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        for (IndexMetadata indexMetadata : indexMetadataList) {
+            System.out.println("Retention Period : " + indexMetadata.getRetentionPeriod());
+            for (int i = 0; i < indexMetadata.getRetentionPeriod(); ++i) {
+                DateTime dt = new DateTime();
+                int addedDate;
+
+                switch (indexMetadata.getRetentionType()) {
+                    case DAILY:
+                        dt = dt.plusDays(i);
+                        addedDate = Integer.parseInt(String.format("%d%02d%02d", dt.getYear(), dt.getMonthOfYear(), dt.getDayOfMonth()));
+                        break;
+                    case MONTHLY:
+                        dt = dt.plusMonths(i);
+                        addedDate = Integer.parseInt(String.format("%d%02d", dt.getYear(), dt.getMonthOfYear()));
+                        break;
+                    case YEARLY:
+                        dt = dt.plusYears(i);
+                        addedDate = Integer.parseInt(String.format("%d", dt.getYear()));
+                        break;
+                    default:
+                        throw new UnsupportedAutoIndexException("Given index is not (DAILY or MONTHLY or YEARLY), please check your configuration.");
+
+                }
+                System.out.println("Date to add : " + addedDate);
+                System.out.println("New Index Name : " + indexMetadata.getIndexName() + addedDate);
+            }
+        }
     }
 }

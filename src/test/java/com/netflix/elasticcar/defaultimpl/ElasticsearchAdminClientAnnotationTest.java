@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotSame;
 /**
  * Created by sloke on 6/22/14.
  */
+@Deprecated
 @RunWith(ElasticsearchRunner.class)
 @ElasticsearchNode
 public class ElasticsearchAdminClientAnnotationTest {

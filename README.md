@@ -1,1 +1,1 @@
-hello world
+Side car for Elasticsearch

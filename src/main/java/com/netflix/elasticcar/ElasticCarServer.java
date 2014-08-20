@@ -80,6 +80,7 @@ public class ElasticCarServer
         // start to schedule jobs
         scheduler.start();
 
+        //TODO: Fix for MultiDC
 //        // update security settings.
 //        if (config.isMultiDC())
 //        {

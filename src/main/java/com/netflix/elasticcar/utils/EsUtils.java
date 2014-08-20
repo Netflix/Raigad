@@ -5,7 +5,7 @@ import com.netflix.elasticcar.backup.exception.NoMasterNodeException;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.dataobjects.MasterNodeInformationDO;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
-import com.netflix.elasticcar.objectmapper.DefaultSnapshotMapper;
+import com.netflix.elasticcar.objectmapper.DefaultMasterNodeInfoMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
 import org.elasticsearch.client.Client;
@@ -107,7 +107,7 @@ public class EsUtils
     public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception
     {
         boolean iAmTheMaster = false;
-        final DefaultSnapshotMapper defaultSnapshotMapper = new DefaultSnapshotMapper();
+        final DefaultMasterNodeInfoMapper defaultMasterNodeInfoMapper = new DefaultMasterNodeInfoMapper();
         String URL = httpModule.findMasterNodeURL();
         String response = SystemUtils.runHttpGetCommand(URL);
         if (config.isDebugEnabled()) {
@@ -120,7 +120,7 @@ public class EsUtils
         }
         //Map MasterNodeInfo response to DO
         TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
-        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultSnapshotMapper.readValue(response,typeRef);
+        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response,typeRef);
 
         if (masterNodeInformationDOList.size() == 0 )
             throw new NoMasterNodeException("No Master Node found. Something went wrong !!");

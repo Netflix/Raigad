@@ -96,7 +96,7 @@ public class ElasticCarConfiguration implements IConfiguration
     public void initialize()
     {
         setupEnvVars();
-        this.config.intialize(ASG_NAME, REGION);
+        this.config.initialize(ASG_NAME, REGION);
         setDefaultRACList(REGION);
         populateProps();
         //SystemUtils.createDirs(getDataFileLocation());
