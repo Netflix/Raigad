@@ -67,10 +67,14 @@ public class HealthMonitor extends Task
                 healthBean.greenorredstatus = 0;
                 healthBean.greenoryellowstatus = 0;
             }
-            else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW"))
-                healthBean.greenoryellowstatus =  1;
-            else if (clusterHealthStatus.name().equalsIgnoreCase("RED"))
-                healthBean.greenorredstatus =  1;
+            else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
+                healthBean.greenoryellowstatus = 1;
+                healthBean.greenorredstatus = 0;
+            }
+            else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
+                healthBean.greenorredstatus = 1;
+                healthBean.greenoryellowstatus = 0;
+            }
 
             //Check if there is Node Mismatch between Discovery and ES
             healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
