@@ -60,8 +60,7 @@ public class RestoreBackupManager extends Task
                 }
 
                 logger.info("Current node is the Master Node. Running Restore now ...");
-                runRestore(config.getRestoreSourceClusterName(),
-                        config.getRestoreRepositoryName(),
+                runRestore(config.getRestoreRepositoryName(),
                         config.getRestoreRepositoryType(),
                         config.getRestoreSnapshotName(),
                         config.getCommaSeparatedIndicesToRestore());
@@ -75,17 +74,17 @@ public class RestoreBackupManager extends Task
         }
     }
 
-    public void runRestore(String sourceClusterName, String repositoryName, String repositoryType, String snapshotName, String indices) throws Exception
+    public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices) throws Exception
     {
         TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
-        // Get Repository Name
-        String repoN = StringUtils.isBlank(repositoryName) ? config.getRestoreRepositoryName() : repositoryName;
-        if(StringUtils.isBlank(repoN))
+        // Get Repository Name : This will serve as BasePath Suffix
+        String sourceRepoName = StringUtils.isBlank(sourceRepositoryName) ? config.getRestoreRepositoryName() : sourceRepositoryName;
+        if(StringUtils.isBlank(sourceRepoName))
             throw new RestoreBackupException("Repository Name is Null or Empty");
 
         //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
-        String repoWithSuffix = repoN + SUFFIX_SEPARATOR_TAG + sourceClusterName;
+        String restoreRepositoryName = sourceRepoName + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
 
         String repoType = StringUtils.isBlank(repositoryType) ? config.getRestoreRepositoryType().toLowerCase() : repositoryType;
         if(StringUtils.isBlank(repoType))
@@ -94,11 +93,10 @@ public class RestoreBackupManager extends Task
             repoType = AbstractRepository.RepositoryType.s3.name();
         }
 
-        if(!repository.doesRepositoryExists(repoWithSuffix, AbstractRepository.RepositoryType.valueOf(repoType.toLowerCase())))
+        if(!repository.doesRepositoryExists(restoreRepositoryName, AbstractRepository.RepositoryType.valueOf(repoType.toLowerCase())))
         {
             //If repository does not exist, create new one
-            repository.createRestoreRepository(repoWithSuffix,repoN);
-
+            repository.createRestoreRepository(restoreRepositoryName,sourceRepoName);
         }
 
         // Get Snapshot Name
@@ -106,9 +104,9 @@ public class RestoreBackupManager extends Task
         if(StringUtils.isBlank(snapshotN))
         {
             //Pick the last Snapshot from the available Snapshots
-            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient,repoWithSuffix);
+            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient,restoreRepositoryName);
             if(snapshots.isEmpty())
-                throw new RestoreBackupException("No available snapshots in <"+repoWithSuffix+"> repository.");
+                throw new RestoreBackupException("No available snapshots in <"+restoreRepositoryName+"> repository.");
 
             //Sorting Snapshot names in Reverse Order
             Collections.sort(snapshots,Collections.reverseOrder());
@@ -130,14 +128,14 @@ public class RestoreBackupManager extends Task
         RestoreSnapshotResponse restoreSnapshotResponse = null;
         if (commaSeparatedIndices != null) {
             //This is a blocking call. It'll wait until Restore is finished.
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)
                     .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
                     .execute()
                     .actionGet();
         }else{
             // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(repoWithSuffix, snapshotN)
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)
                     .execute()
                     .actionGet();

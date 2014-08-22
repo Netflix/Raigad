@@ -21,7 +21,6 @@ public class ElasticsearchBackup
 {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchBackup.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
-    private static final String REST_SOURCE_CLUSTER_NAME = "source_cluster_name";
     private static final String REST_REPOSITORY_NAME = "repository_name";
     private static final String REST_REPOSITORY_TYPE = "repository_type";
     private static final String REST_SNAPSHOT_NAME = "snapshot";
@@ -53,15 +52,14 @@ public class ElasticsearchBackup
 
     @GET
     @Path("/do_restore")
-    public Response restore(@QueryParam(REST_SOURCE_CLUSTER_NAME) String sourceClusterName,
-                            @QueryParam(REST_REPOSITORY_NAME) String repoName,
+    public Response restore(@QueryParam(REST_REPOSITORY_NAME) String repoName,
                             @QueryParam(REST_REPOSITORY_TYPE) String repoType,
                            @QueryParam(REST_SNAPSHOT_NAME) String snapName,
                            @QueryParam(REST_INDICES_NAME) String indicesName)
             throws Exception
     {
 		logger.info("Running Restore through REST call ...");
-        restoreBackupManager.runRestore(sourceClusterName,repoName,repoType,snapName,indicesName);
+        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

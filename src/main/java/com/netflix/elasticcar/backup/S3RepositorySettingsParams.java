@@ -71,6 +71,10 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
         return basePath.toString();
     }
 
+    /*
+        base_path = basePathPrefix + basePathSuffix
+        Here you can provide custom base_path *Prefix* instead of using default source_cluster_name
+     */
     //"base_path": "es_{source_cluster_name}/20140410"
     public String getRestoreBackupBasePath(String basePathSuffix) throws RestoreBackupException {
         StringBuilder basePath = new StringBuilder();
