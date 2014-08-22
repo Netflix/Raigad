@@ -122,10 +122,10 @@ public class ElasticsearchAdmin
     @GET
     @Path("/run_indexmanager")
     public Response manageIndex()
-            throws IOException, InterruptedException, JSONException
+            throws Exception
     {
         logger.info("Running Index Manager through REST call ...");
-        esIndexManager.execute();
+        esIndexManager.runIndexManagement();
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

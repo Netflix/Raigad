@@ -59,32 +59,9 @@ public class ElasticSearchIndexManager extends Task {
                     logger.info("Autocreation of Indices is disabled, hence moving on");
                     return;
                 }
-                logger.info("Starting Index Maintenance ...");
 
-                List<IndexMetadata> infoList;
-                try {
-                    infoList = buildInfo(config.getIndexMetadata());
-                } catch (Exception e) {
-                    //TODO Add Servo Monitoring so that it can be verified from dashboard
-                    logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
-                    return;
-                }
-
-                TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-                for (IndexMetadata indexMetadata : infoList) {
-                    try {
-                        if (esTransportClient != null) {
-                            checkIndexRetention(indexMetadata,esTransportClient);
-                            if (indexMetadata.isPreCreate()) {
-                                preCreateIndex(indexMetadata,esTransportClient);
-                            }
-                        }
-                    } catch (Exception e) {
-                        //TODO Add Servo Monitoring so that it can be verified from dashboard
-                        logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
-                        return;
-                    }
-                }
+                //Run Index Management
+                runIndexManagement();
             }
             else
             {
@@ -95,6 +72,36 @@ public class ElasticSearchIndexManager extends Task {
         } catch (Exception e)
         {
             logger.warn("Exception thrown while doing Index Maintenance", e);
+        }
+    }
+
+    public void runIndexManagement() throws Exception
+    {
+        logger.info("Starting Index Maintenance ...");
+
+        List<IndexMetadata> infoList;
+        try {
+            infoList = buildInfo(config.getIndexMetadata());
+        } catch (Exception e) {
+            //TODO Add Servo Monitoring so that it can be verified from dashboard
+            logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
+            return;
+        }
+
+        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        for (IndexMetadata indexMetadata : infoList) {
+            try {
+                if (esTransportClient != null) {
+                    checkIndexRetention(indexMetadata,esTransportClient);
+                    if (indexMetadata.isPreCreate()) {
+                        preCreateIndex(indexMetadata,esTransportClient);
+                    }
+                }
+            } catch (Exception e) {
+                //TODO Add Servo Monitoring so that it can be verified from dashboard
+                logger.error("Caught an exception while Building IndexMetadata information from Configuration Property");
+                return;
+            }
         }
     }
 
