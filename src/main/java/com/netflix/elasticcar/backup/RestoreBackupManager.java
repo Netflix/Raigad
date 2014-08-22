@@ -60,7 +60,8 @@ public class RestoreBackupManager extends Task
                 }
 
                 logger.info("Current node is the Master Node. Running Restore now ...");
-                runRestore(config.getRestoreRepositoryName(),
+                runRestore(config.getRestoreSourceClusterName(),
+                        config.getRestoreRepositoryName(),
                         config.getRestoreRepositoryType(),
                         config.getRestoreSnapshotName(),
                         config.getCommaSeparatedIndicesToRestore());
@@ -74,7 +75,7 @@ public class RestoreBackupManager extends Task
         }
     }
 
-    public void runRestore(String repositoryName, String repositoryType, String snapshotName, String indices) throws Exception
+    public void runRestore(String sourceClusterName, String repositoryName, String repositoryType, String snapshotName, String indices) throws Exception
     {
         TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
@@ -84,7 +85,7 @@ public class RestoreBackupManager extends Task
             throw new RestoreBackupException("Repository Name is Null or Empty");
 
         //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
-        String repoWithSuffix = repoN + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
+        String repoWithSuffix = repoN + SUFFIX_SEPARATOR_TAG + sourceClusterName;
 
         String repoType = StringUtils.isBlank(repositoryType) ? config.getRestoreRepositoryType().toLowerCase() : repositoryType;
         if(StringUtils.isBlank(repoType))

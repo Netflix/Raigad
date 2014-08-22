@@ -72,38 +72,9 @@ public class SnapshotBackupManager extends Task
                     return;
                 }
 
-                // Create or Get Repository
-                String repositoryName = repository.createOrGetSnapshotRepository();
+                //Run Snapshot Backup
+                runSnapshotBackup();
 
-                // StartBackup
-                String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
-
-                logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> \nRunning Snapshot now ... ");
-
-                TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
-                Stopwatch snapshotTimer = snapshotDuration.start();
-                //This is a blocking call. It'll wait until Snapshot is finished.
-                CreateSnapshotResponse createSnapshotResponse = esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
-                        .setWaitForCompletion(config.waitForCompletionOfBackup())
-                        .setIndices(config.getCommaSeparatedIndicesToBackup())
-                        .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
-                        .setPartial(config.partiallyBackupIndices()).get();
-
-                logger.info("Snapshot Status = "+createSnapshotResponse.status().toString());
-                if(createSnapshotResponse.status() == RestStatus.OK)
-                {
-                    //TODO Add Servo Monitoring so that it can be verified from dashboard
-                    printSnapshotDetails(createSnapshotResponse);
-                    snapshotSuccess.incrementAndGet();
-                }
-                else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
-                    //TODO Add Servo Monitoring so that it can be verified from dashboard
-                    logger.info("Snapshot Completely Failed");
-                    snapshotFailure.incrementAndGet();
-                }
-                //Stop the timer
-                snapshotTimer.stop();
             }
             else
             {
@@ -114,6 +85,42 @@ public class SnapshotBackupManager extends Task
             snapshotFailure.incrementAndGet();
             logger.warn("Exception thrown while running Snapshot Backup", e);
         }
+    }
+
+    public void runSnapshotBackup() throws Exception
+    {
+        // Create or Get Repository
+        String repositoryName = repository.createOrGetSnapshotRepository();
+
+        // StartBackup
+        String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
+
+        logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> \nRunning Snapshot now ... ");
+
+        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+        Stopwatch snapshotTimer = snapshotDuration.start();
+        //This is a blocking call. It'll wait until Snapshot is finished.
+        CreateSnapshotResponse createSnapshotResponse = esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
+                .setWaitForCompletion(config.waitForCompletionOfBackup())
+                .setIndices(config.getCommaSeparatedIndicesToBackup())
+                .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
+                .setPartial(config.partiallyBackupIndices()).get();
+
+        logger.info("Snapshot Status = "+createSnapshotResponse.status().toString());
+        if(createSnapshotResponse.status() == RestStatus.OK)
+        {
+            //TODO Add Servo Monitoring so that it can be verified from dashboard
+            printSnapshotDetails(createSnapshotResponse);
+            snapshotSuccess.incrementAndGet();
+        }
+        else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
+            //TODO Add Servo Monitoring so that it can be verified from dashboard
+            logger.info("Snapshot Completely Failed");
+            snapshotFailure.incrementAndGet();
+        }
+        //Stop the timer
+        snapshotTimer.stop();
     }
 
     //TODO: Map to Java Class and Create JSON

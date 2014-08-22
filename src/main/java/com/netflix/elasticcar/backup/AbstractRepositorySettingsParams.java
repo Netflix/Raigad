@@ -1,6 +1,7 @@
 package com.netflix.elasticcar.backup;
 
 import com.google.inject.ImplementedBy;
+import com.netflix.elasticcar.backup.exception.CreateRepositoryException;
 import com.netflix.elasticcar.backup.exception.RestoreBackupException;
 import com.netflix.elasticcar.configuration.IConfiguration;
 
@@ -30,7 +31,7 @@ public abstract class AbstractRepositorySettingsParams
        this.config = config;
     }
 
-    public abstract void setBackupParams();
+    public abstract void setBackupParams() throws CreateRepositoryException;
 
     public abstract void setRestoreParams(String basePathSuffix) throws RestoreBackupException;
 

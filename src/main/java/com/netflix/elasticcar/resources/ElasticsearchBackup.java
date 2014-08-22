@@ -5,7 +5,6 @@ import com.netflix.elasticcar.IElasticsearchProcess;
 import com.netflix.elasticcar.backup.RestoreBackupManager;
 import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
-import org.codehaus.jettison.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 @Path("/v1/esbackup")
 @Produces(MediaType.APPLICATION_JSON)
@@ -23,6 +21,7 @@ public class ElasticsearchBackup
 {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchBackup.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
+    private static final String REST_SOURCE_CLUSTER_NAME = "source_cluster_name";
     private static final String REST_REPOSITORY_NAME = "repository_name";
     private static final String REST_REPOSITORY_TYPE = "repository_type";
     private static final String REST_SNAPSHOT_NAME = "snapshot";
@@ -45,23 +44,24 @@ public class ElasticsearchBackup
     @GET
     @Path("/do_snapshot")
     public Response snapshot()
-            throws IOException, InterruptedException, JSONException
+            throws Exception
     {
     	logger.info("Running Snapshot through REST call ...");
-        snapshotBackupManager.execute();
+        snapshotBackupManager.runSnapshotBackup();
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("/do_restore")
-    public Response restore(@QueryParam(REST_REPOSITORY_NAME) String repoName,
+    public Response restore(@QueryParam(REST_SOURCE_CLUSTER_NAME) String sourceClusterName,
+                            @QueryParam(REST_REPOSITORY_NAME) String repoName,
                             @QueryParam(REST_REPOSITORY_TYPE) String repoType,
                            @QueryParam(REST_SNAPSHOT_NAME) String snapName,
                            @QueryParam(REST_INDICES_NAME) String indicesName)
             throws Exception
     {
 		logger.info("Running Restore through REST call ...");
-        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName);
+        restoreBackupManager.runRestore(sourceClusterName,repoName,repoType,snapName,indicesName);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

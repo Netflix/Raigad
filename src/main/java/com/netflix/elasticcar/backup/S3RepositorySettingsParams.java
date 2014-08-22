@@ -2,6 +2,7 @@ package com.netflix.elasticcar.backup;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.elasticcar.backup.exception.CreateRepositoryException;
 import com.netflix.elasticcar.backup.exception.RestoreBackupException;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -30,9 +31,10 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
     }
 
     @Override
-    public void setBackupParams()
-    {
+    public void setBackupParams() throws CreateRepositoryException {
         this.bucket = config.getBackupLocation();
+        if(StringUtils.isEmpty(this.bucket))
+            throw new CreateRepositoryException("Backup Location is not set in config.");
         this.region = config.getDC();
         this.base_path = getSnapshotBackupBasePath();
         logger.info("Bucket : <"+bucket+"> Region : <"+region+"> Base_path : <"+base_path+">");
