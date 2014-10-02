@@ -17,14 +17,39 @@ import org.elasticsearch.indices.NodeIndicesStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * Note regarding - Percentiles over Average Latencies
+ *
+ * Currently ES provides only cumulative query & index time along with cumulative query & index count.
+ * Hence Percentile values are calculated based on the average between consecutive time
+ * (t1 & t2, t2 & t3, ... , tn-1 & tn) of metrics collection.
+ *
+ */
 @Singleton
 public class NodeIndicesStatsMonitor extends Task
 {
     private static final Logger logger = LoggerFactory.getLogger(NodeIndicesStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_NodeIndicesMonitor";
     private final Elasticsearch_NodeIndicesStatsReporter nodeIndicesStatsReporter;
+    private final EstimatedHistogram latencySearchQuery95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencySearchQuery99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencySearchFetch95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencySearchFetch99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGet95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGet99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGetExists95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGetExists99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGetMissing95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyGetMissing99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyIndexing95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyIndexing99Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyIndexDelete95Histo = new EstimatedHistogram();
+    private final EstimatedHistogram latencyIndexDelete99Histo = new EstimatedHistogram();
+    private final double PERCENTILE_95 = 0.95;
+    private final double PERCENTILE_99 = 0.99;
 
     @Inject
     public NodeIndicesStatsMonitor(IConfiguration config)
@@ -80,7 +105,7 @@ public class NodeIndicesStatsMonitor extends Task
         }
         catch(Exception e)
         {
-            logger.warn("failed to load Trasport stats data", e);
+            logger.warn("failed to load Indices stats data", e);
         }
 
         nodeIndicesStatsReporter.nodeIndicesStatsBean.set(nodeIndicesStatsBean);
@@ -129,13 +154,26 @@ public class NodeIndicesStatsMonitor extends Task
     {
         nodeIndicesStatsBean.searchQueryDelta += (nodeIndicesStats.getSearch().getTotal().getQueryCount() - nodeIndicesStatsBean.searchQueryTotal);
         nodeIndicesStatsBean.searchFetchDelta += (nodeIndicesStats.getSearch().getTotal().getFetchCount() - nodeIndicesStatsBean.searchFetchTotal);
+
+        long searchQueryDeltaTimeInMillies = (nodeIndicesStats.getSearch().getTotal().getQueryTimeInMillis() - nodeIndicesStatsBean.searchQueryTime);
+        recordSearchQueryLatencies(searchQueryDeltaTimeInMillies/nodeIndicesStatsBean.searchQueryDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencySearchQuery95 = latencySearchQuery95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencySearchQuery99 = latencySearchQuery99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.searchQueryTotal = nodeIndicesStats.getSearch().getTotal().getQueryCount();
         nodeIndicesStatsBean.searchQueryTime = nodeIndicesStats.getSearch().getTotal().getQueryTimeInMillis();
         if(nodeIndicesStatsBean.searchQueryTotal != 0)
             nodeIndicesStatsBean.searchQueryAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchQueryTime / nodeIndicesStatsBean.searchQueryTotal;
         nodeIndicesStatsBean.searchQueryCurrent = nodeIndicesStats.getSearch().getTotal().getQueryCurrent();
         nodeIndicesStatsBean.searchFetchTotal = nodeIndicesStats.getSearch().getTotal().getFetchCount();
+
+        long searchFetchDeltaTimeInMillies = (nodeIndicesStats.getSearch().getTotal().getFetchTimeInMillis() - nodeIndicesStatsBean.searchFetchTime);
+        recordSearchFetchLatencies(searchFetchDeltaTimeInMillies/nodeIndicesStatsBean.searchFetchDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencySearchFetch95 = latencySearchFetch95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencySearchFetch99 = latencySearchFetch99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.searchFetchTime = nodeIndicesStats.getSearch().getTotal().getFetchTimeInMillis();
+
         if(nodeIndicesStatsBean.searchFetchTotal != 0)
             nodeIndicesStatsBean.searchFetchAvgTimeInMillisPerRequest = nodeIndicesStatsBean.searchFetchTime / nodeIndicesStatsBean.searchFetchTotal;
         nodeIndicesStatsBean.searchFetchCurrent = nodeIndicesStats.getSearch().getTotal().getFetchCurrent();
@@ -146,15 +184,34 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.getTotalDelta += (nodeIndicesStats.getGet().getCount() - nodeIndicesStatsBean.getTotal);
         nodeIndicesStatsBean.getExistsDelta += (nodeIndicesStats.getGet().getExistsCount() - nodeIndicesStatsBean.getExistsTotal);
         nodeIndicesStatsBean.getMissingDelta += (nodeIndicesStats.getGet().getMissingCount() - nodeIndicesStatsBean.getMissingDelta);
+
+        long getDeltaTimeInMillies = (nodeIndicesStats.getGet().getTimeInMillis() - nodeIndicesStatsBean.getTime);
+        recordGetLatencies(getDeltaTimeInMillies/nodeIndicesStatsBean.getTotalDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencyGet95 = latencyGet95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencyGet99 = latencyGet99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.getTotal = nodeIndicesStats.getGet().getCount();
         nodeIndicesStatsBean.getTime = nodeIndicesStats.getGet().getTimeInMillis();
+
         if (nodeIndicesStatsBean.getTotal != 0)
             nodeIndicesStatsBean.getTotalAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getTime / nodeIndicesStatsBean.getTotal;
         nodeIndicesStatsBean.getCurrent = nodeIndicesStats.getGet().current();
+
+        long getExistsDeltaTimeInMillies = (nodeIndicesStats.getGet().getExistsTimeInMillis() - nodeIndicesStatsBean.getExistsTime);
+        recordGetExistsLatencies(getExistsDeltaTimeInMillies/nodeIndicesStatsBean.getExistsDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencyGetExists95 = latencyGetExists95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencyGetExists99 = latencyGetExists99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.getExistsTotal = nodeIndicesStats.getGet().getExistsCount();
         nodeIndicesStatsBean.getExistsTime = nodeIndicesStats.getGet().getExistsTimeInMillis();
         if (nodeIndicesStatsBean.getExistsTotal != 0)
             nodeIndicesStatsBean.getExistsAvgTimeInMillisPerRequest = nodeIndicesStatsBean.getExistsTime / nodeIndicesStatsBean.getExistsTotal;
+
+        long getMissingDeltaTimeInMillies = (nodeIndicesStats.getGet().getMissingTimeInMillis() - nodeIndicesStatsBean.getMissingTime);
+        recordGetMissingLatencies(getMissingDeltaTimeInMillies/nodeIndicesStatsBean.getMissingDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencyGetMissing95 = latencyGetMissing95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencyGetMissing99 = latencyGetMissing99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.getMissingTotal = nodeIndicesStats.getGet().getMissingCount();
         nodeIndicesStatsBean.getMissingTime = nodeIndicesStats.getGet().getMissingTimeInMillis();
         if (nodeIndicesStatsBean.getMissingTotal != 0)
@@ -165,16 +222,70 @@ public class NodeIndicesStatsMonitor extends Task
     {
         nodeIndicesStatsBean.indexingIndexDelta += (nodeIndicesStats.getIndexing().getTotal().getIndexCount() - nodeIndicesStatsBean.indexingIndexTotal);
         nodeIndicesStatsBean.indexingDeleteDelta += (nodeIndicesStats.getIndexing().getTotal().getDeleteCount() - nodeIndicesStatsBean.indexingDeleteTotal);
+
+        long indexingTimeInMillies = (nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis() - nodeIndicesStatsBean.indexingIndexTimeInMillis);
+        recordIndexingLatencies(indexingTimeInMillies/nodeIndicesStatsBean.indexingIndexDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencyIndexing95 = latencyIndexing95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencyIndexing99 = latencyIndexing99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis();
         if (nodeIndicesStatsBean.indexingIndexTotal != 0)
             nodeIndicesStatsBean.indexingAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingIndexTimeInMillis / nodeIndicesStatsBean.indexingIndexTotal;
         nodeIndicesStatsBean.indexingIndexCurrent = nodeIndicesStats.getIndexing().getTotal().getIndexCurrent();
+
+        long indexDeleteTimeInMillies = (nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis() - nodeIndicesStatsBean.indexingDeleteTime);
+        recordIndexDeleteLatencies(indexDeleteTimeInMillies/nodeIndicesStatsBean.indexingDeleteDelta,TimeUnit.MILLISECONDS);
+        nodeIndicesStatsBean.latencyIndexDelete95 = latencyIndexDelete95Histo.percentile(PERCENTILE_95);
+        nodeIndicesStatsBean.latencyIndexDelete99 = latencyIndexDelete99Histo.percentile(PERCENTILE_99);
+
         nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis();
         if (nodeIndicesStatsBean.indexingDeleteTotal != 0)
             nodeIndicesStatsBean.indexingDeleteAvgTimeInMillisPerRequest = nodeIndicesStatsBean.indexingDeleteTime / nodeIndicesStatsBean.indexingDeleteTotal;
         nodeIndicesStatsBean.indexingDeleteCurrent = nodeIndicesStats.getIndexing().getTotal().getDeleteCurrent();
         nodeIndicesStatsBean.indexingIndexTotal = nodeIndicesStats.getIndexing().getTotal().getIndexCount();
         nodeIndicesStatsBean.indexingDeleteTotal = nodeIndicesStats.getIndexing().getTotal().getDeleteCount();
+    }
+
+    private void recordSearchQueryLatencies(long duration, TimeUnit unit) {
+        long searchQueryLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencySearchQuery95Histo.add(searchQueryLatency);
+        latencySearchQuery99Histo.add(searchQueryLatency);
+    }
+
+    private void recordSearchFetchLatencies(long duration, TimeUnit unit) {
+        long fetchQueryLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencySearchFetch95Histo.add(fetchQueryLatency);
+        latencySearchFetch99Histo.add(fetchQueryLatency);
+    }
+
+    private void recordGetLatencies(long duration, TimeUnit unit) {
+        long getLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencyGet95Histo.add(getLatency);
+        latencyGet99Histo.add(getLatency);
+    }
+
+    private void recordGetExistsLatencies(long duration, TimeUnit unit) {
+        long getExistsLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencyGetExists95Histo.add(getExistsLatency);
+        latencyGetExists99Histo.add(getExistsLatency);
+    }
+
+    private void recordGetMissingLatencies(long duration, TimeUnit unit) {
+        long getMissingLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencyGetMissing95Histo.add(getMissingLatency);
+        latencyGetMissing99Histo.add(getMissingLatency);
+    }
+
+    private void recordIndexingLatencies(long duration, TimeUnit unit) {
+        long indexingLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencyIndexing95Histo.add(indexingLatency);
+        latencyIndexing99Histo.add(indexingLatency);
+    }
+
+    private void recordIndexDeleteLatencies(long duration, TimeUnit unit) {
+        long indexDeleteLatency = TimeUnit.MICROSECONDS.convert(duration, unit);
+        latencyIndexDelete95Histo.add(indexDeleteLatency);
+        latencyIndexDelete99Histo.add(indexDeleteLatency);
     }
 
     public class Elasticsearch_NodeIndicesStatsReporter
@@ -207,6 +318,8 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().docsDeleted;
         }
 
+
+        //Indexing
         @Monitor(name="indexing_index_total", type=DataSourceType.GAUGE)
         public long getIndexingIndexTotal() { return nodeIndicesStatsBean.get().indexingIndexTotal; }
         @Monitor(name="indexing_index_time_in_millis", type=DataSourceType.GAUGE)
@@ -242,7 +355,6 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().indexingDeleteAvgTimeInMillisPerRequest;
         }
 
-
         @Monitor(name="indexing_delete_current", type=DataSourceType.GAUGE)
         public long getIndexingDeleteCurrent()
         {
@@ -259,6 +371,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().indexingDeleteDelta;
         }
 
+        //Get
         @Monitor(name="get_total", type=DataSourceType.GAUGE)
         public long getGetTotal()
         {
@@ -314,7 +427,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().getMissingAvgTimeInMillisPerRequest;
         }
 
-
+        //Search
         @Monitor(name="get_total_delta", type=DataSourceType.COUNTER)
         public long getGetTotalDelta()
         {
@@ -352,7 +465,6 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().searchQueryAvgTimeInMillisPerRequest;
         }
 
-
         @Monitor(name="search_query_delta", type=DataSourceType.COUNTER)
         public long getSearchQueryDelta()
         {
@@ -374,7 +486,6 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().searchFetchAvgTimeInMillisPerRequest;
         }
 
-
         @Monitor(name="search_fetch_current", type=DataSourceType.GAUGE)
         public long getSearchFetchCurrent()
         {
@@ -386,6 +497,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().searchFetchDelta;
         }
 
+        //Cache
         @Monitor(name="cache_field_evictions", type=DataSourceType.GAUGE)
         public long getCacheFieldEvictions()
         {
@@ -407,6 +519,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().cacheFilterSize;
         }
 
+        //Merge
         @Monitor(name="merges_current", type=DataSourceType.GAUGE)
         public long getMergesCurrent()
         {
@@ -438,7 +551,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().mergesTotalSize;
         }
 
-
+        //Refresh
         @Monitor(name="refresh_total", type=DataSourceType.GAUGE)
         public long getRefreshTotal()
         {
@@ -455,6 +568,7 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().refreshAvgTimeInMillisPerRequest;
         }
 
+        //Flush
         @Monitor(name="flush_total", type=DataSourceType.GAUGE)
         public long getFlushTotal()
         {
@@ -471,7 +585,37 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().flushAvgTimeInMillisPerRequest;
         }
 
+        //Percentile Latencies
+        @Monitor(name="latencySearchQuery95", type=DataSourceType.GAUGE)
+        public double getLatencySearchQuery95() { return nodeIndicesStatsBean.get().latencySearchQuery95; }
+        @Monitor(name="latencySearchQuery99", type=DataSourceType.GAUGE)
+        public double getLatencySearchQuery99() { return nodeIndicesStatsBean.get().latencySearchQuery99; }
+        @Monitor(name="latencySearchFetch95", type=DataSourceType.GAUGE)
+        public double getLatencySearchFetch95() { return nodeIndicesStatsBean.get().latencySearchFetch95; }
+        @Monitor(name="latencySearchFetch99", type=DataSourceType.GAUGE)
+        public double getLatencySearchFetch99() { return nodeIndicesStatsBean.get().latencySearchFetch99; }
+        @Monitor(name="latencyGet95", type=DataSourceType.GAUGE)
+        public double getLatencyGet95() { return nodeIndicesStatsBean.get().latencyGet95; }
+        @Monitor(name="latencyGet99", type=DataSourceType.GAUGE)
+        public double getLatencyGet99() { return nodeIndicesStatsBean.get().latencyGet99; }
+        @Monitor(name="latencyGetExists95", type=DataSourceType.GAUGE)
+        public double getLatencyGetExists95() { return nodeIndicesStatsBean.get().latencyGetExists95; }
+        @Monitor(name="latencyGetExists99", type=DataSourceType.GAUGE)
+        public double getLatencyGetExists99() { return nodeIndicesStatsBean.get().latencyGetExists99; }
+        @Monitor(name="latencyGetMissing95", type=DataSourceType.GAUGE)
+        public double getLatencyGetMissing95() { return nodeIndicesStatsBean.get().latencyGetMissing95; }
+        @Monitor(name="latencyGetMissing99", type=DataSourceType.GAUGE)
+        public double getLatencyGetMissing99() { return nodeIndicesStatsBean.get().latencyGetMissing99; }
+        @Monitor(name="latencyIndexing95", type=DataSourceType.GAUGE)
+        public double getLatencyIndexing95() { return nodeIndicesStatsBean.get().latencyIndexing95; }
+        @Monitor(name="latencyIndexing99", type=DataSourceType.GAUGE)
+        public double getLatencyIndexing99() { return nodeIndicesStatsBean.get().latencyIndexing99; }
+        @Monitor(name="latencyIndexDelete95", type=DataSourceType.GAUGE)
+        public double getLatencyIndexDelete95() { return nodeIndicesStatsBean.get().latencyIndexDelete95; }
+        @Monitor(name="latencyIndexDelete99", type=DataSourceType.GAUGE)
+        public double getLatencyIndexDelete99() { return nodeIndicesStatsBean.get().latencyIndexDelete99; }
     }
+
 
     private static class NodeIndicesStatsBean
     {
@@ -528,6 +672,20 @@ public class NodeIndicesStatsMonitor extends Task
         private long flushTotal;
         private long flushTotalTime;
         private double flushAvgTimeInMillisPerRequest;
+        private double latencySearchQuery95;
+        private double latencySearchQuery99;
+        private double latencySearchFetch95;
+        private double latencySearchFetch99;
+        private double latencyGet95;
+        private double latencyGet99;
+        private double latencyGetExists95;
+        private double latencyGetExists99;
+        private double latencyGetMissing95;
+        private double latencyGetMissing99;
+        private double latencyIndexing95;
+        private double latencyIndexing99;
+        private double latencyIndexDelete95;
+        private double latencyIndexDelete99;
 
     }
 
