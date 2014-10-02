@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 /**
- * Curtsy Puneet Oberoi.
+ * Curtsy Puneet Oberai.
  */
 public class EstimatedHistogram {
 

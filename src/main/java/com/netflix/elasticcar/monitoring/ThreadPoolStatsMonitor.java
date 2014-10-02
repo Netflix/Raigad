@@ -132,7 +132,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().indexActive;
         }
-        @Monitor(name="indexRejected", type=DataSourceType.GAUGE)
+        @Monitor(name="indexRejected", type=DataSourceType.COUNTER)
         public long getIndexRejected()
         {
             return threadPoolBean.get().indexRejected;
@@ -142,7 +142,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().indexLargest;
         }
-        @Monitor(name="indexCompleted", type=DataSourceType.GAUGE)
+        @Monitor(name="indexCompleted", type=DataSourceType.COUNTER)
         public long getIndexCompleted()
         {
             return threadPoolBean.get().indexCompleted;
@@ -163,7 +163,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().getActive;
         }
-        @Monitor(name="getRejected", type=DataSourceType.GAUGE)
+        @Monitor(name="getRejected", type=DataSourceType.COUNTER)
         public long getGetRejected()
         {
             return threadPoolBean.get().getRejected;
@@ -173,7 +173,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().getLargest;
         }
-        @Monitor(name="getCompleted", type=DataSourceType.GAUGE)
+        @Monitor(name="getCompleted", type=DataSourceType.COUNTER)
         public long getGetCompleted()
         {
             return threadPoolBean.get().getCompleted;
@@ -194,7 +194,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().searchActive;
         }
-        @Monitor(name="searchRejected", type=DataSourceType.GAUGE)
+        @Monitor(name="searchRejected", type=DataSourceType.COUNTER)
         public long getSearchRejected()
         {
             return threadPoolBean.get().searchRejected;
@@ -204,7 +204,7 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().searchLargest;
         }
-        @Monitor(name="searchCompleted", type=DataSourceType.GAUGE)
+        @Monitor(name="searchCompleted", type=DataSourceType.COUNTER)
         public long getSearchCompleted()
         {
             return threadPoolBean.get().searchCompleted;
@@ -225,17 +225,17 @@ public class ThreadPoolStatsMonitor extends Task
         {
             return threadPoolBean.get().bulkActive;
         }
-        	@Monitor(name="bulkRejected", type=DataSourceType.GAUGE)
+        @Monitor(name="bulkRejected", type=DataSourceType.COUNTER)
         public long getBulkRejected()
         {
             return threadPoolBean.get().bulkRejected;
         }
-        	@Monitor(name="bulkLargest", type=DataSourceType.GAUGE)
+        @Monitor(name="bulkLargest", type=DataSourceType.GAUGE)
         public long getBulkLargest()
         {
             return threadPoolBean.get().bulkLargest;
         }
-        	@Monitor(name="bulkCompleted", type=DataSourceType.GAUGE)
+        @Monitor(name="bulkCompleted", type=DataSourceType.COUNTER)
         public long getBulkCompleted()
         {
             return threadPoolBean.get().bulkCompleted;
