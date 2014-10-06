@@ -3,6 +3,7 @@ package com.netflix.elasticcar.defaultimpl;
 import com.google.inject.Inject;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.IElasticsearchTuner;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.DumperOptions;
@@ -34,6 +35,7 @@ public class StandardTuner implements IElasticsearchTuner
         File yamlFile = new File(yamlLocation);
         Map map = (Map) yaml.load(new FileInputStream(yamlFile));
         map.put("cluster.name", config.getAppName());
+        map.put("node.name", config.getRac() + "." + config.getInstanceId());
         map.put("transport.tcp.port", config.getTransportTcpPort());
         map.put("http.port", config.getHttpPort());       
         map.put("path.data", config.getDataFileLocation());
@@ -51,21 +53,40 @@ public class StandardTuner implements IElasticsearchTuner
         if(config.isShardPerNodeEnabled())
             map.put("index.routing.allocation.total_shards_per_node",config.getTotalShardsPerNode());
 
-		if (config.isMultiDC()) 
-		{
-			map.put("node.name", config.getRac() + "." + config.getInstanceId());
-			map.put("node.rack_id", config.getDC());
-			map.put("network.publish_host", config.getHostIP());
-		}        
-		else
-        {
-			map.put("node.name", config.getRac() + "." + config.getInstanceId());
-			map.put("node.rack_id", config.getRac());
+        if(!config.amITribeNode()) {
+            if (config.isMultiDC()) {
+                map.put("node.rack_id", config.getDC());
+                map.put("network.publish_host", config.getHostIP());
+            } else {
+                map.put("node.rack_id", config.getRac());
+            }
         }
-		
+
+        if(config.amITribeNode())
+        {
+            String[] clusters = StringUtils.split(config.getCommaSeparatedClustersForTribeNode(),",");
+            assert (clusters.length != 0) : "One or more clusters needed";
+
+            //Common Settings
+            for(int i=0; i< clusters.length;i++)
+                map.put("tribe.t"+i+".cluster.name",clusters[i]);
+
+            map.put("node.master", false);
+            map.put("node.data", false);
+
+            if(config.amIWriteEnabledTribeNode())
+                map.put("tribe.blocks.write", false);
+            else
+                map.put("tribe.blocks.write", true);
+
+            if(config.amIMetadataEnabledTribeNode())
+                map.put("tribe.blocks.metadata", false);
+            else
+                map.put("tribe.blocks.metadata", true);
+        }
 		//TODO: Create New Tuner for ASG Based Deployment
         //TODO: Need to come up with better algorithm for Non-ASG based deployments
-		if(config.isAsgBasedDedicatedDeployment())
+		else if(config.isAsgBasedDedicatedDeployment())
 		{
 			if(config.getASGName().toLowerCase().contains("master"))
 			{

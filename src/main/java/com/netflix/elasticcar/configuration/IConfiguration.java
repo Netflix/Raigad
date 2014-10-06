@@ -250,4 +250,13 @@ public interface IConfiguration
     public String getCommaSeparatedIndicesToRestore();
 
     public int getRestoreTaskInitialDelayInSeconds();
+
+    public boolean amITribeNode();
+
+    public boolean amIWriteEnabledTribeNode();
+
+    public boolean amIMetadataEnabledTribeNode();
+
+    public String getCommaSeparatedClustersForTribeNode();
+
 }

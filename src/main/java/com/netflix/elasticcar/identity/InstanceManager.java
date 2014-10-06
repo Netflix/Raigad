@@ -1,14 +1,15 @@
 package com.netflix.elasticcar.identity;
 
-import java.util.List;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.utils.RetryableCallable;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.netflix.elasticcar.utils.RetryableCallable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides the central place to create and consume the identity of
@@ -72,7 +73,7 @@ public class InstanceManager {
 
 	private void deregisterInstance(
 			IElasticCarInstanceFactory instanceFactory, IConfiguration config) throws Exception {
-	    final List<ElasticCarInstance> allInstances = instanceFactory.getAllIds(config.getAppName());
+	    final List<ElasticCarInstance> allInstances = getInstanceList();
 	    List<String> asgInstances = membership.getRacMembership();
 	    for (ElasticCarInstance dead : allInstances)
 	    {
@@ -92,6 +93,35 @@ public class InstanceManager {
 	
 	public List<ElasticCarInstance> getAllInstances()
 	{
-		return instanceFactory.getAllIds(config.getAppName());
+		return getInstanceList();
 	}
+
+    private List<ElasticCarInstance> getInstanceList()
+    {
+        List<ElasticCarInstance> _instances = new ArrayList<ElasticCarInstance>();
+
+        if(config.amITribeNode())
+        {
+            String[] clusters = StringUtils.split(config.getCommaSeparatedClustersForTribeNode(), ",");
+            assert (clusters.length != 0) : "One or more clusters needed";
+
+            for(String clusterName : clusters)
+                _instances.addAll(instanceFactory.getAllIds(clusterName));
+
+        }else
+            _instances = instanceFactory.getAllIds(config.getAppName());
+
+        if(config.isDebugEnabled())
+        {
+            for(ElasticCarInstance instance:_instances)
+                logger.debug(instance.toString());
+        }
+        return _instances;
+    }
+
+    public boolean isMaster()
+    {
+        //For Non-dedicated deployments, Return True (Every Node can be a master)
+        return (!config.isAsgBasedDedicatedDeployment() || config.getASGName().toLowerCase().contains("master"));
+    }
 }

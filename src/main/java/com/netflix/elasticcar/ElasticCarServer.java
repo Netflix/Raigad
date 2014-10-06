@@ -88,18 +88,17 @@ public class ElasticCarServer
 //            // sleep for 60 sec for the SG update to happen.
 //            if (UpdateSecuritySettings.firstTimeUpdated)
 //                sleeper.sleep(60 * 1000);
-//            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(id));
+//            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
 //        }
 //
-        
+        // update security settings
         scheduler.runTaskNow(UpdateSecuritySettings.class);
-        
+        // sleep for 60 sec for the SG update to happen.
         if (UpdateSecuritySettings.firstTimeUpdated)
           sleeper.sleep(60 * 1000);
-        
-        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer());
+        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
 
-        
+        // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
         
         logger.info("Trying to start Elastic Search now ...");

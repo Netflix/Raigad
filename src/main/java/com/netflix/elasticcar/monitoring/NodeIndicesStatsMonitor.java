@@ -161,6 +161,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordSearchQueryLatencies(searchQueryDeltaTimeInMillies / queryDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencySearchQuery95 = latencySearchQuery95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencySearchQuery99 = latencySearchQuery99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencySearchQuery95 = 0;
+            nodeIndicesStatsBean.latencySearchQuery99 = 0;
         }
 
         nodeIndicesStatsBean.searchQueryTotal = nodeIndicesStats.getSearch().getTotal().getQueryCount();
@@ -176,6 +179,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordSearchFetchLatencies(searchFetchDeltaTimeInMillies / fetchDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencySearchFetch95 = latencySearchFetch95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencySearchFetch99 = latencySearchFetch99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencySearchFetch95 = 0;
+            nodeIndicesStatsBean.latencySearchFetch99 = 0;
         }
 
         nodeIndicesStatsBean.searchFetchTime = nodeIndicesStats.getSearch().getTotal().getFetchTimeInMillis();
@@ -197,6 +203,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordGetLatencies(getDeltaTimeInMillies / totalDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGet95 = latencyGet95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGet99 = latencyGet99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencyGet95 = 0;
+            nodeIndicesStatsBean.latencyGet99 = 0;
         }
 
         nodeIndicesStatsBean.getTotal = nodeIndicesStats.getGet().getCount();
@@ -212,6 +221,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordGetExistsLatencies(getExistsDeltaTimeInMillies / existsDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGetExists95 = latencyGetExists95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGetExists99 = latencyGetExists99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencyGetExists95 = 0;
+            nodeIndicesStatsBean.latencyGetExists99 = 0;
         }
 
         nodeIndicesStatsBean.getExistsTotal = nodeIndicesStats.getGet().getExistsCount();
@@ -225,6 +237,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordGetMissingLatencies(getMissingDeltaTimeInMillies / missingDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGetMissing95 = latencyGetMissing95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGetMissing99 = latencyGetMissing99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencyGetMissing95 = 0;
+            nodeIndicesStatsBean.latencyGetMissing99 = 0;
         }
 
         nodeIndicesStatsBean.getMissingTotal = nodeIndicesStats.getGet().getMissingCount();
@@ -244,6 +259,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordIndexingLatencies(indexingTimeInMillies / indexDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyIndexing95 = latencyIndexing95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyIndexing99 = latencyIndexing99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencyIndexing95 = 0;
+            nodeIndicesStatsBean.latencyIndexing99 = 0;
         }
 
         nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis();
@@ -257,6 +275,9 @@ public class NodeIndicesStatsMonitor extends Task
             recordIndexDeleteLatencies(indexDeleteTimeInMillies / indexDeleteDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyIndexDelete95 = latencyIndexDelete95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyIndexDelete99 = latencyIndexDelete99Histo.percentile(PERCENTILE_99);
+        } else {
+            nodeIndicesStatsBean.latencyIndexDelete95 = 0;
+            nodeIndicesStatsBean.latencyIndexDelete99 = 0;
         }
 
         nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis();
