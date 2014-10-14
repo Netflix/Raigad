@@ -76,8 +76,11 @@ public class HealthMonitor extends Task
                 healthBean.greenoryellowstatus = 0;
             }
 
-            //Check if there is Node Mismatch between Discovery and ES
-            healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
+            if(config.isNodeMismatchHealthMetricsEnabled())
+            {
+                //Check if there is Node Mismatch between Discovery and ES
+                healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
+            }
 
         }
         catch(Exception e)

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -100,16 +101,27 @@ public class InstanceManager {
     {
         List<ElasticCarInstance> _instances = new ArrayList<ElasticCarInstance>();
 
+        //Considering same cluster will not serve as a Tribe Node and Source Cluster for Tribe Node
         if(config.amITribeNode())
         {
-            String[] clusters = StringUtils.split(config.getCommaSeparatedClustersForTribeNode(), ",");
-            assert (clusters.length != 0) : "One or more clusters needed";
+            List<String> sourceClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedSourceClustersForTribeNode(), ",")));
+            assert (sourceClusters.size() != 0) : "I am a tribe node but I need One or more source clusters";
 
-            for(String clusterName : clusters)
-                _instances.addAll(instanceFactory.getAllIds(clusterName));
+            for(String sourceClusterName : sourceClusters)
+                _instances.addAll(instanceFactory.getAllIds(sourceClusterName));
+        }
 
-        }else
-            _instances = instanceFactory.getAllIds(config.getAppName());
+        if(config.amISourceClusterForTribeNode())
+        {
+            List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
+            assert (tribeClusters.size() != 0) : "I am a source cluster but I need One or more tribe clusters";
+
+            for(String tribeClusterName : tribeClusters)
+                _instances.addAll(instanceFactory.getAllIds(tribeClusterName));
+        }
+
+        //Adding Current cluster
+        _instances.addAll(instanceFactory.getAllIds(config.getAppName()));
 
         if(config.isDebugEnabled())
         {

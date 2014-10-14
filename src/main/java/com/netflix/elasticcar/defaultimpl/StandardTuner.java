@@ -36,40 +36,22 @@ public class StandardTuner implements IElasticsearchTuner
         Map map = (Map) yaml.load(new FileInputStream(yamlFile));
         map.put("cluster.name", config.getAppName());
         map.put("node.name", config.getRac() + "." + config.getInstanceId());
-        map.put("transport.tcp.port", config.getTransportTcpPort());
-        map.put("http.port", config.getHttpPort());       
+        map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
-        map.put("discovery.type", config.getElasticsearchDiscoveryType());
-        map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
-        map.put("index.number_of_shards", config.getNumOfShards());
-        map.put("index.number_of_replicas", config.getNumOfReplicas());
-        map.put("index.refresh_interval", config.getIndexRefreshInterval());
-        //NOTE: When using awareness attributes, shards will not be allocated to nodes
-        //that do not have values set for those attributes.
-        //*** Important in dedicated master nodes deployment
-        map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
-
-        if(config.isShardPerNodeEnabled())
-            map.put("index.routing.allocation.total_shards_per_node",config.getTotalShardsPerNode());
-
-        if(!config.amITribeNode()) {
-            if (config.isMultiDC()) {
-                map.put("node.rack_id", config.getDC());
-                map.put("network.publish_host", config.getHostIP());
-            } else {
-                map.put("node.rack_id", config.getRac());
-            }
-        }
 
         if(config.amITribeNode())
         {
-            String[] clusters = StringUtils.split(config.getCommaSeparatedClustersForTribeNode(),",");
+            String[] clusters = StringUtils.split(config.getCommaSeparatedSourceClustersForTribeNode(),",");
             assert (clusters.length != 0) : "One or more clusters needed";
 
             //Common Settings
             for(int i=0; i< clusters.length;i++)
-                map.put("tribe.t"+i+".cluster.name",clusters[i]);
+            {
+                map.put("tribe.t" + i + ".cluster.name", clusters[i]);
+                map.put("tribe.t" + i + ".transport.tcp.port", config.getTransportTcpPort());
+                map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
+            }
 
             map.put("node.master", false);
             map.put("node.data", false);
@@ -84,26 +66,43 @@ public class StandardTuner implements IElasticsearchTuner
             else
                 map.put("tribe.blocks.metadata", true);
         }
-		//TODO: Create New Tuner for ASG Based Deployment
-        //TODO: Need to come up with better algorithm for Non-ASG based deployments
-		else if(config.isAsgBasedDedicatedDeployment())
-		{
-			if(config.getASGName().toLowerCase().contains("master"))
-			{
-				map.put("node.master", true);
-				map.put("node.data", false);
-			}
-			else if(config.getASGName().toLowerCase().contains("data"))
-			{
-				map.put("node.master", false);
-				map.put("node.data", true);				
-			}
-			else if(config.getASGName().toLowerCase().contains("search"))
-			{
-				map.put("node.master", false);
-				map.put("node.data", false);
-			}
-		}
+        else {
+            map.put("discovery.type", config.getElasticsearchDiscoveryType());
+            map.put("transport.tcp.port", config.getTransportTcpPort());
+            map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
+            map.put("index.number_of_shards", config.getNumOfShards());
+            map.put("index.number_of_replicas", config.getNumOfReplicas());
+            map.put("index.refresh_interval", config.getIndexRefreshInterval());
+            //NOTE: When using awareness attributes, shards will not be allocated to nodes
+            //that do not have values set for those attributes.
+            //*** Important in dedicated master nodes deployment
+            map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
+
+            if(config.isShardPerNodeEnabled())
+                map.put("index.routing.allocation.total_shards_per_node",config.getTotalShardsPerNode());
+
+            if (config.isMultiDC()) {
+                map.put("node.rack_id", config.getDC());
+                map.put("network.publish_host", config.getHostIP());
+            } else {
+                map.put("node.rack_id", config.getRac());
+            }
+
+            //TODO: Create New Tuner for ASG Based Deployment
+            //TODO: Need to come up with better algorithm for Non-ASG based deployments
+            if (config.isAsgBasedDedicatedDeployment()) {
+                if (config.getASGName().toLowerCase().contains("master")) {
+                    map.put("node.master", true);
+                    map.put("node.data", false);
+                } else if (config.getASGName().toLowerCase().contains("data")) {
+                    map.put("node.master", false);
+                    map.put("node.data", true);
+                } else if (config.getASGName().toLowerCase().contains("search")) {
+                    map.put("node.master", false);
+                    map.put("node.data", false);
+                }
+            }
+        }
 
         addExtraEsParams(map);
 

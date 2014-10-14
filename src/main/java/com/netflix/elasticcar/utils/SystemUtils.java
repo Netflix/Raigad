@@ -22,6 +22,7 @@ import com.google.common.io.Files;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -180,7 +181,8 @@ public class SystemUtils
             client.setParams(httpParameters);
 
             HttpPost postRequest = new HttpPost(url);
-            postRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
+            if(StringUtils.isNotEmpty(jsonBody))
+                postRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
             postRequest.setHeader("Content-type", "application/json");
 
             HttpResponse resp = client.execute(postRequest);
