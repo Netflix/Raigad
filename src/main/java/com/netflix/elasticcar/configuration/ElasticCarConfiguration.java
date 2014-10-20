@@ -588,11 +588,6 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
-    public boolean isNodeMismatchHealthMetricsEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean amITribeNode() {
         return false;
     }
@@ -620,6 +615,16 @@ public class ElasticCarConfiguration implements IConfiguration
     @Override
     public String getCommaSeparatedTribeClusterNames() {
         return null;
+    }
+
+    @Override
+    public boolean isNodeMismatchWithDiscoveryEnabled() {
+        return false;
+    }
+
+    @Override
+    public int getDesiredNumberOfNodesInCluster() {
+        return 0;
     }
 
     @Override

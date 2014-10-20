@@ -251,8 +251,6 @@ public interface IConfiguration
 
     public int getRestoreTaskInitialDelayInSeconds();
 
-    public boolean isNodeMismatchHealthMetricsEnabled();
-
     public boolean amITribeNode();
 
     public boolean amIWriteEnabledTribeNode();
@@ -265,4 +263,7 @@ public interface IConfiguration
 
     public String getCommaSeparatedTribeClusterNames();
 
+    public boolean isNodeMismatchWithDiscoveryEnabled();
+
+    public int getDesiredNumberOfNodesInCluster();
 }
