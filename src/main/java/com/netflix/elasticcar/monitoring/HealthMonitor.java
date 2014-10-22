@@ -2,6 +2,8 @@ package com.netflix.elasticcar.monitoring;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.discovery.DiscoveryClient;
+import com.netflix.discovery.DiscoveryManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.scheduler.SimpleTimer;
@@ -29,6 +31,7 @@ public class HealthMonitor extends Task
     private final Elasticsearch_HealthReporter healthReporter;
     private final InstanceManager instanceManager;
     private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
+    private final DiscoveryClient discoveryClient;
 
     @Inject
     public HealthMonitor(IConfiguration config,InstanceManager instanceManager)
@@ -36,6 +39,7 @@ public class HealthMonitor extends Task
         super(config);
         this.instanceManager = instanceManager;
         healthReporter = new Elasticsearch_HealthReporter();
+        discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
         Monitors.registerObject(healthReporter);
     }
 
@@ -79,9 +83,12 @@ public class HealthMonitor extends Task
             if(config.isNodeMismatchWithDiscoveryEnabled())
                 //Check if there is Node Mismatch between Discovery and ES
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
-            else
+            else {
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
 
+            if(config.isEurekaHealthCheckEnabled())
+                healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getInstancesByVipAddress(config.getVipAddressForEurekaHealthCheck(), false).size()) ? 0 : 1;
+        }
         }
         catch(Exception e)
         {
@@ -118,6 +125,11 @@ public class HealthMonitor extends Task
             return healthBean.get().nodematch;
         }
 
+        @Monitor(name ="es_eurekanodematchstatus", type=DataSourceType.GAUGE)
+        public int getEsEurekanodematchstatus()
+        {
+            return healthBean.get().eurekanodematch;
+        }
     }
 
     private static class HealthBean
@@ -125,11 +137,12 @@ public class HealthMonitor extends Task
         private int greenorredstatus = -1;
         private int greenoryellowstatus = -1;
         private int nodematch = -1;
+        private int eurekanodematch = -1;
     }
 
     public static TaskTimer getTimer(String name)
     {
-        return new SimpleTimer(name, 30 * 1000);
+        return new SimpleTimer(name, 60 * 1000);
     }
 
     @Override

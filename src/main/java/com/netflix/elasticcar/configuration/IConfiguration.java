@@ -266,4 +266,8 @@ public interface IConfiguration
     public boolean isNodeMismatchWithDiscoveryEnabled();
 
     public int getDesiredNumberOfNodesInCluster();
+
+    public boolean isEurekaHealthCheckEnabled();
+
+    public String getVipAddressForEurekaHealthCheck();
 }
