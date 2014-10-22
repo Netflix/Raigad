@@ -268,6 +268,4 @@ public interface IConfiguration
     public int getDesiredNumberOfNodesInCluster();
 
     public boolean isEurekaHealthCheckEnabled();
-
-    public String getVipAddressForEurekaHealthCheck();
 }
