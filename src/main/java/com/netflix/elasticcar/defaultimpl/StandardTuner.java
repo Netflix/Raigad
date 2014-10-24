@@ -18,6 +18,8 @@ import java.util.Map;
 public class StandardTuner implements IElasticsearchTuner
 {
     private static final Logger logger = LoggerFactory.getLogger(StandardTuner.class);
+    private static final String COMMA_SEPARATOR = ",";
+    private static final String PARAM_SEPARATOR = "=";
     protected final IConfiguration config;
 
     @Inject
@@ -42,15 +44,22 @@ public class StandardTuner implements IElasticsearchTuner
 
         if(config.amITribeNode())
         {
-            String[] clusters = StringUtils.split(config.getCommaSeparatedSourceClustersForTribeNode(),",");
+            String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
+            assert (clusterParams != null) : "Clusters parameters can't be null";
+
+            String[] clusters = StringUtils.split(clusterParams,COMMA_SEPARATOR);
             assert (clusters.length != 0) : "One or more clusters needed";
 
             //Common Settings
             for(int i=0; i< clusters.length;i++)
             {
-                map.put("tribe.t" + i + ".cluster.name", clusters[i]);
-                map.put("tribe.t" + i + ".transport.tcp.port", config.getTransportTcpPort());
+                String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
+                assert (clusterPort.length != 2) : "Cluster Name or Transport Port is missing in configuration";
+
+                map.put("tribe.t" + i + ".cluster.name", clusterPort[0]);
+                map.put("tribe.t" + i + ".transport.tcp.port", clusterPort[1]);
                 map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
+                logger.info("Adding Cluster = <{}> with Port = <{}>",clusterPort[0],clusterPort[1]);
             }
 
             map.put("node.master", false);
@@ -118,11 +127,11 @@ public class StandardTuner implements IElasticsearchTuner
             		return;
             }
 
-            String[] pairs = params.split(",");
+            String[] pairs = params.split(COMMA_SEPARATOR);
         	logger.info("Updating yaml: adding extra ES params");
         	for(int i=0; i<pairs.length; i++)
             {
-                String[] pair = pairs[i].split("=");
+                String[] pair = pairs[i].split(PARAM_SEPARATOR);
         	    String escarKey = pair[0];
         		String esKey = pair[1];
         		String esVal = config.getEsKeyName(escarKey);
