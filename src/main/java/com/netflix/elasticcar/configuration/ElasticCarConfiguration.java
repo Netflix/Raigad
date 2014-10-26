@@ -633,6 +633,11 @@ public class ElasticCarConfiguration implements IConfiguration
     }
 
     @Override
+    public boolean isLocalModeEnabled() {
+        return false;
+    }
+
+    @Override
     public boolean isCustomShardAllocationPolicyEnabled() {
         return false;  //To change body of implemented methods use File | Settings | File Templates.
     }

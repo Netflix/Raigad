@@ -121,16 +121,6 @@ public class UpdateSecuritySettings extends Task
     {
         List<ElasticCarInstance> _instances = new ArrayList<ElasticCarInstance>();
 
-        //Considering same cluster will not serve as a Tribe Node and Source Cluster for Tribe Node
-        if(config.amITribeNode())
-        {
-            List<String> sourceClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedSourceClustersForTribeNode(), ",")));
-            assert (sourceClusters.size() != 0) : "I am a tribe node but I need One or more source clusters";
-
-            for(String sourceClusterName : sourceClusters)
-                _instances.addAll(factory.getAllIds(sourceClusterName));
-        }
-
         if(config.amISourceClusterForTribeNode())
         {
             List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));

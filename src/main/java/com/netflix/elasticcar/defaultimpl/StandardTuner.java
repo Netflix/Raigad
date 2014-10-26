@@ -41,6 +41,7 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
+        map.put("transport.tcp.port", config.getTransportTcpPort());
 
         if(config.amITribeNode())
         {
@@ -77,7 +78,6 @@ public class StandardTuner implements IElasticsearchTuner
         }
         else {
             map.put("discovery.type", config.getElasticsearchDiscoveryType());
-            map.put("transport.tcp.port", config.getTransportTcpPort());
             map.put("discovery.zen.minimum_master_nodes",config.getMinimumMasterNodes());
             map.put("index.number_of_shards", config.getNumOfShards());
             map.put("index.number_of_replicas", config.getNumOfReplicas());
@@ -127,13 +127,13 @@ public class StandardTuner implements IElasticsearchTuner
             		return;
             }
 
-            String[] pairs = params.split(COMMA_SEPARATOR);
+            String[] pairs = params.trim().split(COMMA_SEPARATOR);
         	logger.info("Updating yaml: adding extra ES params");
         	for(int i=0; i<pairs.length; i++)
             {
-                String[] pair = pairs[i].split(PARAM_SEPARATOR);
-        	    String escarKey = pair[0];
-        		String esKey = pair[1];
+                String[] pair = pairs[i].trim().split(PARAM_SEPARATOR);
+        	    String escarKey = pair[0].trim();
+        		String esKey = pair[1].trim();
         		String esVal = config.getEsKeyName(escarKey);
             	logger.info("Updating yaml: Elasticcarkey[" + escarKey + "], EsKey[" + esKey + "], Val[" + esVal + "]");
                 if(escarKey==null || esKey==null || esVal==null)

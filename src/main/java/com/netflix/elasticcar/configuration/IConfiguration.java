@@ -268,4 +268,6 @@ public interface IConfiguration
     public int getDesiredNumberOfNodesInCluster();
 
     public boolean isEurekaHealthCheckEnabled();
+
+    public boolean isLocalModeEnabled();
 }

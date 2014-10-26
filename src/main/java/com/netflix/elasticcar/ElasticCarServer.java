@@ -18,6 +18,7 @@ package com.netflix.elasticcar;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.UpdateSecuritySettings;
+import com.netflix.elasticcar.aws.UpdateTribeSecuritySettings;
 import com.netflix.elasticcar.backup.RestoreBackupManager;
 import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
@@ -71,7 +72,7 @@ public class ElasticCarServer
 
     public void initialize() throws Exception
     {     
-    		//Check If it's really needed
+    	//Check If it's really needed
         if (instanceManager.getInstance().isOutOfService())
             return;
         
@@ -91,12 +92,24 @@ public class ElasticCarServer
 //            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
 //        }
 //
-        // update security settings
-        scheduler.runTaskNow(UpdateSecuritySettings.class);
-        // sleep for 60 sec for the SG update to happen.
-        if (UpdateSecuritySettings.firstTimeUpdated)
-          sleeper.sleep(60 * 1000);
-        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+
+        if(!config.isLocalModeEnabled()) {
+            if (config.amITribeNode()) {
+                // update security settings
+                scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
+                // sleep for 60 sec for the SG update to happen.
+                if (UpdateTribeSecuritySettings.firstTimeUpdated)
+                    sleeper.sleep(60 * 1000);
+                scheduler.addTask(UpdateTribeSecuritySettings.JOBNAME, UpdateTribeSecuritySettings.class, UpdateTribeSecuritySettings.getTimer(instanceManager));
+            } else {
+                // update security settings
+                scheduler.runTaskNow(UpdateSecuritySettings.class);
+                // sleep for 60 sec for the SG update to happen.
+                if (UpdateSecuritySettings.firstTimeUpdated)
+                    sleeper.sleep(60 * 1000);
+                scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+            }
+        }
 
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
