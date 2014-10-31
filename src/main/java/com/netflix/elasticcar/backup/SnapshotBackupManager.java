@@ -12,7 +12,7 @@ import com.netflix.elasticcar.utils.*;
 import com.netflix.servo.monitor.*;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.snapshots.SnapshotShardFailure;
 import org.joda.time.DateTime;
@@ -74,7 +74,6 @@ public class SnapshotBackupManager extends Task
 
                 //Run Snapshot Backup
                 runSnapshotBackup();
-
             }
             else
             {
@@ -94,18 +93,13 @@ public class SnapshotBackupManager extends Task
 
         // StartBackup
         String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
-
         logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> \nRunning Snapshot now ... ");
 
-        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
         Stopwatch snapshotTimer = snapshotDuration.start();
         //This is a blocking call. It'll wait until Snapshot is finished.
-        CreateSnapshotResponse createSnapshotResponse = esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
-                .setWaitForCompletion(config.waitForCompletionOfBackup())
-                .setIndices(config.getCommaSeparatedIndicesToBackup())
-                .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
-                .setPartial(config.partiallyBackupIndices()).get();
+        CreateSnapshotResponse createSnapshotResponse =  getCreateSnapshotResponse(esTransportClient,repositoryName,snapshotName);
 
         logger.info("Snapshot Status = "+createSnapshotResponse.status().toString());
         if(createSnapshotResponse.status() == RestStatus.OK)
@@ -201,6 +195,14 @@ public class SnapshotBackupManager extends Task
         return snapshotFailure.get();
     }
 
+    public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient,String repositoryName, String snapshotName)
+    {
+       return esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
+               .setWaitForCompletion(config.waitForCompletionOfBackup())
+               .setIndices(config.getCommaSeparatedIndicesToBackup())
+               .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
+               .setPartial(config.partiallyBackupIndices()).get();
+    }
     //                (esTransportClient.admin().cluster().prepareGetSnapshots("test-repo").setSnapshots("test-snap").get().getSnapshots().get(0).state());//, equalTo(SnapshotState.SUCCESS));
 
     /*

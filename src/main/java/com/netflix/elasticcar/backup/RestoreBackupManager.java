@@ -14,7 +14,7 @@ import com.netflix.elasticcar.utils.EsUtils;
 import com.netflix.elasticcar.utils.HttpModule;
 import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.rest.RestStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public class RestoreBackupManager extends Task
 
     public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices) throws Exception
     {
-        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
         // Get Repository Name : This will serve as BasePath Suffix
         String sourceRepoName = StringUtils.isBlank(sourceRepositoryName) ? config.getRestoreRepositoryName() : sourceRepositoryName;
@@ -115,7 +115,6 @@ public class RestoreBackupManager extends Task
             snapshotN = snapshots.get(0);
         }
         logger.info("Snapshot Name : <"+snapshotN+">");
-
         // Get Names of Indices
         String commaSeparatedIndices =  StringUtils.isBlank(indices) ? config.getCommaSeparatedIndicesToRestore() : indices;
         if(StringUtils.isBlank(commaSeparatedIndices) || commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG))
@@ -125,29 +124,17 @@ public class RestoreBackupManager extends Task
         }
         logger.info("Indices param : <"+commaSeparatedIndices+">");
 
-        RestoreSnapshotResponse restoreSnapshotResponse = null;
-        if (commaSeparatedIndices != null) {
-            //This is a blocking call. It'll wait until Restore is finished.
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
-                    .setWaitForCompletion(true)
-                    .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
-                    .execute()
-                    .actionGet();
-        }else{
-            // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
-                    .setWaitForCompletion(true)
-                    .execute()
-                    .actionGet();
-        }
+        RestoreSnapshotResponse restoreSnapshotResponse = getRestoreSnapshotResponse(esTransportClient,
+                commaSeparatedIndices,restoreRepositoryName,snapshotN);
 
         logger.info("Restore Status = "+restoreSnapshotResponse.status().toString());
+
         if(restoreSnapshotResponse.status() == RestStatus.OK)
         {
             printRestoreDetails(restoreSnapshotResponse);
         }
         else if (restoreSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
-            logger.info("Snapshot Completely Failed");
+            logger.info("Restore Completely Failed");
 
     }
 
@@ -180,4 +167,25 @@ public class RestoreBackupManager extends Task
         return JOBNAME;
     }
 
+    public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices,String restoreRepositoryName,String snapshotN)
+    {
+        RestoreSnapshotResponse restoreSnapshotResponse = null;
+
+        if (commaSeparatedIndices != null) {
+            //This is a blocking call. It'll wait until Restore is finished.
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
+                    .setWaitForCompletion(true)
+                    .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
+                    .execute()
+                    .actionGet();
+        }else{
+            // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
+            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
+                    .setWaitForCompletion(true)
+                    .execute()
+                    .actionGet();
+        }
+
+        return restoreSnapshotResponse;
+    }
 }

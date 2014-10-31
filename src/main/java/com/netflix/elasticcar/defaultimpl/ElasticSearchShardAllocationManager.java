@@ -19,6 +19,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * This class is not used currently anywhere in the code.
+ * If needed, it can be added in initialization class {ElasticCarServer}
+ */
 @Singleton
 public class ElasticSearchShardAllocationManager {
 

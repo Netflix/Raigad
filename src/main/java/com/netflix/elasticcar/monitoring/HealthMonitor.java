@@ -16,7 +16,7 @@ import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthResponse;
 import org.elasticsearch.action.admin.cluster.health.ClusterHealthStatus;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +56,7 @@ public class HealthMonitor extends Task
         HealthBean healthBean = new HealthBean();
         try
         {
-            TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+            Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
             ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
 

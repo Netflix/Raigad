@@ -18,7 +18,6 @@ import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.status.IndexStatus;
 import org.elasticsearch.action.admin.indices.status.IndicesStatusResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,27 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Index retention will get rid of (Retention Period in Days - 1)day indices for past days
+ * eg. Retention period = 5
+ *     Index Name = <test_index20141024>
+ *     Index Name = <test_index20141025>
+ *     Index Name = <test_index20141026>
+ *     Index Name = <test_index20141027>
+ *     Index Name = <test_index20141028>
+ *
+ *     Index to be deleted = test_index20141024
+ *
+ * If Pre-Create is Enabled, it will create Today's Index + (Retention Period in Days - 1)day indices for future days
+ *
+ * eg. for above example, following indices will be created with default settings:
+ *
+ *     Index Name = <test_index20141029>
+ *     Index Name = <test_index20141030>
+ *     Index Name = <test_index20141031>
+ *     Index Name = <test_index20141101>
+ *     Index Name = <test_index20141102>
+ */
 @Singleton
 public class ElasticSearchIndexManager extends Task {
 
@@ -78,7 +98,6 @@ public class ElasticSearchIndexManager extends Task {
     public void runIndexManagement() throws Exception
     {
         logger.info("Starting Index Maintenance ...");
-
         List<IndexMetadata> infoList;
         try {
             infoList = buildInfo(config.getIndexMetadata());
@@ -88,11 +107,15 @@ public class ElasticSearchIndexManager extends Task {
             return;
         }
 
-        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+        //TODO Need to fix unnecessary extra loops
         for (IndexMetadata indexMetadata : infoList) {
+
             try {
                 if (esTransportClient != null) {
                     checkIndexRetention(indexMetadata,esTransportClient);
+
                     if (indexMetadata.isPreCreate()) {
                         preCreateIndex(indexMetadata,esTransportClient);
                     }
@@ -134,14 +157,13 @@ public class ElasticSearchIndexManager extends Task {
     /**
      * Courtesy Jae Bae
      */
-    public void checkIndexRetention(IndexMetadata indexMetadata,TransportClient esTransportClient) throws UnsupportedAutoIndexException {
-
+    public void checkIndexRetention(IndexMetadata indexMetadata,Client esTransportClient) throws UnsupportedAutoIndexException {
         //Calculate the Past Retention date
         int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
         if(config.isDebugEnabled())
             logger.debug("Past Date = " + pastRetentionCutoffDateDate);
         //Find all the indices
-        IndicesStatusResponse getIndicesResponse = esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
+        IndicesStatusResponse getIndicesResponse = getIndicesStatusResponse(esTransportClient);
         Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
         if (!indexStatusMap.isEmpty()) {
             for (String indexName : indexStatusMap.keySet()) {
@@ -185,9 +207,9 @@ public class ElasticSearchIndexManager extends Task {
     /**
      * Courtesy Jae Bae
      */
-    public void preCreateIndex(IndexMetadata indexMetadata,TransportClient esTransportClient) throws UnsupportedAutoIndexException {
+    public void preCreateIndex(IndexMetadata indexMetadata,Client esTransportClient) throws UnsupportedAutoIndexException {
         logger.info("Running PreCreate Index task");
-        IndicesStatusResponse getIndicesResponse = esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
+        IndicesStatusResponse getIndicesResponse = getIndicesStatusResponse(esTransportClient);
         Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
         if (!indexStatusMap.isEmpty()) {
             for (String indexNameWithDateSuffix : indexStatusMap.keySet()) {
@@ -221,7 +243,6 @@ public class ElasticSearchIndexManager extends Task {
 
                         if(config.isDebugEnabled())
                             logger.debug("Added Date = " + addedDate);
-
                         if (!esTransportClient.admin().indices().prepareExists(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                             esTransportClient.admin().indices().prepareCreate(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout());
                             logger.info(indexMetadata.getIndexName() + addedDate + " is created");
@@ -236,4 +257,15 @@ public class ElasticSearchIndexManager extends Task {
             logger.info("No existing indices, hence can not pre-create any indices");
         }
     }
+
+    /**
+     * Following method is isolated so that it helps in Unit Testing for Mocking
+     * @param esTransportClient
+     * @return
+     */
+    public IndicesStatusResponse getIndicesStatusResponse(Client esTransportClient)
+    {
+       return esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
+    }
+
 }

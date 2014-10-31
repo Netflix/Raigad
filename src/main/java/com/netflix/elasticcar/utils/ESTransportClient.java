@@ -22,6 +22,7 @@ import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilder;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
@@ -31,8 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-//import org.json.simple.JSONArray;
-//import org.json.simple.JSONObject;
 
 /**
  * Class to get data out of Elasticsearch
@@ -138,8 +137,7 @@ public class ESTransportClient
         return object;
     }
 
-    public TransportClient getTransportClient(){
+    public Client getTransportClient(){
         return client;
     }
-
 }

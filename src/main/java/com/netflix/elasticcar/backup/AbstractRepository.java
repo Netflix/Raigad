@@ -6,7 +6,7 @@ import com.google.inject.name.Named;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.ESTransportClient;
 import org.elasticsearch.action.admin.cluster.state.ClusterStateResponse;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.cluster.metadata.MetaData;
 import org.elasticsearch.cluster.metadata.RepositoriesMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
@@ -23,7 +23,7 @@ public abstract class AbstractRepository
 
     public enum RepositoryType
     {
-        s3
+        s3,fs
     }
 
     protected final IConfiguration config;
@@ -41,8 +41,6 @@ public abstract class AbstractRepository
      */
     public abstract String getRemoteRepositoryName();
 
-//    public abstract String createOrGetRepository(ActionType actionType) throws Exception;
-
     public abstract String createOrGetSnapshotRepository() throws Exception;
 
     public abstract void createRestoreRepository(String s3RepoName, String basePathSuffix) throws Exception;
@@ -54,12 +52,10 @@ public abstract class AbstractRepository
 
         try {
 
-            TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
+            Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
             ClusterStateResponse clusterStateResponse = esTransportClient.admin().cluster().prepareState().clear().setMetaData(true).get();
             MetaData metaData = clusterStateResponse.getState().getMetaData();
             RepositoriesMetaData repositoriesMetaData = metaData.custom(RepositoriesMetaData.TYPE);
-
             if(repositoriesMetaData != null) {
                 for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories()) {
                     if (repositoryMetaData.name().equalsIgnoreCase(repositoryName) && repositoryMetaData.type().equalsIgnoreCase(repositoryType.name())) {
@@ -67,13 +63,11 @@ public abstract class AbstractRepository
                         break;
                     }
                 }
-
                 if (config.isDebugEnabled())
                     for (RepositoryMetaData repositoryMetaData : repositoriesMetaData.repositories())
                         logger.debug("Repository <" + repositoryMetaData.name() + ">");
 
             }
-
             if (doesRepoExists)
                 logger.info("Repository <" + repositoryName + "> already exists");
             else

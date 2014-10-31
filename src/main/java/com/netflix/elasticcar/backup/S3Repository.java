@@ -7,7 +7,7 @@ import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.ESTransportClient;
 import com.netflix.elasticcar.utils.SystemUtils;
 import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.ImmutableSettings;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -53,28 +53,12 @@ public class S3Repository extends AbstractRepository
     /**
      * 0.0.0.0:9200/_snapshot/s3_repo
      * { "type": "s3",
-     * 	 "settings": { "bucket": "us-east-1.netflix-cassandra-archive-test",
+     * 	 "settings": { "bucket": "us-east-1.es-test",
      * 	               "base_path": "es_abc/20140410",
      *                 "region": "us-east-1"
      *                }
      * }
      */
-//    @Override
-//    public String createOrGetRepository(ActionType actionType) throws Exception
-//    {
-//        logger.info("Trying to create or get repository of type <"+getRepositoryType().name()+">");
-//
-//        String s3RepoName = null;
-//           if(actionType == ActionType.SNAPSHOT)
-//            {
-//                s3RepoName = createOrGetSnapshotRepository();
-//            } else if (actionType == ActionType.RESTORE)
-//            {
-//                s3RepoName = createOrGetRestoreRepository();
-//            }
-//
-//        return s3RepoName;
-//    }
 
     @Override
     public String createOrGetSnapshotRepository() throws Exception
@@ -87,7 +71,6 @@ public class S3Repository extends AbstractRepository
 
             //Set Snapshot Backup related parameters
             repositorySettingsParams.setBackupParams();
-
             //Check if Repository Exists
             if (!doesRepositoryExists(s3RepoName, getRepositoryType())) {
                 createNewRepository(s3RepoName);
@@ -119,15 +102,9 @@ public class S3Repository extends AbstractRepository
 
     public void createNewRepository(String s3RepoName) throws Exception
     {
-        TransportClient esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
+        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
         //Creating New Repository now
-        PutRepositoryResponse putRepositoryResponse = esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
-                .setType(getRepositoryType().name()).setSettings(ImmutableSettings.settingsBuilder()
-                                .put("base_path", repositorySettingsParams.getBase_path())
-                                .put("region", repositorySettingsParams.getRegion())
-                                .put("bucket", repositorySettingsParams.getBucket())
-                ).get();
+        PutRepositoryResponse putRepositoryResponse = getPutRepositoryResponse(esTransportClient,s3RepoName);
 
         if(putRepositoryResponse.isAcknowledged())
         {
@@ -158,4 +135,19 @@ public class S3Repository extends AbstractRepository
                 "region : <"+repositorySettingsParams.getRegion()+">";
     }
 
+    /**
+     * Following method is isolated so that it helps in Unit Testing for Mocking
+     * @param esTransportClient
+     * @param s3RepoName
+     * @return
+     */
+    public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient,String s3RepoName)
+    {
+        return esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
+                .setType(getRepositoryType().name()).setSettings(ImmutableSettings.settingsBuilder()
+                                .put("base_path", repositorySettingsParams.getBase_path())
+                                .put("region", repositorySettingsParams.getRegion())
+                                .put("bucket", repositorySettingsParams.getBucket())
+                ).get();
+    }
 }
