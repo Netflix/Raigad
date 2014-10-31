@@ -1,4 +1,4 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.defaultimpl;
 
 import java.io.IOException;
 

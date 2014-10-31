@@ -15,9 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-/**
- * Created by sloke on 7/16/14.
- */
 @Singleton
 public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
 {
@@ -34,7 +31,7 @@ public class S3RepositorySettingsParams extends AbstractRepositorySettingsParams
     public void setBackupParams() throws CreateRepositoryException {
         this.bucket = config.getBackupLocation();
         if(StringUtils.isEmpty(this.bucket))
-            throw new CreateRepositoryException("Backup Location is not set in config.");
+            throw new CreateRepositoryException("Backup Location is not set in configuration.");
         this.region = config.getDC();
         this.base_path = getSnapshotBackupBasePath();
         logger.info("Bucket : <"+bucket+"> Region : <"+region+"> Base_path : <"+base_path+">");

@@ -270,4 +270,8 @@ public interface IConfiguration
     public boolean isEurekaHealthCheckEnabled();
 
     public boolean isLocalModeEnabled();
+
+    public String getCassandraKeyspaceName();
+
+    public int getCassandraThriftPortForAstyanax();
 }

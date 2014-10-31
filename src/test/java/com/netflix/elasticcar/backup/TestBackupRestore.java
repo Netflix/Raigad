@@ -2,7 +2,7 @@ package com.netflix.elasticcar.backup;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.netflix.elasticcar.config.UnitTestModule;
+import com.netflix.elasticcar.configuration.UnitTestModule;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.ESTransportClient;
 import mockit.Mock;

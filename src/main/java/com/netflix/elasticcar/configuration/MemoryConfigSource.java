@@ -1,4 +1,4 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
 import com.google.common.collect.Maps;
 

@@ -1,4 +1,4 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;

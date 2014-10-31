@@ -1,12 +1,10 @@
-package com.netflix.elasticcar.config;
+package com.netflix.elasticcar.configuration;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.name.Names;
-import com.netflix.elasticcar.FakeConfiguration;
 import com.netflix.elasticcar.backup.AbstractRepository;
 import com.netflix.elasticcar.backup.S3Repository;
-import com.netflix.elasticcar.configuration.IConfiguration;
 import org.junit.Ignore;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;

@@ -1,7 +1,7 @@
 package com.netflix.elasticcar.resources;
 
 import com.google.inject.Inject;
-import com.netflix.elasticcar.IElasticsearchProcess;
+import com.netflix.elasticcar.defaultimpl.IElasticsearchProcess;
 import com.netflix.elasticcar.backup.RestoreBackupManager;
 import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;

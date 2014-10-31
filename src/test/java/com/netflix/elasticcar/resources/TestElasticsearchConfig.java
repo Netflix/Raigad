@@ -1,7 +1,7 @@
 package com.netflix.elasticcar.resources;
 
 import com.google.common.collect.ImmutableList;
-import com.netflix.elasticcar.ElasticCarServer;
+import com.netflix.elasticcar.startup.ElasticCarServer;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.identity.InstanceManager;
 import mockit.Expectations;

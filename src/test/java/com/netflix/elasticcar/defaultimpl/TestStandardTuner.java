@@ -1,7 +1,7 @@
 package com.netflix.elasticcar.defaultimpl;
 
 import com.google.common.io.Files;
-import com.netflix.elasticcar.FakeConfiguration;
+import com.netflix.elasticcar.configuration.FakeConfiguration;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import org.junit.Before;
 import org.junit.Test;

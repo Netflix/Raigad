@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.IConfigSource;
 import com.netflix.elasticcar.aws.ICredential;
 import com.netflix.elasticcar.utils.RetryableCallable;
 import com.netflix.elasticcar.utils.SystemUtils;
@@ -635,6 +634,16 @@ public class ElasticCarConfiguration implements IConfiguration
     @Override
     public boolean isLocalModeEnabled() {
         return false;
+    }
+
+    @Override
+    public String getCassandraKeyspaceName() {
+        return null;
+    }
+
+    @Override
+    public int getCassandraThriftPortForAstyanax() {
+        return 9160;
     }
 
     @Override

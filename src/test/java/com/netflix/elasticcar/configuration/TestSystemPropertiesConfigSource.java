@@ -1,5 +1,6 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
+import com.netflix.elasticcar.configuration.SystemPropertiesConfigSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

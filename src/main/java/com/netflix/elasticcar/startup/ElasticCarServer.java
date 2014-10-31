@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.startup;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -22,6 +22,7 @@ import com.netflix.elasticcar.aws.UpdateTribeSecuritySettings;
 import com.netflix.elasticcar.backup.RestoreBackupManager;
 import com.netflix.elasticcar.backup.SnapshotBackupManager;
 import com.netflix.elasticcar.configuration.IConfiguration;
+import com.netflix.elasticcar.defaultimpl.IElasticsearchProcess;
 import com.netflix.elasticcar.identity.InstanceManager;
 import com.netflix.elasticcar.indexmanagement.ElasticSearchIndexManager;
 import com.netflix.elasticcar.monitoring.*;

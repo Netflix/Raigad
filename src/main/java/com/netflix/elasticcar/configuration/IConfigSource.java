@@ -1,7 +1,6 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
 import com.google.inject.ImplementedBy;
-import com.netflix.elasticcar.defaultimpl.ElasticCarConfigSource;
 
 import java.util.List;
 

@@ -1,5 +1,8 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
+import com.netflix.elasticcar.configuration.CompositeConfigSource;
+import com.netflix.elasticcar.configuration.IConfigSource;
+import com.netflix.elasticcar.configuration.MemoryConfigSource;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

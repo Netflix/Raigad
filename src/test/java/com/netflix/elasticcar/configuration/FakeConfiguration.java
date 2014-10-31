@@ -1,4 +1,4 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.configuration;
 
 import com.netflix.elasticcar.configuration.IConfiguration;
 
@@ -430,6 +430,16 @@ public class FakeConfiguration implements IConfiguration {
     @Override
     public boolean isLocalModeEnabled() {
         return false;
+    }
+
+    @Override
+    public String getCassandraKeyspaceName() {
+        return null;
+    }
+
+    @Override
+    public int getCassandraThriftPortForAstyanax() {
+        return 0;
     }
 
 }

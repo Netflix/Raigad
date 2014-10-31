@@ -2,7 +2,6 @@ package com.netflix.elasticcar.defaultimpl;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
-import com.netflix.elasticcar.IElasticsearchProcess;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import com.netflix.elasticcar.utils.Sleeper;
 import org.apache.commons.lang.StringUtils;

@@ -1,4 +1,4 @@
-package com.netflix.elasticcar;
+package com.netflix.elasticcar.utils;
 
 import com.netflix.elasticcar.utils.Sleeper;
 

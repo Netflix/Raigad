@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.netflix.elasticcar.ElasticCarServer;
+import com.netflix.elasticcar.startup.ElasticCarServer;
 import com.netflix.elasticcar.identity.ElasticCarInstance;
 import com.netflix.elasticcar.utils.EsUtils;
 

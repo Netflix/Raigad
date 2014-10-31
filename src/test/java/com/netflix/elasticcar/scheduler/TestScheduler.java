@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import com.netflix.elasticcar.config.UnitTestModule;
+import com.netflix.elasticcar.configuration.UnitTestModule;
 import com.netflix.elasticcar.configuration.IConfiguration;
 import org.junit.Ignore;
 import org.junit.Test;
