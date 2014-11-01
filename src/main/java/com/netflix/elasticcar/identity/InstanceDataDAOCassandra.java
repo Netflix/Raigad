@@ -309,6 +309,7 @@ public class InstanceDataDAOCassandra
                                 "MyConnectionPool")
                                 .setMaxConnsPerHost(5)
                                 .setPort(config.getCassandraThriftPortForAstyanax()))
+                .withHostSupplier(new EurekaHostsSupplier().getSupplier(config.getBootClusterName()))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
