@@ -24,7 +24,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.elasticcar.aws.ICredential;
 import com.netflix.elasticcar.utils.RetryableCallable;
-import com.netflix.elasticcar.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +33,7 @@ import java.util.List;
 @Singleton
 public class ElasticCarConfiguration implements IConfiguration
 {
-    public static final String ESCAR_PRE = "escar";
+    public static final String ESCAR_PRE = "Raigad";
 
     private static final String CONFIG_ES_HOME_DIR = ESCAR_PRE + ".elasticsearch.home";
     private static final String CONFIG_ES_START_SCRIPT = ESCAR_PRE + ".elasticsearch.startscript";
@@ -56,13 +55,20 @@ public class ElasticCarConfiguration implements IConfiguration
     private static final String CONFIG_ASG_NAME = ESCAR_PRE + ".az.asgname";
     private static final String CONFIG_REGION_NAME = ESCAR_PRE + ".az.region";
     private static final String CONFIG_ACL_GROUP_NAME = ESCAR_PRE + ".acl.groupname";
-    private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-    private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
-    private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
-    private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
-    private static final String INSTANCE_TYPE = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-type").trim();
+//    private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
+//    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+//    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+//    private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+//    private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+//    private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
+//    private static final String INSTANCE_TYPE = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-type").trim();
+    private static final String RAC = "";
+    private static final String PUBLIC_HOSTNAME = "";
+    private static final String PUBLIC_IP = "";
+    private static final String LOCAL_HOSTNAME = "";
+    private static final String LOCAL_IP = "";
+    private static final String INSTANCE_ID = "";
+    private static final String INSTANCE_TYPE = "";
     private static String ASG_NAME = System.getenv("ASG_NAME");
     private static String REGION = System.getenv("EC2_REGION");
 
@@ -633,7 +639,7 @@ public class ElasticCarConfiguration implements IConfiguration
 
     @Override
     public boolean isLocalModeEnabled() {
-        return false;
+        return true;
     }
 
     @Override

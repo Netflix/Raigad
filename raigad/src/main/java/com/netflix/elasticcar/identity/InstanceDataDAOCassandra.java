@@ -1,11 +1,13 @@
 package com.netflix.elasticcar.identity;
 
+import com.google.common.base.Supplier;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.astyanax.AstyanaxContext;
 import com.netflix.astyanax.ColumnListMutation;
 import com.netflix.astyanax.Keyspace;
 import com.netflix.astyanax.MutationBatch;
+import com.netflix.astyanax.connectionpool.Host;
 import com.netflix.astyanax.connectionpool.NodeDiscoveryType;
 import com.netflix.astyanax.connectionpool.OperationResult;
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException;
@@ -59,7 +61,12 @@ public class InstanceDataDAOCassandra
 //        astyanaxManager.registerKeyspace(configuration.getBootClusterName(), KS_NAME);
 //        bootKeyspace = astyanaxManager.getRegisteredKeyspace(configuration.getBootClusterName(), KS_NAME);
         KS_NAME = config.getCassandraKeyspaceName();
-        bootKeyspace = initWithThriftDriver(config).getClient();
+
+        if(config.isLocalModeEnabled())
+            bootKeyspace = initWithThriftDriverWithSeeds(config).getClient();
+        else
+            bootKeyspace = initWithThriftDriverWithHostsSupplier(config).getClient();
+
         this.config = config;
     }
 
@@ -291,7 +298,7 @@ public class InstanceDataDAOCassandra
         return instance.getApp() + "_" + instance.getDC() + "_" + instance.getInstanceId();
     }
 
-    private AstyanaxContext<Keyspace> initWithThriftDriver(
+    private AstyanaxContext<Keyspace> initWithThriftDriverWithHostsSupplier(
             IConfiguration config) {
 
         return new AstyanaxContext.Builder()
@@ -300,10 +307,7 @@ public class InstanceDataDAOCassandra
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(
-                                        NodeDiscoveryType.RING_DESCRIBE)
-                                .setConnectionPoolType(
-                                        ConnectionPoolType.ROUND_ROBIN)
-                                .setDiscoveryDelayInSeconds(60000))
+                                        NodeDiscoveryType.DISCOVERY_SERVICE) )
                 .withConnectionPoolConfiguration(
                         new ConnectionPoolConfigurationImpl(
                                 "MyConnectionPool")
@@ -315,5 +319,46 @@ public class InstanceDataDAOCassandra
 
     }
 
+    private AstyanaxContext<Keyspace> initWithThriftDriverWithSeeds(
+            IConfiguration config) {
+
+        return new AstyanaxContext.Builder()
+                .forCluster(config.getBootClusterName())
+                .forKeyspace(KS_NAME)
+                .withAstyanaxConfiguration(
+                        new AstyanaxConfigurationImpl()
+                                .setDiscoveryType(
+//                                        NodeDiscoveryType.RING_DESCRIBE)
+                        NodeDiscoveryType.DISCOVERY_SERVICE)
+                                .setConnectionPoolType(
+                                        ConnectionPoolType.ROUND_ROBIN))
+//                                .setDiscoveryDelayInSeconds(60000))
+                .withConnectionPoolConfiguration(
+                        new ConnectionPoolConfigurationImpl(
+                                "MyConnectionPool")
+                                .setMaxConnsPerHost(5)
+                                .setPort(config.getCassandraThriftPortForAstyanax()).setSeeds("ec2-23-22-52-239.compute-1.amazonaws.com:7102"))
+                .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
+                .buildKeyspace(ThriftFamilyFactory.getInstance());
+
+    }
+
+    private Supplier<List<Host>> getSupplier() {
+
+        return new Supplier<List<Host>>() {
+
+            @Override
+            public List<Host> get() {
+
+                List<Host> hosts = new ArrayList<Host>();
+
+                //TODO Remove hard coded value after testing
+                Host h1 = new Host("ec2-23-22-52-239.compute-1.amazonaws.com", 7102);
+
+                hosts.add(h1);
+                return hosts;
+            }
+        };
+    }
 }
 

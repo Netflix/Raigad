@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 import com.netflix.appinfo.AmazonInfo;
 import com.netflix.appinfo.AmazonInfo.MetaDataKey;
 import com.netflix.appinfo.InstanceInfo;
@@ -32,6 +33,7 @@ public class EurekaHostsSupplier implements HostSupplier {
 
     private final DiscoveryClient discoveryClient;
 
+    @Inject
     public EurekaHostsSupplier() {
         this.discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
     }

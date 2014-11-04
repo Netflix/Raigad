@@ -1,4 +1,13 @@
-group = 'com.netflix'
+// Establish version and status
+ext.githubProjectName = 'Raigad'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral() // maven { url 'http://jcenter.bintray.com' }
+    }
+    apply from: file('gradle/buildscript.gradle'), to: buildscript
+}
 
 allprojects {
     repositories { 
@@ -6,31 +15,23 @@ allprojects {
     }
 }
 
-apply plugin: 'nebula'
-//apply plugin: 'jetty'
+apply plugin: 'jetty'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 
-nebula {
-  readyForJava7 = true
-  useBlueprintLayout true
-  moduleEmail = 'sloke@netflix.com'
-  moduleOwner = 'sloke'
-  versioningGenerational=true
-  generation='1.3.0'
-  versioningPosition=3
-}
+subprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
+    apply plugin: 'java'
 
-publications {
-  JAR
-  JAVADOC
-  SOURCES
-}
+    group = 'com.netflix'
 
-//ext {
-//  elasticsearchVersion='1.1.0'
-//}
-
-dependencies {
+    configurations {
+        provided
+        compile.extendsFrom provided
+    }
+	
+    dependencies {
         compile "commons-lang:commons-lang:2.5"
         compile "commons-logging:commons-logging:1.1.1"
         compile "commons-collections:commons-collections:3.2.1"
@@ -69,11 +70,34 @@ dependencies {
         provided "javax.servlet:servlet-api:2.5"
         compile "com.googlecode.jmockit:jmockit:0.999.17"
         compile "com.github.tlrx:elasticsearch-test:1.1.0"
-    compile 'org.elasticsearch:elasticsearch:1.3.2:tests'
-    compile 'org.apache.lucene:lucene-test-framework:4.9.0'
-    compile 'com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.1.9'
-    compile 'com.carrotsearch.randomizedtesting:junit4-maven-plugin:2.1.9'
-    compile 'org.hamcrest:hamcrest-all:1.3'
-    compile 'com.netflix.astyanax:astyanax:latest.release'
+    	compile 'org.elasticsearch:elasticsearch:1.3.2:tests'
+    	compile 'org.apache.lucene:lucene-test-framework:4.9.0'
+    	compile 'com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.1.9'
+    	compile 'com.carrotsearch.randomizedtesting:junit4-maven-plugin:2.1.9'
+    	compile 'org.hamcrest:hamcrest-all:1.3'
+    	compile 'com.netflix.astyanax:astyanax:latest.release'
+    }
+}
+
+project(':raigad-es-extensions') {
+    jar {
+    }
+    dependencies {
+    }
+}
+
+project(':raigad') {
+    dependencies {
+    }
+}
+
+project(':raigad-web') {
+    apply plugin: 'war'
+    apply plugin: 'jetty'
+    dependencies {
+        compile project(':raigad')
+        compile project(':raigad-es-extensions')
+    }
+
 }
 
