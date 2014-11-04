@@ -14,9 +14,6 @@ findbugs {
 
 // PMD
 apply plugin: 'pmd'
-pmd {
-   project.tasks.pmdTest.excludes = ['**/*Test.java','**/Test*.java']
-}
 //tasks.withType(Pmd) { reports.html.enabled true }
 
 apply plugin: 'cobertura'
