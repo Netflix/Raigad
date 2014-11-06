@@ -1,7 +1,5 @@
 package com.netflix.elasticcar.configuration;
 
-import com.netflix.elasticcar.configuration.IConfiguration;
-
 import java.util.List;
 
 public class FakeConfiguration implements IConfiguration {
@@ -55,11 +53,6 @@ public class FakeConfiguration implements IConfiguration {
     @Override
     public String getElasticsearchStopScript() {
         return null;
-    }
-
-    @Override
-    public int getElasticsearchListenerPort() {
-        return 0;
     }
 
     @Override
@@ -199,11 +192,6 @@ public class FakeConfiguration implements IConfiguration {
 
     @Override
     public String getBootClusterName() {
-        return null;
-    }
-
-    @Override
-    public String getSeedProviderName() {
         return null;
     }
 
@@ -440,6 +428,21 @@ public class FakeConfiguration implements IConfiguration {
     @Override
     public int getCassandraThriftPortForAstyanax() {
         return 0;
+    }
+
+    @Override
+    public boolean isEurekaHostSupplierEnabled() {
+        return false;
+    }
+
+    @Override
+    public String getCommaSeparatedCassandraHostNames() {
+        return null;
+    }
+
+    @Override
+    public boolean isSecutrityGroupInMultiDC() {
+        return false;
     }
 
 }

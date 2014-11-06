@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,8 +45,6 @@ public interface IConfiguration
      */
     public String getElasticsearchStopScript();
    
-    public int getElasticsearchListenerPort();
-        
     public int getTransportTcpPort();
     
     public int getHttpPort();
@@ -152,11 +150,6 @@ public interface IConfiguration
      */
     public String getBootClusterName();
     
-    /** 
-     * @return Get the name of seed provider
-     */
-    public String getSeedProviderName();
-
     /**
      * @return Elasticsearch Process Name
      */
@@ -274,4 +267,11 @@ public interface IConfiguration
     public String getCassandraKeyspaceName();
 
     public int getCassandraThriftPortForAstyanax();
+
+    public boolean isEurekaHostSupplierEnabled();
+
+    public String getCommaSeparatedCassandraHostNames();
+
+    public boolean isSecutrityGroupInMultiDC();
+
 }

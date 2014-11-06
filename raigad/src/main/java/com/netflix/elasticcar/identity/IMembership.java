@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  */
 package com.netflix.elasticcar.identity;
 
-import java.util.Collection;
-import java.util.List;
-
 import com.google.inject.ImplementedBy;
 import com.netflix.elasticcar.aws.AWSMembership;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Interface to manage membership meta information such as size of RAC, list of

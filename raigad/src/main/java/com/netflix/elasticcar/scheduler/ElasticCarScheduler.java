@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,9 @@
  */
 package com.netflix.elasticcar.scheduler;
 
-import java.text.ParseException;
-
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.netflix.elasticcar.utils.Sleeper;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -24,9 +25,7 @@ import org.quartz.SchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.netflix.elasticcar.utils.Sleeper;
+import java.text.ParseException;
 
 /**
  * Scheduling class to schedule ElasticCar tasks. Uses Quartz scheduler

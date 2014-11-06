@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.netflix.elasticcar.aws;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.inject.ImplementedBy;
-import com.netflix.elasticcar.aws.ClearCredential;
 
 /**
  * Credential file interface for services supporting 

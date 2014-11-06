@@ -1,3 +1,18 @@
+/**
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.elasticsearch.discovery.custom;
 
 import com.netflix.elasticcar.identity.ElasticCarInstance;
@@ -30,13 +45,12 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
   public List<DiscoveryNode> buildDynamicNodes() {
 		List<DiscoveryNode> discoNodes = Lists.newArrayList();
 		try {
-		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Elasticcar/REST/v1/esconfig/get_nodes",logger);
+		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes",logger);
 		List<ElasticCarInstance> instances = ElasticsearchUtil.getEsCarInstancesFromJsonString(strNodes, logger);
 			for (ElasticCarInstance instance : instances) {
 				try {
 					TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
-					// we only limit to 1 addresses, makes no sense to ping 100
-					// ports
+					// we only limit to 1 addresses, makes no sense to ping 100 ports
 					for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
 						logger.debug(
 								"adding {}, address {}, transport_address {}",
