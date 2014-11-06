@@ -15,7 +15,6 @@
  */
 package org.elasticsearch.discovery.custom;
 
-import com.netflix.elasticcar.identity.ElasticCarInstance;
 import org.elasticsearch.Version;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.collect.Lists;
