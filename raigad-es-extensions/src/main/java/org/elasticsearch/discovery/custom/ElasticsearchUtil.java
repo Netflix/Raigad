@@ -36,9 +36,9 @@ public class ElasticsearchUtil
     
 
 	@SuppressWarnings("unchecked")
-	public static List<ElasticCarInstance> getEsCarInstancesFromJsonString(String jsonInstances,ESLogger logger)
+	public static List<RaigadInstance> getRaigadInstancesFromJsonString(String jsonInstances,ESLogger logger)
     {
-		List<ElasticCarInstance> esCarInstances = new ArrayList<ElasticCarInstance>();
+		List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
 		
         try {
 			JsonPath jsonPath = new JsonPath(jsonInstances);
@@ -46,24 +46,24 @@ public class ElasticsearchUtil
 			for(String instanceKey : topLevelInstanceMap.keySet())
 			{
 				Map<String,Object> instParamMap = (Map<String, Object>) topLevelInstanceMap.get(instanceKey);
-				ElasticCarInstance escInstance = new ElasticCarInstance();
-				escInstance.setApp((String) instParamMap.get(APP_NAME));
-				escInstance.setAvailabilityZone((String) instParamMap.get(AVAILABILITY_ZONE));
-				escInstance.setDC((String) instParamMap.get(DC));
-				escInstance.setHostIP((String) instParamMap.get(PUBLIC_IP));
-				escInstance.setHostName((String) instParamMap.get(HOST_NAME));
-				escInstance.setId((String) instParamMap.get(ID));
-				escInstance.setInstanceId((String) instParamMap.get(INSTANCE_ID));
-				escInstance.setUpdatetime((Long) instParamMap.get(UPDATE_TIME));
-				logger.info("EsInstance = ("+escInstance.toString()+")");
+				RaigadInstance raigadInstance = new RaigadInstance();
+				raigadInstance.setApp((String) instParamMap.get(APP_NAME));
+				raigadInstance.setAvailabilityZone((String) instParamMap.get(AVAILABILITY_ZONE));
+				raigadInstance.setDC((String) instParamMap.get(DC));
+				raigadInstance.setHostIP((String) instParamMap.get(PUBLIC_IP));
+				raigadInstance.setHostName((String) instParamMap.get(HOST_NAME));
+				raigadInstance.setId((String) instParamMap.get(ID));
+				raigadInstance.setInstanceId((String) instParamMap.get(INSTANCE_ID));
+				raigadInstance.setUpdatetime((Long) instParamMap.get(UPDATE_TIME));
+				logger.info("EsInstance = ("+raigadInstance.toString()+")");
 				//Add to the list
-				esCarInstances.add(escInstance);
+				raigadInstances.add(raigadInstance);
 			}
 			
 		} catch (IOException e) {
 			logger.error(" Error caught during Json Parsing", e);
 		}
 
-        return esCarInstances;
+        return raigadInstances;
     }
 }

@@ -45,8 +45,8 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
 		List<DiscoveryNode> discoNodes = Lists.newArrayList();
 		try {
 		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes",logger);
-		List<ElasticCarInstance> instances = ElasticsearchUtil.getEsCarInstancesFromJsonString(strNodes, logger);
-			for (ElasticCarInstance instance : instances) {
+		List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
+			for (RaigadInstance instance : instances) {
 				try {
 					TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
 					// we only limit to 1 addresses, makes no sense to ping 100 ports

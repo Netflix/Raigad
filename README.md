@@ -1,6 +1,11 @@
-Raigad is a process/tool that runs alongside Elasticsearch to automate the following:
+<!--
+# Raigad
+-->
+![](images/raidad-lg.png?raw=true =150x150) </br>
+
+**Raigad** is a process/tool that runs alongside Elasticsearch to automate the following:
 - Snapshot Backup and restore 
-- Configured Deployments for dedicated master-slave approach 
+- Configured Deployments for dedicated master-data-search approach 
 - Tribe Node Deployments
 - Publishing Elasticsearch Monitoring Metrics
 - Support AWS environment
