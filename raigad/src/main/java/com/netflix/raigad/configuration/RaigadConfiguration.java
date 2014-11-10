@@ -128,8 +128,7 @@ public class RaigadConfiguration implements IConfiguration
     private static String REGION = System.getenv("EC2_REGION");
 
     // Defaults
-    //TODO Remove after testing
-    private final String DEFAULT_CLUSTER_NAME = "es_slokeeastcass";
+    private final String DEFAULT_CLUSTER_NAME = "es_samplecluster";
     private final String DEFAULT_ES_HOME_DIR = "/apps/elasticsearch";
     private List<String> DEFAULT_AVAILABILITY_ZONES = ImmutableList.of();
 
@@ -137,10 +136,8 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_DATA_LOCATION = "/mnt/data/es";
     private static final String DEFAULT_LOG_LOCATION = "/logs/es";
     private static final String DEFAULT_YAML_LOCATION = "/apps/elasticsearch/config/elasticsearch.yml";
-    //TODO Remove after testing
-    private static final String DEFAULT_ES_START_SCRIPT = "/apps/elasticsearch/bin/netflix_launch_es.sh"; //"/etc/init.d/elasticsearch start";
-    //TODO Remove after testing
-    private static final String DEFAULT_ES_STOP_SCRIPT = "/apps/elasticsearch/bin/kill_agent.sh es";//"/etc/init.d/elasticsearch stop";
+    private static final String DEFAULT_ES_START_SCRIPT = "/etc/init.d/elasticsearch start";
+    private static final String DEFAULT_ES_STOP_SCRIPT = "/etc/init.d/elasticsearch stop";
 
     private static final String DEFAULT_ES_HOME = "/apps/elasticsearch";
     private static final String DEFAULT_FD_PING_INTERVAL = "60s";
@@ -154,8 +151,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_INDEX_REFRESH_INTERVAL = "1m";
     private static final boolean DEFAULT_IS_MASTER_QUORUM_ENABLED = true;
     private static final boolean DEFAULT_IS_PING_MULTICAST_ENABLED = false;
-    //TODO Remove after testing
-    private static final String DEFAULT_CONFIG_BOOTCLUSTER_NAME = "cass_turtle";
+    private static final String DEFAULT_CONFIG_BOOTCLUSTER_NAME = "cass_metadata";
     private static final String DEFAULT_CREDENTIAL_PROVIDER = "com.netflix.raigad.aws.IAMCredential";
     private static final String DEFAULT_ES_DISCOVERY_TYPE = "custom";
     private static final boolean DEFAULT_IS_MULTI_DC_ENABLED = false;
@@ -205,8 +201,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_CASSANDRA_KEYSPACE_NAME = "escarbootstrap";
     private static final int DEFAULT_CASSANDRA_THRIFT_PORT = 7102;
     private static final boolean DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED = true;
-    //TODO remove after testing
-    private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "ec2-23-22-52-239.compute-1.amazonaws.com,ec2-50-19-135-175.compute-1.amazonaws.com";
+    private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "";
     private static final boolean DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC = false;
 
     private final IConfigSource config; 
