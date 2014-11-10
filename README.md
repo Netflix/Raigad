@@ -1,7 +1,7 @@
 <!--
 # Raigad
 -->
-![](images/raidad-lg.png?raw=true =150x150) </br>
+![](images/raidad-type-lg.png?raw=true =150x150) </br>
 
 **Raigad** is a process/tool that runs alongside Elasticsearch to automate the following:
 - Snapshot Backup and restore 
