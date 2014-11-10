@@ -15,10 +15,15 @@
  */
 package com.netflix.raigad.resources;
 
-import com.google.inject.*;
+import com.google.inject.AbstractModule;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
+import com.netflix.governator.guice.LifecycleInjector;
+import com.netflix.governator.lifecycle.LifecycleManager;
 import com.netflix.raigad.aws.IAMCredential;
 import com.netflix.raigad.aws.ICredential;
 import com.netflix.raigad.backup.AbstractRepository;
@@ -57,15 +62,18 @@ public class InjectedWebListener extends GuiceServletContextListener
         moduleList.add(new RaigadGuiceModule());
         Injector injector;
         try
-        {
-        		injector  = Guice.createInjector(moduleList);
-         		startJobs(injector);
+        {   injector = LifecycleInjector.builder().withModules(moduleList).build().createInjector();
+            startJobs(injector);
+
+            LifecycleManager manager = injector.getInstance(LifecycleManager.class);
+            manager.start();
         }
         catch (Exception e)
         {
             logger.error(e.getMessage(),e);
             throw new RuntimeException(e.getMessage(), e);
         }
+
         return injector;
     }
 

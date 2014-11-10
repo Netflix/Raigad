@@ -204,7 +204,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final boolean DEFAULT_IS_LOCAL_MODE_ENABLED = false;
     private static final String DEFAULT_CASSANDRA_KEYSPACE_NAME = "escarbootstrap";
     private static final int DEFAULT_CASSANDRA_THRIFT_PORT = 7102;
-    private static final boolean DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED = false;
+    private static final boolean DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED = true;
     //TODO remove after testing
     private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "ec2-23-22-52-239.compute-1.amazonaws.com,ec2-50-19-135-175.compute-1.amazonaws.com";
     private static final boolean DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC = false;

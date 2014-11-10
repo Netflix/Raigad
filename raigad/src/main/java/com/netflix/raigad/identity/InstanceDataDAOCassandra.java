@@ -62,7 +62,7 @@ public class InstanceDataDAOCassandra
 
     private final Keyspace bootKeyspace;
     private final IConfiguration config;
-//    private final EurekaHostsSupplier eurekaHostsSupplier;
+    private final EurekaHostsSupplier eurekaHostsSupplier;
     private final String BOOT_CLUSTER;
     private final String KS_NAME;
     private final int thriftPortForAstyanax;
@@ -73,12 +73,10 @@ public class InstanceDataDAOCassandra
     public static final ColumnFamily<String, String> CF_LOCKS =
             new ColumnFamily<String, String>(CF_NAME_LOCKS, StringSerializer.get(), StringSerializer.get());
 
-    @Inject
-    public InstanceDataDAOCassandra(IConfiguration config) throws ConnectionException//,EurekaHostsSupplier eurekaHostsSupplier) throws ConnectionException
-    {
-//        astyanaxManager.registerKeyspace(configuration.getBootClusterName(), KS_NAME);
-//        bootKeyspace = astyanaxManager.getRegisteredKeyspace(configuration.getBootClusterName(), KS_NAME);
 
+    @Inject
+    public InstanceDataDAOCassandra(IConfiguration config,EurekaHostsSupplier eurekaHostsSupplier) throws ConnectionException
+    {
         this.config = config;
 
         BOOT_CLUSTER = config.getBootClusterName();
@@ -95,6 +93,8 @@ public class InstanceDataDAOCassandra
         if(thriftPortForAstyanax <= 0)
             throw new RuntimeException("Thrift Port for Astyanax can not be blank. Please use getCassandraThriftPortForAstyanax() property.");
 
+        this.eurekaHostsSupplier = eurekaHostsSupplier;
+
         if(config.isEurekaHostSupplierEnabled())
             ctx = initWithThriftDriverWithEurekaHostsSupplier();
         else
@@ -102,8 +102,6 @@ public class InstanceDataDAOCassandra
 
         ctx.start();
         bootKeyspace = ctx.getClient();
-
-//        this.eurekaHostsSupplier = eurekaHostsSupplier;
     }
 
     public void createInstanceEntry(RaigadInstance instance) throws Exception
@@ -336,6 +334,7 @@ public class InstanceDataDAOCassandra
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithEurekaHostsSupplier() {
 
+        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}",BOOT_CLUSTER,KS_NAME);
         return new AstyanaxContext.Builder()
                 .forCluster(BOOT_CLUSTER)
                 .forKeyspace(KS_NAME)
@@ -348,7 +347,7 @@ public class InstanceDataDAOCassandra
                                 "MyConnectionPool")
                                 .setMaxConnsPerHost(3)
                                 .setPort(thriftPortForAstyanax))
-                .withHostSupplier(new EurekaHostsSupplier().getSupplier(BOOT_CLUSTER))
+                .withHostSupplier(eurekaHostsSupplier.getSupplier(BOOT_CLUSTER))
                 .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
                 .buildKeyspace(ThriftFamilyFactory.getInstance());
 
@@ -356,6 +355,7 @@ public class InstanceDataDAOCassandra
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithExternalHostsSupplier() {
 
+        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}",BOOT_CLUSTER,KS_NAME);
         return new AstyanaxContext.Builder()
                 .forCluster(BOOT_CLUSTER)
                 .forKeyspace(KS_NAME)

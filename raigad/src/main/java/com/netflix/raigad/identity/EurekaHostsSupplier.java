@@ -21,12 +21,12 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.netflix.appinfo.AmazonInfo;
 import com.netflix.appinfo.AmazonInfo.MetaDataKey;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.astyanax.connectionpool.Host;
 import com.netflix.discovery.DiscoveryClient;
-import com.netflix.discovery.DiscoveryManager;
 import com.netflix.discovery.shared.Application;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -42,6 +42,7 @@ import java.util.List;
  * Note that the class needs the eureka application name to discover all instances for that application.
  *
  */
+@Singleton
 public class EurekaHostsSupplier implements HostSupplier {
 
     private static final Logger LOG = LoggerFactory.getLogger(EurekaHostsSupplier.class);
@@ -49,14 +50,9 @@ public class EurekaHostsSupplier implements HostSupplier {
     private final DiscoveryClient discoveryClient;
 
     @Inject
-    public EurekaHostsSupplier() {
-        this.discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
+    public EurekaHostsSupplier(DiscoveryClient discoveryClient) {
+        this.discoveryClient = discoveryClient;
     }
-
-//    @Inject
-//    public EurekaHostsSupplier(DiscoveryClient discoveryClient) {
-//        this.discoveryClient = discoveryClient;
-//    }
 
     @Override
     public Supplier<List<Host>> getSupplier(final String clusterName)
