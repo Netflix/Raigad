@@ -30,7 +30,7 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'
 
-    group = 'com.netflix'
+    group = 'com.netflix.raigad'
 
     configurations {
         provided
