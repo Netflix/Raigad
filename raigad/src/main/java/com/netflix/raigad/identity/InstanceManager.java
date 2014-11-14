@@ -147,18 +147,6 @@ public class InstanceManager {
         else
             _instances.addAll(instanceFactory.getAllIds(config.getAppName()));
 
-//        if(config.amISourceClusterForTribeNode())
-//        {
-//            List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
-//            assert (tribeClusters.size() != 0) : "I am a source cluster but I need One or more tribe clusters";
-//
-//            for(String tribeClusterName : tribeClusters)
-//                _instances.addAll(instanceFactory.getAllIds(tribeClusterName));
-//        }
-
-        //Adding Current cluster
-//        _instances.addAll(instanceFactory.getAllIds(config.getAppName()));
-
         if(config.isDebugEnabled())
         {
             for(RaigadInstance instance:_instances)
