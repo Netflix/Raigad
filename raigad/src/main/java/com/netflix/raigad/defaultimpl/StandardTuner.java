@@ -61,7 +61,7 @@ public class StandardTuner implements IElasticsearchTuner
         if(config.amITribeNode())
         {
             String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
-            assert (clusterParams != null) : "Clusters parameters can't be null";
+            assert (clusterParams != null) : "Source Clusters for Tribe Nodes can't be null";
 
             String[] clusters = StringUtils.split(clusterParams,COMMA_SEPARATOR);
             assert (clusters.length != 0) : "One or more clusters needed";
@@ -73,7 +73,7 @@ public class StandardTuner implements IElasticsearchTuner
                 assert (clusterPort.length != 2) : "Cluster Name or Transport Port is missing in configuration";
 
                 map.put("tribe.t" + i + ".cluster.name", clusterPort[0]);
-                map.put("tribe.t" + i + ".transport.tcp.port", clusterPort[1]);
+                map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterPort[1]));
                 map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
                 logger.info("Adding Cluster = <{}> with Port = <{}>",clusterPort[0],clusterPort[1]);
             }

@@ -233,11 +233,7 @@ public class UpdateTribeSecuritySettings extends Task
 
     public static TaskTimer getTimer(InstanceManager instanceManager)
     {
-        //Only Master nodes will Update Security Group Settings
-        if(!instanceManager.isMaster())
-            return new SimpleTimer(JOBNAME);
-        else
-            return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
+        return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
     }
 
     @Override
