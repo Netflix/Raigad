@@ -98,12 +98,11 @@ public class HealthMonitor extends Task
             if(config.isNodeMismatchWithDiscoveryEnabled())
                 //Check if there is Node Mismatch between Discovery and ES
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
-            else {
+            else
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
 
             if(config.isEurekaHealthCheckEnabled())
                 healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
-        }
         }
         catch(Exception e)
         {
