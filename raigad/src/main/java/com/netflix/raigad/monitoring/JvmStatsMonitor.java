@@ -74,11 +74,13 @@ public class JvmStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No JvmStats).");
+                resetJvmStats(jvmStatsBean);
 				return;
 			}
 			jvmStats = ndStat.getJvm();
 			if (jvmStats == null) {
 				logger.info("JvmStats is null,hence returning (No JvmStats).");
+                resetJvmStats(jvmStatsBean);
 				return;
 			}
 
@@ -154,6 +156,7 @@ public class JvmStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetJvmStats(jvmStatsBean);
   			logger.warn("failed to load Jvm stats data", e);
   		}
 
@@ -409,4 +412,43 @@ public class JvmStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetJvmStats(JvmStatsBean jvmStatsBean){
+        jvmStatsBean.heapCommittedInBytes = -1;
+        jvmStatsBean.heapMaxInBytes = -1;
+        jvmStatsBean.heapUsedInBytes = -1;
+        jvmStatsBean.nonHeapCommittedInBytes = -1;
+        jvmStatsBean.nonHeapUsedInBytes = -1;
+        jvmStatsBean.heapUsedPercent = -1;
+        jvmStatsBean.threadCount = -1;
+        jvmStatsBean.threadPeakCount = -1;
+        jvmStatsBean.uptimeHours = -1;
+        jvmStatsBean.youngCollectionCount = -1;
+        jvmStatsBean.youngCollectionTimeInMillis = -1;
+        jvmStatsBean.oldCollectionCount = -1;
+        jvmStatsBean.oldCollectionTimeInMillis = -1;
+        jvmStatsBean.youngUsedInBytes = -1;
+        jvmStatsBean.youngMaxInBytes = -1;
+        jvmStatsBean.youngPeakUsedInBytes = -1;
+        jvmStatsBean.youngPeakMaxInBytes = -1;
+        jvmStatsBean.survivorUsedInBytes = -1;
+        jvmStatsBean.survivorMaxInBytes = -1;
+        jvmStatsBean.survivorPeakUsedInBytes = -1;
+        jvmStatsBean.survivorPeakMaxInBytes = -1;
+        jvmStatsBean.oldUsedInBytes = -1;
+        jvmStatsBean.oldMaxInBytes = -1;
+        jvmStatsBean.oldPeakUsedInBytes = -1;
+        jvmStatsBean.oldPeakMaxInBytes = -1;
+        jvmStatsBean.youngLastGcStartTime = -1;
+        jvmStatsBean.youngLastGcEndTime = -1;
+        jvmStatsBean.youngLastGcMaxInBytes= -1;
+        jvmStatsBean.youngLastGcBeforeUsedInBytes = -1;
+        jvmStatsBean.youngLastGcAfterUsedInBytes = -1;
+        jvmStatsBean.youngLastGcDuration = -1;
+        jvmStatsBean.oldLastGcStartTime = -1;
+        jvmStatsBean.oldLastGcEndTime = -1;
+        jvmStatsBean.oldLastGcMaxInBytes= -1;
+        jvmStatsBean.oldLastGcBeforeUsedInBytes = -1;
+        jvmStatsBean.oldLastGcAfterUsedInBytes = -1;
+        jvmStatsBean.oldLastGcDuration = -1;
+    }
 }

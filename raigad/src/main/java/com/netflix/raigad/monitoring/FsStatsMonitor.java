@@ -70,11 +70,13 @@ public class FsStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No FsStats).");
+                resetFsStats(fsStatsBean);
 				return;
 			}
 			fsStats = ndStat.getFs();
 			if (fsStats == null) {
 				logger.info("FsStats is null,hence returning (No FsStats).");
+                resetFsStats(fsStatsBean);
 				return;
 			}
 
@@ -90,6 +92,7 @@ public class FsStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetFsStats(fsStatsBean);
   			logger.warn("failed to load Fs stats data", e);
   		}
 
@@ -176,4 +179,15 @@ public class FsStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetFsStats(FsStatsBean fsStatsBean){
+        fsStatsBean.total = -1;
+        fsStatsBean.free = -1;
+        fsStatsBean.available = -1;
+        fsStatsBean.diskReads = -1;
+        fsStatsBean.diskWrites = -1;
+        fsStatsBean.diskReadBytes = -1;
+        fsStatsBean.diskWriteBytes = -1;
+        fsStatsBean.diskQueue = -1;
+        fsStatsBean.diskServiceTime = -1;
+    }
 }

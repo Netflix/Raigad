@@ -79,6 +79,7 @@ public class HealthMonitor extends Task
 
             if (clusterHealthStatus == null) {
                 logger.info("ClusterHealthStatus is null,hence returning (No Health).");
+                resetHealthStats(healthBean);
                 return;
             }
             //Check if status = GREEN, YELLOW or RED
@@ -98,15 +99,15 @@ public class HealthMonitor extends Task
             if(config.isNodeMismatchWithDiscoveryEnabled())
                 //Check if there is Node Mismatch between Discovery and ES
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
-            else {
+            else
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
 
             if(config.isEurekaHealthCheckEnabled())
                 healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
         }
-        }
         catch(Exception e)
         {
+            resetHealthStats(healthBean);
             logger.warn("failed to load Cluster Health Status", e);
         }
 
@@ -166,4 +167,10 @@ public class HealthMonitor extends Task
         return METRIC_NAME;
     }
 
+    private void resetHealthStats(HealthBean healthBean){
+        healthBean.greenorredstatus = -1;
+        healthBean.greenoryellowstatus = -1;
+        healthBean.nodematch = -1;
+        healthBean.eurekanodematch = -1;
+    }
 }

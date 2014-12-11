@@ -70,11 +70,13 @@ public class ProcessStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No ProcessStats).");
+                resetProcessStats(processStatsBean);
 				return;
 			}
 			processStats = ndStat.getProcess();
 			if (processStats == null) {
 				logger.info("ProcessStats is null,hence returning (No ProcessStats).");
+                resetProcessStats(processStatsBean);
 				return;
 			}
 
@@ -94,6 +96,7 @@ public class ProcessStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetProcessStats(processStatsBean);
   			logger.warn("failed to load Process stats data", e);
   		}
 
@@ -181,4 +184,15 @@ public class ProcessStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetProcessStats(ProcessStatsBean processStatsBean){
+        processStatsBean.residentInBytes = -1;
+        processStatsBean.shareInBytes = -1;
+        processStatsBean.totalVirtualInBytes = -1;
+        processStatsBean.cpuPercent = -1;
+        processStatsBean.sysInMillis = -1;
+        processStatsBean.userInMillis = -1;
+        processStatsBean.totalInMillis = -1;
+        processStatsBean.openFileDescriptors = -1;
+        processStatsBean.cpuTimestamp = -1;
+    }
 }

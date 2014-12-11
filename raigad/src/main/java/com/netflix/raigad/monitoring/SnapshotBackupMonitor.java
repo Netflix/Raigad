@@ -67,6 +67,7 @@ public class SnapshotBackupMonitor extends Task
         }
         catch(Exception e)
         {
+            resetSnapshotBackupStats(snapshotBackupBean);
             logger.warn("failed to load Cluster SnapshotBackup Status", e);
         }
 
@@ -111,4 +112,8 @@ public class SnapshotBackupMonitor extends Task
         return METRIC_NAME;
     }
 
+    private void resetSnapshotBackupStats(SnapshotBackupBean snapshotBackupBean){
+        snapshotBackupBean.snapshotSuccess = -1;
+        snapshotBackupBean.snapshotFailure = -1;
+    }
 }

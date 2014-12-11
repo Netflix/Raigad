@@ -70,11 +70,13 @@ public class OsStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No OsStats).");
+                resetOsStats(osStatsBean);
 				return;
 			}
 			osStats = ndStat.getOs();
 			if (osStats == null) {
 				logger.info("OsStats is null,hence returning (No OsStats).");
+                resetOsStats(osStatsBean);
 				return;
 			}
 
@@ -101,6 +103,7 @@ public class OsStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetOsStats(osStatsBean);
   			logger.warn("failed to load Os stats data", e);
   		}
 
@@ -218,4 +221,20 @@ public class OsStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetOsStats(OsStatsBean osStatsBean){
+        osStatsBean.freeInBytes = -1;
+        osStatsBean.usedInBytes = -1;
+        osStatsBean.actualFreeInBytes = -1;
+        osStatsBean.actualUsedInBytes = -1;
+        osStatsBean.freePercent = -1;
+        osStatsBean.usedPercent = -1;
+        osStatsBean.cpuSys = -1;
+        osStatsBean.cpuUser = -1;
+        osStatsBean.cpuIdle = -1;
+        osStatsBean.cpuStolen = -1;
+        osStatsBean.swapUsedInBytes = -1;
+        osStatsBean.swapFreeInBytes = -1;
+        osStatsBean.uptimeInMillis = -1;
+        osStatsBean.osTimestamp = -1;
+    }
 }

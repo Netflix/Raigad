@@ -70,11 +70,13 @@ public class TransportStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No TransportStats).");
+                resetTransportStats(transportStatsBean);
 				return;
 			}
 			transportStats = ndStat.getTransport();
 			if (transportStats == null) {
 				logger.info("TransportStats is null,hence returning (No TransportStats).");
+                resetTransportStats(transportStatsBean);
 				return;
 			}
 	
@@ -143,13 +145,13 @@ public class TransportStatsMonitor extends Task
     
     private static class TransportStatsBean
     {
-    	  private long serverOpen;
-    	  private long rxCount=0;
-    	  private long rxSize=0;
-    	  private long rxSizeDelta=0;
-    	  private long txCount=0;
-    	  private long txSize=0;
-    	  private long txSizeDelta=0;    	  
+    	  private long serverOpen=-1;
+    	  private long rxCount=-1;
+    	  private long rxSize=-1;
+    	  private long rxSizeDelta=-1;
+    	  private long txCount=-1;
+    	  private long txSize=-1;
+    	  private long txSizeDelta=-1;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -163,4 +165,13 @@ public class TransportStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetTransportStats(TransportStatsBean transportStatsBean){
+        transportStatsBean.serverOpen=-1;
+        transportStatsBean.rxCount=-1;
+        transportStatsBean.rxSize=-1;
+        transportStatsBean.rxSizeDelta=-1;
+        transportStatsBean.txCount=-1;
+        transportStatsBean.txSize=-1;
+        transportStatsBean.txSizeDelta=-1;
+    }
 }
