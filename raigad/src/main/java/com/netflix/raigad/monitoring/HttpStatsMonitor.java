@@ -70,11 +70,13 @@ public class HttpStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No HttpStats).");
+                resetHttpStats(httpStatsBean);
 				return;
 			}
 			httpStats = ndStat.getHttp();
 			if (httpStats == null) {
 				logger.info("HttpStats is null,hence returning (No HttpStats).");
+                resetHttpStats(httpStatsBean);
 				return;
 			}
 
@@ -83,6 +85,7 @@ public class HttpStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetHttpStats(httpStatsBean);
   			logger.warn("failed to load Http stats data", e);
   		}
 
@@ -128,4 +131,8 @@ public class HttpStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetHttpStats(HttpStatsBean httpStatsBean){
+        httpStatsBean.serverOpen = -1;
+        httpStatsBean.totalOpen = -1;
+    }
 }

@@ -79,6 +79,7 @@ public class HealthMonitor extends Task
 
             if (clusterHealthStatus == null) {
                 logger.info("ClusterHealthStatus is null,hence returning (No Health).");
+                resetHealthStats(healthBean);
                 return;
             }
             //Check if status = GREEN, YELLOW or RED
@@ -106,6 +107,7 @@ public class HealthMonitor extends Task
         }
         catch(Exception e)
         {
+            resetHealthStats(healthBean);
             logger.warn("failed to load Cluster Health Status", e);
         }
 
@@ -165,4 +167,10 @@ public class HealthMonitor extends Task
         return METRIC_NAME;
     }
 
+    private void resetHealthStats(HealthBean healthBean){
+        healthBean.greenorredstatus = -1;
+        healthBean.greenoryellowstatus = -1;
+        healthBean.nodematch = -1;
+        healthBean.eurekanodematch = -1;
+    }
 }

@@ -23,6 +23,7 @@ import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.discovery.DiscoverySettings;
 import org.elasticsearch.discovery.zen.ZenDiscovery;
+import org.elasticsearch.discovery.zen.elect.ElectMasterService;
 import org.elasticsearch.discovery.zen.ping.ZenPing;
 import org.elasticsearch.discovery.zen.ping.ZenPingService;
 import org.elasticsearch.discovery.zen.ping.unicast.UnicastZenPing;
@@ -34,8 +35,8 @@ public class CustomDiscovery extends ZenDiscovery {
   @Inject
   public CustomDiscovery(Settings settings, ClusterName clusterName, ThreadPool threadPool, TransportService transportService,
                          ClusterService clusterService, NodeSettingsService nodeSettingsService, ZenPingService pingService,
-                         DiscoveryNodeService discoveryNodeService, Version version, DiscoverySettings discoverySettings) {
-    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, version, discoverySettings);
+                         DiscoveryNodeService discoveryNodeService, Version version, DiscoverySettings discoverySettings, ElectMasterService electMasterService) {
+    super(settings, clusterName, threadPool, transportService, clusterService, nodeSettingsService, discoveryNodeService, pingService, electMasterService, discoverySettings);
     org.elasticsearch.common.collect.ImmutableList<? extends ZenPing> zenPings = pingService.zenPings();
     UnicastZenPing unicastZenPing = null;
     for (ZenPing zenPing : zenPings) {

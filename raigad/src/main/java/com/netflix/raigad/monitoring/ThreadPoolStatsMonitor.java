@@ -71,11 +71,13 @@ public class ThreadPoolStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No ThreadPoolStats).");
+                resetThreadPoolStats(tpStatsBean);
 				return;
 			}
   			tpstats = ndStat.getThreadPool();
 			if (tpstats == null) {
 				logger.info("ThreadPoolStats is null,hence returning (No ThreadPoolStats).");
+                resetThreadPoolStats(tpStatsBean);
 				return;
 			}
   		    Iterator<ThreadPoolStats.Stats> iter = tpstats.iterator();
@@ -117,6 +119,7 @@ public class ThreadPoolStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
+            resetThreadPoolStats(tpStatsBean);
   			logger.warn("failed to load Thread Pool stats data", e);
   		}
   		tpStatsReporter.threadPoolBean.set(tpStatsBean);
@@ -259,33 +262,33 @@ public class ThreadPoolStatsMonitor extends Task
     
     private static class ThreadPoolStatsBean
     {
-    	  private long indexThreads;
-    	  private long indexQueue;
-    	  private long indexActive;
-    	  private long indexRejected;
-    	  private long indexLargest;
-    	  private long indexCompleted;
+        private long indexThreads = -1;
+        private long indexQueue = -1;
+        private long indexActive = -1;
+        private long indexRejected = -1;
+        private long indexLargest = -1;
+        private long indexCompleted = -1;
 
-    	  private long getThreads;
-    	  private long getQueue;
-    	  private long getActive;
-    	  private long getRejected;
-    	  private long getLargest;
-    	  private long getCompleted;
+        private long getThreads = -1;
+        private long getQueue = -1;
+        private long getActive = -1;
+        private long getRejected = -1;
+        private long getLargest = -1;
+        private long getCompleted = -1;
 
-    	  private long searchThreads;
-    	  private long searchQueue;
-    	  private long searchActive;
-    	  private long searchRejected;
-    	  private long searchLargest;
-    	  private long searchCompleted;
+        private long searchThreads = -1;
+        private long searchQueue = -1;
+        private long searchActive = -1;
+        private long searchRejected = -1;
+        private long searchLargest = -1;
+        private long searchCompleted = -1;
 
-    	  private long bulkThreads;
-    	  private long bulkQueue;
-    	  private long bulkActive;
-    	  private long bulkRejected;
-    	  private long bulkLargest;
-    	  private long bulkCompleted;    
+        private long bulkThreads = -1;
+        private long bulkQueue = -1;
+        private long bulkActive = -1;
+        private long bulkRejected = -1;
+        private long bulkLargest = -1;
+        private long bulkCompleted = -1;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -299,4 +302,33 @@ public class ThreadPoolStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
+    private void resetThreadPoolStats(ThreadPoolStatsBean threadPoolStatsBean){
+        threadPoolStatsBean.indexThreads = -1;
+        threadPoolStatsBean.indexQueue = -1;
+        threadPoolStatsBean.indexActive = -1;
+        threadPoolStatsBean.indexRejected = -1;
+        threadPoolStatsBean.indexLargest = -1;
+        threadPoolStatsBean.indexCompleted = -1;
+
+        threadPoolStatsBean.getThreads = -1;
+        threadPoolStatsBean.getQueue = -1;
+        threadPoolStatsBean.getActive = -1;
+        threadPoolStatsBean.getRejected = -1;
+        threadPoolStatsBean.getLargest = -1;
+        threadPoolStatsBean.getCompleted = -1;
+
+        threadPoolStatsBean.searchThreads = -1;
+        threadPoolStatsBean.searchQueue = -1;
+        threadPoolStatsBean.searchActive = -1;
+        threadPoolStatsBean.searchRejected = -1;
+        threadPoolStatsBean.searchLargest = -1;
+        threadPoolStatsBean.searchCompleted = -1;
+
+        threadPoolStatsBean.bulkThreads = -1;
+        threadPoolStatsBean.bulkQueue = -1;
+        threadPoolStatsBean.bulkActive = -1;
+        threadPoolStatsBean.bulkRejected = -1;
+        threadPoolStatsBean.bulkLargest = -1;
+        threadPoolStatsBean.bulkCompleted = -1;
+    }
 }
