@@ -58,6 +58,12 @@ public class StandardTuner implements IElasticsearchTuner
         map.put("path.logs", config.getLogFileLocation());
         map.put("transport.tcp.port", config.getTransportTcpPort());
 
+        if(config.isKibanaSetupRequired())
+        {
+            map.put("http.cors.enabled",true);
+            map.put("http.cors.allow-origin","http://"+config.getHostname()+":"+config.getKibanaPort());
+        }
+
         if(config.amITribeNode())
         {
             String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();

@@ -109,6 +109,8 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED = MY_WEBAPP_NAME + ".eureka.host.supplier.enabled";
     private static final String CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = MY_WEBAPP_NAME + ".comma.separated.cassandra.hostnames";
     private static final String CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC = MY_WEBAPP_NAME + ".security.group.in.multi.dc.enabled";
+    private static final String CONFIG_IS_KIBANA_SETUP_REQUIRED = MY_WEBAPP_NAME + ".kibana.setup.required";
+    private static final String CONFIG_KIBANA_PORT = MY_WEBAPP_NAME + ".kibana.port";
 
 
     // Amazon specific
@@ -203,6 +205,9 @@ public class RaigadConfiguration implements IConfiguration
     private static final boolean DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED = true;
     private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "";
     private static final boolean DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC = false;
+    private static final boolean DEFAULT_IS_KIBANA_SETUP_REQUIRED = false;
+    private static final int DEFAULT_KIBANA_PORT = 8001;
+
 
     private final IConfigSource config; 
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
@@ -278,6 +283,8 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
     private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
     private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
+    private final DynamicBooleanProperty IS_KIBANA_SETUP_REQUIRED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_KIBANA_SETUP_REQUIRED, DEFAULT_IS_KIBANA_SETUP_REQUIRED);
+    private final DynamicIntProperty KIBANA_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_KIBANA_PORT, DEFAULT_KIBANA_PORT);
 
 
     @Inject
@@ -812,6 +819,16 @@ public class RaigadConfiguration implements IConfiguration
     @Override
     public boolean isSecutrityGroupInMultiDC() {
         return IS_SECURITY_GROUP_IN_MULTI_DC.get();
+    }
+
+    @Override
+    public boolean isKibanaSetupRequired() {
+        return IS_KIBANA_SETUP_REQUIRED.get();
+    }
+
+    @Override
+    public int getKibanaPort() {
+        return KIBANA_PORT.get();
     }
 
 }

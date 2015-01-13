@@ -274,4 +274,8 @@ public interface IConfiguration
 
     public boolean isSecutrityGroupInMultiDC();
 
+    public boolean isKibanaSetupRequired();
+
+    public int getKibanaPort();
+
 }
