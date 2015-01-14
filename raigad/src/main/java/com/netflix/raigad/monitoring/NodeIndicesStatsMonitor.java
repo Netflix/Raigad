@@ -95,13 +95,13 @@ public class NodeIndicesStatsMonitor extends Task
             }
             if (ndStat == null) {
                 logger.info("NodeIndicesStats is null,hence returning (No NodeIndicesStats).");
-                resetNodeIndicesStats(nodeIndicesStatsBean);
+                //resetNodeIndicesStats(nodeIndicesStatsBean);
                 return;
             }
             nodeIndicesStats = ndStat.getIndices();
             if (nodeIndicesStats == null) {
                 logger.info("NodeIndicesStats is null,hence returning (No NodeIndicesStats).");
-                resetNodeIndicesStats(nodeIndicesStatsBean);
+                //resetNodeIndicesStats(nodeIndicesStatsBean);
                 return;
             }
 
@@ -122,7 +122,7 @@ public class NodeIndicesStatsMonitor extends Task
         }
         catch(Exception e)
         {
-            resetNodeIndicesStats(nodeIndicesStatsBean);
+            //resetNodeIndicesStats(nodeIndicesStatsBean);
             logger.warn("failed to load Indices stats data", e);
         }
 
@@ -420,12 +420,12 @@ public class NodeIndicesStatsMonitor extends Task
         {
             return nodeIndicesStatsBean.get().indexingDeleteCurrent;
         }
-        @Monitor(name="indexing_index_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="indexing_index_delta", type=DataSourceType.GAUGE)
         public long getIndexingIndexDelta()
         {
             return nodeIndicesStatsBean.get().indexingIndexDelta;
         }
-        @Monitor(name="indexing_delete_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="indexing_delete_delta", type=DataSourceType.GAUGE)
         public long getIndexingDeleteDelta()
         {
             return nodeIndicesStatsBean.get().indexingDeleteDelta;

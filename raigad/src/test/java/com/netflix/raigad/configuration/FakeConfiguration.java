@@ -445,4 +445,14 @@ public class FakeConfiguration implements IConfiguration {
         return false;
     }
 
+    @Override
+    public boolean isKibanaSetupRequired() {
+        return false;
+    }
+
+    @Override
+    public int getKibanaPort() {
+        return 0;
+    }
+
 }
