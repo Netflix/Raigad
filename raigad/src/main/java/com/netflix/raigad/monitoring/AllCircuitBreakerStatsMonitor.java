@@ -72,28 +72,18 @@ public class AllCircuitBreakerStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No AllCircuitBreakerStats).");
-                resetAllStats(allCircuitBreakerStatsBean);
 				return;
 			}
             allCircuitBreakerStats = ndStat.getBreaker();
 			if (allCircuitBreakerStats == null) {
 				logger.info("AllCircuitBreakerStats is null,hence returning (No AllCircuitBreakerStats).");
-                resetAllStats(allCircuitBreakerStatsBean);
 				return;
 			}
 
             CircuitBreakerStats[] circuitBreakerStats = allCircuitBreakerStats.getAllStats();
             if (circuitBreakerStats == null || circuitBreakerStats.length == 0) {
                 logger.info("CircuitBreakerStats do not exist,hence returning (No CircuitBreakerStats).");
-                resetAllStats(allCircuitBreakerStatsBean);
                 return;
-            }
-
-            if(circuitBreakerStats.length == 1){
-                if (circuitBreakerStats[0].getName() != CircuitBreaker.Name.FIELDDATA)
-                    resetFieldDataStats(allCircuitBreakerStatsBean);
-                if (circuitBreakerStats[0].getName() != CircuitBreaker.Name.REQUEST)
-                    resetRequestStats(allCircuitBreakerStatsBean);
             }
 
             for(CircuitBreakerStats circuitBreakerStat:circuitBreakerStats)
@@ -118,7 +108,6 @@ public class AllCircuitBreakerStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
-            resetAllStats(allCircuitBreakerStatsBean);
   			logger.warn("failed to load FieldDataBreaker stats data", e);
   		}
 
@@ -173,14 +162,14 @@ public class AllCircuitBreakerStatsMonitor extends Task
 
     private static class AllCircuitBreakerStatsBean
     {
-        private long fieldDataEstimatedSizeInBytes = -1;
-        private long fieldDataLimitMaximumSizeInBytes = -1;
-        private long fieldDataTrippedCount = -1;
-        private double fieldDataOverhead = -1;
-        private long requestEstimatedSizeInBytes = -1;
-        private long requestLimitMaximumSizeInBytes = -1;
-        private long requestTrippedCount = -1;
-        private double requestOverhead = -1;
+        private long fieldDataEstimatedSizeInBytes;
+        private long fieldDataLimitMaximumSizeInBytes;
+        private long fieldDataTrippedCount;
+        private double fieldDataOverhead;
+        private long requestEstimatedSizeInBytes;
+        private long requestLimitMaximumSizeInBytes;
+        private long requestTrippedCount;
+        private double requestOverhead;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -194,22 +183,4 @@ public class AllCircuitBreakerStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
-    private void resetAllStats(AllCircuitBreakerStatsBean allCircuitBreakerStatsBean){
-        resetFieldDataStats(allCircuitBreakerStatsBean);
-        resetRequestStats(allCircuitBreakerStatsBean);
-    }
-
-    private void resetFieldDataStats(AllCircuitBreakerStatsBean allCircuitBreakerStatsBean){
-        allCircuitBreakerStatsBean.fieldDataEstimatedSizeInBytes = -1;
-        allCircuitBreakerStatsBean.fieldDataLimitMaximumSizeInBytes = -1;
-        allCircuitBreakerStatsBean.fieldDataOverhead = -1;
-        allCircuitBreakerStatsBean.fieldDataTrippedCount = -1;
-    }
-
-    private void resetRequestStats(AllCircuitBreakerStatsBean allCircuitBreakerStatsBean){
-        allCircuitBreakerStatsBean.requestEstimatedSizeInBytes = -1;
-        allCircuitBreakerStatsBean.requestLimitMaximumSizeInBytes = -1;
-        allCircuitBreakerStatsBean.requestOverhead = -1;
-        allCircuitBreakerStatsBean.requestTrippedCount = -1;
-    }
 }

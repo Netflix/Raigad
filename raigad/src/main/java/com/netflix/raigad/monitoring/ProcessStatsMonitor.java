@@ -70,13 +70,11 @@ public class ProcessStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No ProcessStats).");
-                resetProcessStats(processStatsBean);
 				return;
 			}
 			processStats = ndStat.getProcess();
 			if (processStats == null) {
 				logger.info("ProcessStats is null,hence returning (No ProcessStats).");
-                resetProcessStats(processStatsBean);
 				return;
 			}
 
@@ -96,7 +94,6 @@ public class ProcessStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
-            resetProcessStats(processStatsBean);
   			logger.warn("failed to load Process stats data", e);
   		}
 
@@ -162,15 +159,15 @@ public class ProcessStatsMonitor extends Task
     
     private static class ProcessStatsBean
     {
-    	  private long residentInBytes = -1;
-    	  private long shareInBytes = -1;
-    	  private long totalVirtualInBytes = -1;
-    	  private short cpuPercent = -1;
-    	  private long sysInMillis = -1;
-    	  private long userInMillis = -1;
-    	  private long totalInMillis = -1;
-    	  private long openFileDescriptors = -1;
-    	  private long cpuTimestamp = -1;
+        private long residentInBytes;
+        private long shareInBytes;
+        private long totalVirtualInBytes;
+        private short cpuPercent;
+        private long sysInMillis;
+        private long userInMillis;
+        private long totalInMillis;
+        private long openFileDescriptors;
+        private long cpuTimestamp;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -184,15 +181,4 @@ public class ProcessStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
-    private void resetProcessStats(ProcessStatsBean processStatsBean){
-        processStatsBean.residentInBytes = -1;
-        processStatsBean.shareInBytes = -1;
-        processStatsBean.totalVirtualInBytes = -1;
-        processStatsBean.cpuPercent = -1;
-        processStatsBean.sysInMillis = -1;
-        processStatsBean.userInMillis = -1;
-        processStatsBean.totalInMillis = -1;
-        processStatsBean.openFileDescriptors = -1;
-        processStatsBean.cpuTimestamp = -1;
-    }
 }

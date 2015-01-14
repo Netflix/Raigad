@@ -70,13 +70,11 @@ public class OsStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No OsStats).");
-                resetOsStats(osStatsBean);
 				return;
 			}
 			osStats = ndStat.getOs();
 			if (osStats == null) {
 				logger.info("OsStats is null,hence returning (No OsStats).");
-                resetOsStats(osStatsBean);
 				return;
 			}
 
@@ -103,7 +101,6 @@ public class OsStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
-            resetOsStats(osStatsBean);
   			logger.warn("failed to load Os stats data", e);
   		}
 
@@ -194,20 +191,20 @@ public class OsStatsMonitor extends Task
     
     private static class OsStatsBean
     {
-    	  private long freeInBytes = -1;
-    	  private long usedInBytes = -1;
-    	  private long actualFreeInBytes = -1;
-          private long actualUsedInBytes = -1;
-          private short freePercent = -1;
-          private short usedPercent = -1;
-          private short cpuSys = -1;
-    	  private short cpuUser = -1;
-          private short cpuIdle = -1;
-          private short cpuStolen = -1;
-          private long swapUsedInBytes = -1;
-          private long swapFreeInBytes = -1;
-          private long uptimeInMillis = -1;
-          private long osTimestamp = -1;
+        private long freeInBytes;
+        private long usedInBytes;
+        private long actualFreeInBytes;
+        private long actualUsedInBytes;
+        private short freePercent;
+        private short usedPercent;
+        private short cpuSys;
+        private short cpuUser;
+        private short cpuIdle;
+        private short cpuStolen;
+        private long swapUsedInBytes;
+        private long swapFreeInBytes;
+        private long uptimeInMillis;
+        private long osTimestamp;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -221,20 +218,4 @@ public class OsStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
-    private void resetOsStats(OsStatsBean osStatsBean){
-        osStatsBean.freeInBytes = -1;
-        osStatsBean.usedInBytes = -1;
-        osStatsBean.actualFreeInBytes = -1;
-        osStatsBean.actualUsedInBytes = -1;
-        osStatsBean.freePercent = -1;
-        osStatsBean.usedPercent = -1;
-        osStatsBean.cpuSys = -1;
-        osStatsBean.cpuUser = -1;
-        osStatsBean.cpuIdle = -1;
-        osStatsBean.cpuStolen = -1;
-        osStatsBean.swapUsedInBytes = -1;
-        osStatsBean.swapFreeInBytes = -1;
-        osStatsBean.uptimeInMillis = -1;
-        osStatsBean.osTimestamp = -1;
-    }
 }
