@@ -74,13 +74,11 @@ public class JvmStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No JvmStats).");
-                resetJvmStats(jvmStatsBean);
 				return;
 			}
 			jvmStats = ndStat.getJvm();
 			if (jvmStats == null) {
 				logger.info("JvmStats is null,hence returning (No JvmStats).");
-                resetJvmStats(jvmStatsBean);
 				return;
 			}
 
@@ -156,7 +154,6 @@ public class JvmStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
-            resetJvmStats(jvmStatsBean);
   			logger.warn("failed to load Jvm stats data", e);
   		}
 
@@ -362,43 +359,43 @@ public class JvmStatsMonitor extends Task
 
     private static class JvmStatsBean
     {
-        private long heapCommittedInBytes = -1;
-        private long heapMaxInBytes = -1;
-        private long heapUsedInBytes = -1;
-        private long nonHeapCommittedInBytes = -1;
-        private long nonHeapUsedInBytes = -1;
-        private short heapUsedPercent = -1;
-        private int threadCount = -1;
-        private int threadPeakCount = -1;
-        private long uptimeHours = -1;
-        private long youngCollectionCount = -1;
-        private long youngCollectionTimeInMillis = -1;
-        private long oldCollectionCount = -1;
-        private long oldCollectionTimeInMillis = -1;
-        private long youngUsedInBytes = -1;
-        private long youngMaxInBytes = -1;
-        private long youngPeakUsedInBytes = -1;
-        private long youngPeakMaxInBytes = -1;
-        private long survivorUsedInBytes = -1;
-        private long survivorMaxInBytes = -1;
-        private long survivorPeakUsedInBytes = -1;
-        private long survivorPeakMaxInBytes = -1;
-        private long oldUsedInBytes = -1;
-        private long oldMaxInBytes = -1;
-        private long oldPeakUsedInBytes = -1;
-        private long oldPeakMaxInBytes = -1;
-        private long youngLastGcStartTime = -1;
-        private long youngLastGcEndTime = -1;
-        private long youngLastGcMaxInBytes= -1;
-        private long youngLastGcBeforeUsedInBytes = -1;
-        private long youngLastGcAfterUsedInBytes = -1;
-        private long youngLastGcDuration = -1;
-        private long oldLastGcStartTime = -1;
-        private long oldLastGcEndTime = -1;
-        private long oldLastGcMaxInBytes= -1;
-        private long oldLastGcBeforeUsedInBytes = -1;
-        private long oldLastGcAfterUsedInBytes = -1;
-        private long oldLastGcDuration = -1;
+        private long heapCommittedInBytes;
+        private long heapMaxInBytes;
+        private long heapUsedInBytes;
+        private long nonHeapCommittedInBytes;
+        private long nonHeapUsedInBytes;
+        private short heapUsedPercent;
+        private int threadCount;
+        private int threadPeakCount;
+        private long uptimeHours;
+        private long youngCollectionCount;
+        private long youngCollectionTimeInMillis;
+        private long oldCollectionCount;
+        private long oldCollectionTimeInMillis;
+        private long youngUsedInBytes;
+        private long youngMaxInBytes;
+        private long youngPeakUsedInBytes;
+        private long youngPeakMaxInBytes;
+        private long survivorUsedInBytes;
+        private long survivorMaxInBytes;
+        private long survivorPeakUsedInBytes;
+        private long survivorPeakMaxInBytes;
+        private long oldUsedInBytes;
+        private long oldMaxInBytes;
+        private long oldPeakUsedInBytes;
+        private long oldPeakMaxInBytes;
+        private long youngLastGcStartTime;
+        private long youngLastGcEndTime;
+        private long youngLastGcMaxInBytes;
+        private long youngLastGcBeforeUsedInBytes;
+        private long youngLastGcAfterUsedInBytes;
+        private long youngLastGcDuration;
+        private long oldLastGcStartTime;
+        private long oldLastGcEndTime;
+        private long oldLastGcMaxInBytes;
+        private long oldLastGcBeforeUsedInBytes;
+        private long oldLastGcAfterUsedInBytes;
+        private long oldLastGcDuration;
     }
 
 	public static TaskTimer getTimer(String name)
@@ -412,43 +409,4 @@ public class JvmStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
-    private void resetJvmStats(JvmStatsBean jvmStatsBean){
-        jvmStatsBean.heapCommittedInBytes = -1;
-        jvmStatsBean.heapMaxInBytes = -1;
-        jvmStatsBean.heapUsedInBytes = -1;
-        jvmStatsBean.nonHeapCommittedInBytes = -1;
-        jvmStatsBean.nonHeapUsedInBytes = -1;
-        jvmStatsBean.heapUsedPercent = -1;
-        jvmStatsBean.threadCount = -1;
-        jvmStatsBean.threadPeakCount = -1;
-        jvmStatsBean.uptimeHours = -1;
-        jvmStatsBean.youngCollectionCount = -1;
-        jvmStatsBean.youngCollectionTimeInMillis = -1;
-        jvmStatsBean.oldCollectionCount = -1;
-        jvmStatsBean.oldCollectionTimeInMillis = -1;
-        jvmStatsBean.youngUsedInBytes = -1;
-        jvmStatsBean.youngMaxInBytes = -1;
-        jvmStatsBean.youngPeakUsedInBytes = -1;
-        jvmStatsBean.youngPeakMaxInBytes = -1;
-        jvmStatsBean.survivorUsedInBytes = -1;
-        jvmStatsBean.survivorMaxInBytes = -1;
-        jvmStatsBean.survivorPeakUsedInBytes = -1;
-        jvmStatsBean.survivorPeakMaxInBytes = -1;
-        jvmStatsBean.oldUsedInBytes = -1;
-        jvmStatsBean.oldMaxInBytes = -1;
-        jvmStatsBean.oldPeakUsedInBytes = -1;
-        jvmStatsBean.oldPeakMaxInBytes = -1;
-        jvmStatsBean.youngLastGcStartTime = -1;
-        jvmStatsBean.youngLastGcEndTime = -1;
-        jvmStatsBean.youngLastGcMaxInBytes= -1;
-        jvmStatsBean.youngLastGcBeforeUsedInBytes = -1;
-        jvmStatsBean.youngLastGcAfterUsedInBytes = -1;
-        jvmStatsBean.youngLastGcDuration = -1;
-        jvmStatsBean.oldLastGcStartTime = -1;
-        jvmStatsBean.oldLastGcEndTime = -1;
-        jvmStatsBean.oldLastGcMaxInBytes= -1;
-        jvmStatsBean.oldLastGcBeforeUsedInBytes = -1;
-        jvmStatsBean.oldLastGcAfterUsedInBytes = -1;
-        jvmStatsBean.oldLastGcDuration = -1;
-    }
 }

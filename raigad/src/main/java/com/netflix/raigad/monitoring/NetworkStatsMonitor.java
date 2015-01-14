@@ -70,13 +70,11 @@ public class NetworkStatsMonitor extends Task
             }
 			if (ndStat == null) {
 				logger.info("NodeStats is null,hence returning (No NetworkStats).");
-                resetNetworkStats(networkStatsBean);
 				return;
 			}
 			networkStats = ndStat.getNetwork();
 			if (networkStats == null) {
 				logger.info("NetworkStats is null,hence returning (No NetworkStats).");
-                resetNetworkStats(networkStatsBean);
 				return;
 			}
 	
@@ -93,7 +91,6 @@ public class NetworkStatsMonitor extends Task
   		}
   		catch(Exception e)
   		{
-            resetNetworkStats(networkStatsBean);
   			logger.warn("failed to load Network stats data", e);
   		}
 
@@ -164,16 +161,16 @@ public class NetworkStatsMonitor extends Task
 
     private static class NetworkStatsBean
     {
-        private long activeOpens=0;
-        private long passiveOpens=0;
-        private long attemptFails=0;
-        private long estabResets=0;
-        private long currEstab=0;
-        private long inSegs=0;
-        private long outSegs=0;
-        private long retransSegs=0;
-        private long inErrs=0;
-        private long outRsts=0;
+        private long activeOpens;
+        private long passiveOpens;
+        private long attemptFails;
+        private long estabResets;
+        private long currEstab;
+        private long inSegs;
+        private long outSegs;
+        private long retransSegs;
+        private long inErrs;
+        private long outRsts;
 
     }
 
@@ -188,16 +185,4 @@ public class NetworkStatsMonitor extends Task
 		return METRIC_NAME;
 	}
 
-    private void resetNetworkStats(NetworkStatsBean networkStatsBean){
-        networkStatsBean.activeOpens=0;
-        networkStatsBean.passiveOpens=0;
-        networkStatsBean.attemptFails=0;
-        networkStatsBean.estabResets=0;
-        networkStatsBean.currEstab=0;
-        networkStatsBean.inSegs=0;
-        networkStatsBean.outSegs=0;
-        networkStatsBean.retransSegs=0;
-        networkStatsBean.inErrs=0;
-        networkStatsBean.outRsts=0;
-    }
 }
