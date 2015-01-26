@@ -61,7 +61,7 @@ public class StandardTuner implements IElasticsearchTuner
         if(config.isKibanaSetupRequired())
         {
             map.put("http.cors.enabled",true);
-            map.put("http.cors.allow-origin","http://"+config.getHostname()+":"+config.getKibanaPort());
+            map.put("http.cors.allow-origin","*");
         }
 
         if(config.amITribeNode())
