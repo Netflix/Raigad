@@ -404,9 +404,9 @@ public class NodeIndicesStatsMonitor extends Task
 
 
         //Indexing
-        @Monitor(name="indexing_index_total", type=DataSourceType.GAUGE)
+        @Monitor(name="indexing_index_total", type=DataSourceType.COUNTER)
         public long getIndexingIndexTotal() { return nodeIndicesStatsBean.get().indexingIndexTotal; }
-        @Monitor(name="indexing_index_time_in_millis", type=DataSourceType.GAUGE)
+        @Monitor(name="indexing_index_time_in_millis", type=DataSourceType.COUNTER)
         public long getIndexingIndexTimeInMillis()
         {
             return nodeIndicesStatsBean.get().indexingIndexTimeInMillis;
@@ -423,12 +423,12 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().indexingIndexCurrent;
         }
 
-        @Monitor(name="indexing_delete_total", type=DataSourceType.GAUGE)
+        @Monitor(name="indexing_delete_total", type=DataSourceType.COUNTER)
         public long getIndexingDeleteTotal()
         {
             return nodeIndicesStatsBean.get().indexingDeleteTotal;
         }
-        @Monitor(name="indexing_delete_time", type=DataSourceType.GAUGE)
+        @Monitor(name="indexing_delete_time", type=DataSourceType.COUNTER)
         public long getIndexingDeleteTime()
         {
             return nodeIndicesStatsBean.get().indexingDeleteTime;
@@ -456,12 +456,12 @@ public class NodeIndicesStatsMonitor extends Task
         }
 
         //Get
-        @Monitor(name="get_total", type=DataSourceType.GAUGE)
+        @Monitor(name="get_total", type=DataSourceType.COUNTER)
         public long getGetTotal()
         {
             return nodeIndicesStatsBean.get().getTotal;
         }
-        @Monitor(name="get_time", type=DataSourceType.GAUGE)
+        @Monitor(name="get_time", type=DataSourceType.COUNTER)
         public long getGetTime()
         {
             return nodeIndicesStatsBean.get().getTime;
@@ -478,12 +478,12 @@ public class NodeIndicesStatsMonitor extends Task
         {
             return nodeIndicesStatsBean.get().getCurrent;
         }
-        @Monitor(name="get_exists_total", type=DataSourceType.GAUGE)
+        @Monitor(name="get_exists_total", type=DataSourceType.COUNTER)
         public long getGetExistsTotal()
         {
             return nodeIndicesStatsBean.get().getExistsTotal;
         }
-        @Monitor(name="get_exists_time", type=DataSourceType.GAUGE)
+        @Monitor(name="get_exists_time", type=DataSourceType.COUNTER)
         public long getGetExistsTime()
         {
             return nodeIndicesStatsBean.get().getExistsTime;
@@ -495,12 +495,12 @@ public class NodeIndicesStatsMonitor extends Task
         }
 
 
-        @Monitor(name="get_missing_total", type=DataSourceType.GAUGE)
+        @Monitor(name="get_missing_total", type=DataSourceType.COUNTER)
         public long getGetMissingTotal()
         {
             return nodeIndicesStatsBean.get().getMissingTotal;
         }
-        @Monitor(name="get_missing_time", type=DataSourceType.GAUGE)
+        @Monitor(name="get_missing_time", type=DataSourceType.COUNTER)
         public long getGetMissingTime()
         {
             return nodeIndicesStatsBean.get().getMissingTime;
@@ -512,28 +512,28 @@ public class NodeIndicesStatsMonitor extends Task
         }
 
         //Search
-        @Monitor(name="get_total_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="get_total_delta", type=DataSourceType.GAUGE)
         public long getGetTotalDelta()
         {
             return nodeIndicesStatsBean.get().getTotalDelta;
         }
-        @Monitor(name="get_exists_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="get_exists_delta", type=DataSourceType.GAUGE)
         public long getGetExistsDelta()
         {
             return nodeIndicesStatsBean.get().getExistsDelta;
         }
-        @Monitor(name="get_missing_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="get_missing_delta", type=DataSourceType.GAUGE)
         public long getGetMissingDelta()
         {
             return nodeIndicesStatsBean.get().getMissingDelta;
         }
 
-        @Monitor(name="search_query_total", type=DataSourceType.GAUGE)
+        @Monitor(name="search_query_total", type=DataSourceType.COUNTER)
         public long getSearchQueryTotal()
         {
             return nodeIndicesStatsBean.get().searchQueryTotal;
         }
-        @Monitor(name="search_query_time", type=DataSourceType.GAUGE)
+        @Monitor(name="search_query_time", type=DataSourceType.COUNTER)
         public long getSearchQueryTime()
         {
             return nodeIndicesStatsBean.get().searchQueryTime;
@@ -549,17 +549,17 @@ public class NodeIndicesStatsMonitor extends Task
             return nodeIndicesStatsBean.get().searchQueryAvgTimeInMillisPerRequest;
         }
 
-        @Monitor(name="search_query_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="search_query_delta", type=DataSourceType.GAUGE)
         public long getSearchQueryDelta()
         {
             return nodeIndicesStatsBean.get().searchQueryDelta;
         }
-        @Monitor(name="search_fetch_total", type=DataSourceType.GAUGE)
+        @Monitor(name="search_fetch_total", type=DataSourceType.COUNTER)
         public long getSearchFetchTotal()
         {
             return nodeIndicesStatsBean.get().searchFetchTotal;
         }
-        @Monitor(name="search_fetch_time", type=DataSourceType.GAUGE)
+        @Monitor(name="search_fetch_time", type=DataSourceType.COUNTER)
         public long getSearchFetchTime()
         {
             return nodeIndicesStatsBean.get().searchFetchTime;
@@ -575,7 +575,7 @@ public class NodeIndicesStatsMonitor extends Task
         {
             return nodeIndicesStatsBean.get().searchFetchCurrent;
         }
-        @Monitor(name="search_fetch_delta", type=DataSourceType.COUNTER)
+        @Monitor(name="search_fetch_delta", type=DataSourceType.GAUGE)
         public long getSearchFetchDelta()
         {
             return nodeIndicesStatsBean.get().searchFetchDelta;
@@ -619,12 +619,12 @@ public class NodeIndicesStatsMonitor extends Task
         {
             return nodeIndicesStatsBean.get().mergesCurrentSize;
         }
-        @Monitor(name="merges_total", type=DataSourceType.GAUGE)
+        @Monitor(name="merges_total", type=DataSourceType.COUNTER)
         public long getMergesTotal()
         {
             return nodeIndicesStatsBean.get().mergesTotal;
         }
-        @Monitor(name="merges_total_time", type=DataSourceType.GAUGE)
+        @Monitor(name="merges_total_time", type=DataSourceType.COUNTER)
         public long getMergesTotalTime()
         {
             return nodeIndicesStatsBean.get().mergesTotalTime;
@@ -636,12 +636,12 @@ public class NodeIndicesStatsMonitor extends Task
         }
 
         //Refresh
-        @Monitor(name="refresh_total", type=DataSourceType.GAUGE)
+        @Monitor(name="refresh_total", type=DataSourceType.COUNTER)
         public long getRefreshTotal()
         {
             return nodeIndicesStatsBean.get().refreshTotal;
         }
-        @Monitor(name="refresh_total_time", type=DataSourceType.GAUGE)
+        @Monitor(name="refresh_total_time", type=DataSourceType.COUNTER)
         public long getRefreshTotalTime()
         {
             return nodeIndicesStatsBean.get().refreshTotalTime;
@@ -653,12 +653,12 @@ public class NodeIndicesStatsMonitor extends Task
         }
 
         //Flush
-        @Monitor(name="flush_total", type=DataSourceType.GAUGE)
+        @Monitor(name="flush_total", type=DataSourceType.COUNTER)
         public long getFlushTotal()
         {
             return nodeIndicesStatsBean.get().flushTotal;
         }
-        @Monitor(name="flush_total_time", type=DataSourceType.GAUGE)
+        @Monitor(name="flush_total_time", type=DataSourceType.COUNTER)
         public long getFlushTotalTime()
         {
             return nodeIndicesStatsBean.get().flushTotalTime;
