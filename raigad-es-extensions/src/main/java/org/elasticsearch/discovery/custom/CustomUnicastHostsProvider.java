@@ -54,7 +54,7 @@ public class CustomUnicastHostsProvider extends AbstractComponent implements Uni
 						logger.debug(
 								"adding {}, address {}, transport_address {}",
 								instance.getId(), instance.getHostIP(),addresses[i]);
-						discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version));
+						discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version.minimumCompatibilityVersion()));
 					}
 				} catch (Exception e) {
 					logger.warn("failed to add {}, address {}", e,instance.getId(), instance.getHostIP());
