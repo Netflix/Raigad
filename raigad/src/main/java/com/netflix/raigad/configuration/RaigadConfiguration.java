@@ -1076,7 +1076,7 @@ public class RaigadConfiguration implements IConfiguration
     }
 
     public boolean isDefaultAmIMetadataEnabledTribeNode() {
-        return config.get(DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE;
+        return config.get(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE,DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
     }
 
     public String getDefaultTribeCommaSeparatedSourceClusters() {

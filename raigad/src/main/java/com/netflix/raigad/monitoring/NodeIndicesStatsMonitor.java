@@ -185,8 +185,10 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.searchFetchTotal = nodeIndicesStats.getSearch().getTotal().getFetchCount();
         nodeIndicesStatsBean.searchQueryCurrent = nodeIndicesStats.getSearch().getTotal().getQueryCurrent();
 
-        nodeIndicesStatsBean.searchQueryDelta = (nodeIndicesStatsBean.searchQueryTotal - cachedQueryCount);
-        nodeIndicesStatsBean.searchFetchDelta = (nodeIndicesStatsBean.searchFetchTotal - cachedFetchCount);
+        long tmpSearchQueryDelta = nodeIndicesStatsBean.searchQueryTotal - cachedQueryCount;
+        nodeIndicesStatsBean.searchQueryDelta = tmpSearchQueryDelta < 0 ? 0 : tmpSearchQueryDelta;
+        long tmpSearchFetchDelta = nodeIndicesStatsBean.searchFetchTotal - cachedFetchCount;
+        nodeIndicesStatsBean.searchFetchDelta = tmpSearchFetchDelta < 0 ? 0 : tmpSearchFetchDelta;
         
         nodeIndicesStatsBean.searchQueryTime = nodeIndicesStats.getSearch().getTotal().getQueryTimeInMillis();
         nodeIndicesStatsBean.searchFetchTime = nodeIndicesStats.getSearch().getTotal().getFetchTimeInMillis();
@@ -232,10 +234,13 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.getTime = nodeIndicesStats.getGet().getTimeInMillis();
         nodeIndicesStatsBean.getExistsTime = nodeIndicesStats.getGet().getExistsTimeInMillis();
         nodeIndicesStatsBean.getMissingTime = nodeIndicesStats.getGet().getMissingTimeInMillis();
-        
-        nodeIndicesStatsBean.getTotalDelta = (nodeIndicesStatsBean.getTotal - cachedGetCount);
-        nodeIndicesStatsBean.getExistsDelta = (nodeIndicesStatsBean.getExistsTotal - cachedGetExistsCount);
-        nodeIndicesStatsBean.getMissingDelta = (nodeIndicesStatsBean.getMissingTotal - cachedGetMissingCount);
+
+        long tmpGetTotalDelta = nodeIndicesStatsBean.getTotal - cachedGetCount;
+        nodeIndicesStatsBean.getTotalDelta = tmpGetTotalDelta < 0 ? 0 : tmpGetTotalDelta;
+        long tmpGetExistsDelta = nodeIndicesStatsBean.getExistsTotal - cachedGetExistsCount;
+        nodeIndicesStatsBean.getExistsDelta = tmpGetExistsDelta < 0 ? 0 : tmpGetExistsDelta;
+        long tmpGetMissingDelta = nodeIndicesStatsBean.getMissingTotal - cachedGetMissingCount;
+        nodeIndicesStatsBean.getMissingDelta = tmpGetMissingDelta < 0 ? 0 : tmpGetMissingDelta;
 
         long getDeltaTimeInMillies = (nodeIndicesStatsBean.getTime - cachedGetTime);
         if (nodeIndicesStatsBean.getTotalDelta != 0) {
@@ -290,9 +295,11 @@ public class NodeIndicesStatsMonitor extends Task
         nodeIndicesStatsBean.indexingIndexTotal = nodeIndicesStats.getIndexing().getTotal().getIndexCount();
         nodeIndicesStatsBean.indexingDeleteTotal = nodeIndicesStats.getIndexing().getTotal().getDeleteCount();
         nodeIndicesStatsBean.indexingIndexCurrent = nodeIndicesStats.getIndexing().getTotal().getIndexCurrent();
-        
-        nodeIndicesStatsBean.indexingIndexDelta = (nodeIndicesStatsBean.indexingIndexTotal - cachedIndexingIndexTotal);
-        nodeIndicesStatsBean.indexingDeleteDelta = (nodeIndicesStatsBean.indexingDeleteTotal - cachedIndexingDeleteTotal);
+
+        long tmpIndexingIndexDelta = (nodeIndicesStatsBean.indexingIndexTotal - cachedIndexingIndexTotal);
+        nodeIndicesStatsBean.indexingIndexDelta = tmpIndexingIndexDelta < 0 ? 0 : tmpIndexingIndexDelta;
+        long tmpIndexingDeleteDelta = (nodeIndicesStatsBean.indexingDeleteTotal - cachedIndexingDeleteTotal);
+        nodeIndicesStatsBean.indexingDeleteDelta = tmpIndexingDeleteDelta < 0 ? 0 : tmpIndexingDeleteDelta;
 
         nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis();
         nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis();
