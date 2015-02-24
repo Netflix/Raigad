@@ -41,7 +41,7 @@ public class TestScheduler
         scheduler.start();
         scheduler.addTask("test2", SingleTestTask.class, SingleTestTask.getTimer());
         // verify 3 tasks run or fail in 1s
-        latch.await(2000, TimeUnit.MILLISECONDS);
+        latch.await(4000, TimeUnit.MILLISECONDS);
         scheduler.shutdown();
         assertEquals(3, SingleTestTask.count);
     }
@@ -88,7 +88,7 @@ public class TestScheduler
             latch.countDown();
             try
             {
-                Thread.sleep(55);
+                Thread.sleep(10);
             }
             catch (InterruptedException e)
             {

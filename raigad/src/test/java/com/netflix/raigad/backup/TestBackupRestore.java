@@ -2,8 +2,8 @@ package com.netflix.raigad.backup;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.netflix.raigad.configuration.UnitTestModule;
 import com.netflix.raigad.configuration.IConfiguration;
+import com.netflix.raigad.configuration.UnitTestModule;
 import com.netflix.raigad.utils.ESTransportClient;
 import mockit.Mock;
 import mockit.Mocked;
@@ -55,6 +55,7 @@ import static org.hamcrest.Matchers.equalTo;
         }
     }
  */
+@Ignore
 @ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.TEST, numDataNodes=2)
 public class TestBackupRestore extends ElasticsearchIntegrationTest
 {
@@ -81,6 +82,7 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
     @Before
     public final void setup() throws IOException {
 
+        System.out.println("Running setup now ...");
         injector = Guice.createInjector(new UnitTestModule());
         conf = injector.getInstance(IConfiguration.class);
         s3RepositorySettingsParams = injector.getInstance(S3RepositorySettingsParams.class);
@@ -105,6 +107,7 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
 
     @After
     public final void wipeAfter() throws IOException {
+        System.out.println("Running wipeAfter ...");
         wipeRepositories();
         injector = null;
         conf = null;
