@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class FsStatsMonitor extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(FsStatsMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(FsStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_FsStatsMonitor";
     private final Elasticsearch_FsStatsReporter fsStatsReporter;
 
@@ -46,55 +46,56 @@ public class FsStatsMonitor extends Task
     {
         super(config);
         fsStatsReporter = new Elasticsearch_FsStatsReporter();
-    		Monitors.registerObject(fsStatsReporter);
+        Monitors.registerObject(fsStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
 
-  		FsStatsBean fsStatsBean = new FsStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			FsStats fsStats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+        FsStatsBean fsStatsBean = new FsStatsBean();
+        try
+        {
+            NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            FsStats fsStats = null;
+            NodeStats ndStat = null;
+            if (ndsStatsResponse.getNodes().length > 0) {
+                ndStat = ndsStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No FsStats).");
-				return;
-			}
-			fsStats = ndStat.getFs();
-			if (fsStats == null) {
-				logger.info("FsStats is null,hence returning (No FsStats).");
-				return;
-			}
+            if (ndStat == null) {
+                logger.info("NodeStats is null,hence returning (No FsStats).");
+                return;
+            }
+            fsStats = ndStat.getFs();
+            if (fsStats == null) {
+                logger.info("FsStats is null,hence returning (No FsStats).");
+                return;
+            }
 
-			fsStatsBean.total = fsStats.getTotal().getTotal().getBytes();
-			fsStatsBean.free = fsStats.getTotal().getFree().getBytes();
-			fsStatsBean.available = fsStats.getTotal().getAvailable().getBytes();
-			fsStatsBean.diskReads = fsStats.getTotal().getDiskReads();
-			fsStatsBean.diskWrites = fsStats.getTotal().getDiskWrites();
-			fsStatsBean.diskReadBytes = fsStats.getTotal().getDiskReadSizeInBytes();
-			fsStatsBean.diskWriteBytes = fsStats.getTotal().getDiskWriteSizeInBytes();
-			fsStatsBean.diskQueue = fsStats.getTotal().getDiskQueue();
-			fsStatsBean.diskServiceTime = fsStats.getTotal().getDiskServiceTime();
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Fs stats data", e);
-  		}
+            fsStatsBean.total = fsStats.getTotal().getTotal().getBytes();
+            fsStatsBean.free = fsStats.getTotal().getFree().getBytes();
+            fsStatsBean.available = fsStats.getTotal().getAvailable().getBytes();
+            fsStatsBean.diskReads = fsStats.getTotal().getDiskReads();
+            fsStatsBean.diskWrites = fsStats.getTotal().getDiskWrites();
+            fsStatsBean.diskReadBytes = fsStats.getTotal().getDiskReadSizeInBytes();
+            fsStatsBean.diskWriteBytes = fsStats.getTotal().getDiskWriteSizeInBytes();
+            fsStatsBean.diskQueue = fsStats.getTotal().getDiskQueue();
+            fsStatsBean.diskServiceTime = fsStats.getTotal().getDiskServiceTime();
+            fsStatsBean.availableDiskPercent =  (fsStatsBean.available * 100) / fsStatsBean.total;
+        }
+        catch(Exception e)
+        {
+            logger.warn("failed to load Fs stats data", e);
+        }
 
-  		fsStatsReporter.fsStatsBean.set(fsStatsBean);
-	}
+        fsStatsReporter.fsStatsBean.set(fsStatsBean);
+    }
 
     public class Elasticsearch_FsStatsReporter
     {
@@ -102,9 +103,9 @@ public class FsStatsMonitor extends Task
 
         public Elasticsearch_FsStatsReporter()
         {
-        		fsStatsBean = new AtomicReference<FsStatsBean>(new FsStatsBean());
+            fsStatsBean = new AtomicReference<FsStatsBean>(new FsStatsBean());
         }
-        
+
         @Monitor(name ="total_bytes", type=DataSourceType.GAUGE)
         public long getTotalBytes()
         {
@@ -150,30 +151,37 @@ public class FsStatsMonitor extends Task
         {
             return fsStatsBean.get().diskServiceTime;
         }
+        @Monitor(name ="available_disk_percent", type=DataSourceType.GAUGE)
+        public long getAvailableDiskPercent()
+        {
+            return fsStatsBean.get().availableDiskPercent;
+        }
+
     }
-    
+
     private static class FsStatsBean
     {
-    	  private long total = -1;
-    	  private long free = -1;
-    	  private long available = -1;
-    	  private long diskReads = -1;
-    	  private long diskWrites = -1;
-    	  private long diskReadBytes = -1;
-    	  private long diskWriteBytes = -1;
-    	  private double diskQueue = -1;
-    	  private double diskServiceTime = -1;
+        private long total;
+        private long free;
+        private long available;
+        private long diskReads;
+        private long diskWrites;
+        private long diskReadBytes;
+        private long diskWriteBytes;
+        private double diskQueue;
+        private double diskServiceTime;
+        private long availableDiskPercent;
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public static TaskTimer getTimer(String name)
+    {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName()
+    {
+        return METRIC_NAME;
+    }
 
 }

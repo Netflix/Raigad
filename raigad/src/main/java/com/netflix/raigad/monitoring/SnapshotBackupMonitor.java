@@ -96,8 +96,8 @@ public class SnapshotBackupMonitor extends Task
 
     private static class SnapshotBackupBean
     {
-        private int snapshotSuccess = -1;
-        private int snapshotFailure = -1;
+        private int snapshotSuccess;
+        private int snapshotFailure;
     }
 
     public static TaskTimer getTimer(String name)

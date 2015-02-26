@@ -38,105 +38,105 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class ThreadPoolStatsMonitor extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(ThreadPoolStatsMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ThreadPoolStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_ThreadPoolMonitor";
     private final Elasticsearch_ThreadPoolStatsReporter tpStatsReporter;
-    
+
     @Inject
     public ThreadPoolStatsMonitor(IConfiguration config)
     {
         super(config);
         tpStatsReporter = new Elasticsearch_ThreadPoolStatsReporter();
-    		Monitors.registerObject(tpStatsReporter);
+        Monitors.registerObject(tpStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}        		
-	
-  		ThreadPoolStatsBean tpStatsBean = new ThreadPoolStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			ThreadPoolStats tpstats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
+
+        ThreadPoolStatsBean tpStatsBean = new ThreadPoolStatsBean();
+        try
+        {
+            NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            ThreadPoolStats tpstats = null;
+            NodeStats ndStat = null;
+            if (ndsStatsResponse.getNodes().length > 0) {
+                ndStat = ndsStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No ThreadPoolStats).");
-				return;
-			}
-  			tpstats = ndStat.getThreadPool();
-			if (tpstats == null) {
-				logger.info("ThreadPoolStats is null,hence returning (No ThreadPoolStats).");
-				return;
-			}
-  		    Iterator<ThreadPoolStats.Stats> iter = tpstats.iterator();
-  		    while( iter.hasNext() ) {
-  		      ThreadPoolStats.Stats stat = iter.next();
-  		      if( stat.getName().equals("index") ) {
-  		    	  	tpStatsBean.indexThreads = stat.getThreads();
-  		    	  	tpStatsBean.indexQueue = stat.getQueue();
-  		    	  	tpStatsBean.indexActive = stat.getActive();
-  		    	  	tpStatsBean.indexRejected = stat.getRejected();
-  		    	  	tpStatsBean.indexLargest = stat.getLargest();
-  		    	  	tpStatsBean.indexCompleted = stat.getCompleted();
-  		      }
-  		      else if( stat.getName().equals("get") ) {
-  		    	  	tpStatsBean.getThreads = stat.getThreads();
-  		    	  	tpStatsBean.getQueue = stat.getQueue();
-  		    	  	tpStatsBean.getActive = stat.getActive();
-  		    	  	tpStatsBean.getRejected = stat.getRejected();
-  		    	  	tpStatsBean.getLargest = stat.getLargest();
-  		    	  	tpStatsBean.getCompleted = stat.getCompleted();
-  		      }
-  		      else if( stat.getName().equals("search") ) {
-  		    	  	tpStatsBean.searchThreads = stat.getThreads();
-  		    	  	tpStatsBean.searchQueue = stat.getQueue();
-  		    	  	tpStatsBean.searchActive = stat.getActive();
-  		    	  	tpStatsBean.searchRejected = stat.getRejected();
-  		    	  	tpStatsBean.searchLargest = stat.getLargest();
-  		    	  	tpStatsBean.searchCompleted = stat.getCompleted();
-  		      }
-  		      else if( stat.getName().equals("bulk") ) {
-  		    	  	tpStatsBean.bulkThreads = stat.getThreads();
-  		    	  	tpStatsBean.bulkQueue = stat.getQueue();
-  		    	  	tpStatsBean.bulkActive = stat.getActive();
-  		    	  	tpStatsBean.bulkRejected = stat.getRejected();
-  		    	  	tpStatsBean.bulkLargest = stat.getLargest();
-  		    	  	tpStatsBean.bulkCompleted = stat.getCompleted();
-  		      }
-  		    }
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Thread Pool stats data", e);
-  		}
-  		tpStatsReporter.threadPoolBean.set(tpStatsBean);
-	}
-  	
+            if (ndStat == null) {
+                logger.info("NodeStats is null,hence returning (No ThreadPoolStats).");
+                return;
+            }
+            tpstats = ndStat.getThreadPool();
+            if (tpstats == null) {
+                logger.info("ThreadPoolStats is null,hence returning (No ThreadPoolStats).");
+                return;
+            }
+            Iterator<ThreadPoolStats.Stats> iter = tpstats.iterator();
+            while( iter.hasNext() ) {
+                ThreadPoolStats.Stats stat = iter.next();
+                if( stat.getName().equals("index") ) {
+                    tpStatsBean.indexThreads = stat.getThreads();
+                    tpStatsBean.indexQueue = stat.getQueue();
+                    tpStatsBean.indexActive = stat.getActive();
+                    tpStatsBean.indexRejected = stat.getRejected();
+                    tpStatsBean.indexLargest = stat.getLargest();
+                    tpStatsBean.indexCompleted = stat.getCompleted();
+                }
+                else if( stat.getName().equals("get") ) {
+                    tpStatsBean.getThreads = stat.getThreads();
+                    tpStatsBean.getQueue = stat.getQueue();
+                    tpStatsBean.getActive = stat.getActive();
+                    tpStatsBean.getRejected = stat.getRejected();
+                    tpStatsBean.getLargest = stat.getLargest();
+                    tpStatsBean.getCompleted = stat.getCompleted();
+                }
+                else if( stat.getName().equals("search") ) {
+                    tpStatsBean.searchThreads = stat.getThreads();
+                    tpStatsBean.searchQueue = stat.getQueue();
+                    tpStatsBean.searchActive = stat.getActive();
+                    tpStatsBean.searchRejected = stat.getRejected();
+                    tpStatsBean.searchLargest = stat.getLargest();
+                    tpStatsBean.searchCompleted = stat.getCompleted();
+                }
+                else if( stat.getName().equals("bulk") ) {
+                    tpStatsBean.bulkThreads = stat.getThreads();
+                    tpStatsBean.bulkQueue = stat.getQueue();
+                    tpStatsBean.bulkActive = stat.getActive();
+                    tpStatsBean.bulkRejected = stat.getRejected();
+                    tpStatsBean.bulkLargest = stat.getLargest();
+                    tpStatsBean.bulkCompleted = stat.getCompleted();
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            logger.warn("failed to load Thread Pool stats data", e);
+        }
+        tpStatsReporter.threadPoolBean.set(tpStatsBean);
+    }
+
     public class Elasticsearch_ThreadPoolStatsReporter
     {
         private final AtomicReference<ThreadPoolStatsBean> threadPoolBean;
 
         public Elasticsearch_ThreadPoolStatsReporter()
         {
-        		threadPoolBean = new AtomicReference<ThreadPoolStatsBean>(new ThreadPoolStatsBean());
+            threadPoolBean = new AtomicReference<ThreadPoolStatsBean>(new ThreadPoolStatsBean());
         }
-        
+
         @Monitor(name="IndexThreads", type=DataSourceType.GAUGE)
         public long getIndexThreads()
         {
             return threadPoolBean.get().indexThreads;
         }
-        
+
         @Monitor(name="IndexQueue", type=DataSourceType.GAUGE)
         public long getIndexQueue()
         {
@@ -256,47 +256,47 @@ public class ThreadPoolStatsMonitor extends Task
             return threadPoolBean.get().bulkCompleted;
         }
     }
-    
+
     private static class ThreadPoolStatsBean
     {
-    	  private long indexThreads;
-    	  private long indexQueue;
-    	  private long indexActive;
-    	  private long indexRejected;
-    	  private long indexLargest;
-    	  private long indexCompleted;
+        private long indexThreads;
+        private long indexQueue;
+        private long indexActive;
+        private long indexRejected;
+        private long indexLargest;
+        private long indexCompleted;
 
-    	  private long getThreads;
-    	  private long getQueue;
-    	  private long getActive;
-    	  private long getRejected;
-    	  private long getLargest;
-    	  private long getCompleted;
+        private long getThreads;
+        private long getQueue;
+        private long getActive;
+        private long getRejected;
+        private long getLargest;
+        private long getCompleted;
 
-    	  private long searchThreads;
-    	  private long searchQueue;
-    	  private long searchActive;
-    	  private long searchRejected;
-    	  private long searchLargest;
-    	  private long searchCompleted;
+        private long searchThreads;
+        private long searchQueue;
+        private long searchActive;
+        private long searchRejected;
+        private long searchLargest;
+        private long searchCompleted;
 
-    	  private long bulkThreads;
-    	  private long bulkQueue;
-    	  private long bulkActive;
-    	  private long bulkRejected;
-    	  private long bulkLargest;
-    	  private long bulkCompleted;    
+        private long bulkThreads;
+        private long bulkQueue;
+        private long bulkActive;
+        private long bulkRejected;
+        private long bulkLargest;
+        private long bulkCompleted;
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public static TaskTimer getTimer(String name)
+    {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName()
+    {
+        return METRIC_NAME;
+    }
 
 }

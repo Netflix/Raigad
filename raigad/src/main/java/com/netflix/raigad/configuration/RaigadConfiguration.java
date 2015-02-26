@@ -37,6 +37,7 @@ public class RaigadConfiguration implements IConfiguration
 {
     public static final String MY_WEBAPP_NAME = "Raigad";
 
+    private static final String CONFIG_CLUSTER_NAME = MY_WEBAPP_NAME + ".es.clustername";
     private static final String CONFIG_AVAILABILITY_ZONES = MY_WEBAPP_NAME + ".zones.available";
     private static final String CONFIG_DATA_LOCATION = MY_WEBAPP_NAME + ".es.data.location";
     private static final String CONFIG_LOG_LOCATION = MY_WEBAPP_NAME + ".es.log.location";
@@ -208,76 +209,76 @@ public class RaigadConfiguration implements IConfiguration
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
     private final ICredential provider;
 
-    private final DynamicStringProperty CREDENTIAL_PROVIDER = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);
-    private final DynamicStringProperty ES_STARTUP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_START_SCRIPT, DEFAULT_ES_START_SCRIPT);
-    private final DynamicStringProperty ES_STOP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_STOP_SCRIPT, DEFAULT_ES_STOP_SCRIPT);
-    private final DynamicStringProperty DATA_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_DATA_LOCATION, DEFAULT_DATA_LOCATION);
-    private final DynamicStringProperty LOG_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, DEFAULT_LOG_LOCATION);
-    private final DynamicStringProperty YAML_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_YAML_LOCATION, DEFAULT_YAML_LOCATION);
-    private final DynamicStringProperty ES_HOME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, DEFAULT_ES_HOME);
-    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL,DEFAULT_FD_PING_INTERVAL);
-    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT,DEFAULT_FD_PING_TIMEOUT);
-    private final DynamicIntProperty ES_HTTP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, DEFAULT_HTTP_PORT);
-    private final DynamicIntProperty ES_TRANSPORT_TCP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, DEFAULT_TRANSPORT_TCP_PORT);
-    private final DynamicIntProperty MINIMUM_MASTER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, DEFAULT_MIN_MASTER_NODES);
-    private final DynamicIntProperty NUM_REPLICAS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_REPLICAS, DEFAULT_NUM_REPLICAS);
-    private final DynamicIntProperty NUM_SHARDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_SHARDS, DEFAULT_NUM_SHARDS);
-    private final DynamicStringProperty PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_PING_TIMEOUT, DEFAULT_PING_TIMEOUT);
-    private final DynamicStringProperty INDEX_REFRESH_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_REFRESH_INTERVAL, DEFAULT_INDEX_REFRESH_INTERVAL);
-    private final DynamicBooleanProperty IS_MASTER_QUORUM_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MASTER_QUORUM_ENABLED, DEFAULT_IS_MASTER_QUORUM_ENABLED);
-    private final DynamicBooleanProperty IS_PING_MULTICAST_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_PING_MULTICAST_ENABLED, DEFAULT_IS_PING_MULTICAST_ENABLED);
-    private final DynamicStringProperty BOOTCLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BOOTCLUSTER_NAME, DEFAULT_CONFIG_BOOTCLUSTER_NAME);
-    private final DynamicStringProperty ES_DISCOVERY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_DISCOVERY_TYPE, DEFAULT_ES_DISCOVERY_TYPE);
+    private final DynamicStringProperty CREDENTIAL_PROVIDER = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, getDefaultCredentialProvider());
+    private final DynamicStringProperty ES_STARTUP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_START_SCRIPT, getDefaultEsStartScript());
+    private final DynamicStringProperty ES_STOP_SCRIPT_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_STOP_SCRIPT, getDefaultEsStopScript());
+    private final DynamicStringProperty DATA_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_DATA_LOCATION, getDefaultDataLocation());
+    private final DynamicStringProperty LOG_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, getDefaultLogLocation());
+    private final DynamicStringProperty YAML_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_YAML_LOCATION, getDefaultYamlLocation());
+    private final DynamicStringProperty ES_HOME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, getDefaultEsHome());
+    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL,getDefaultFdPingInterval());
+    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT,getDefaultFdPingTimeout());
+    private final DynamicIntProperty ES_HTTP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, getDefaultHttpPort());
+    private final DynamicIntProperty ES_TRANSPORT_TCP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, getDefaultTransportTcpPort());
+    private final DynamicIntProperty MINIMUM_MASTER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, getDefaultMinMasterNodes());
+    private final DynamicIntProperty NUM_REPLICAS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_REPLICAS, getDefaultNumReplicas());
+    private final DynamicIntProperty NUM_SHARDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_NUM_SHARDS, getDefaultNumShards());
+    private final DynamicStringProperty PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_PING_TIMEOUT, getDefaultPingTimeout());
+    private final DynamicStringProperty INDEX_REFRESH_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_REFRESH_INTERVAL, getDefaultIndexRefreshInterval());
+    private final DynamicBooleanProperty IS_MASTER_QUORUM_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MASTER_QUORUM_ENABLED, isDefaultIsMasterQuorumEnabled());
+    private final DynamicBooleanProperty IS_PING_MULTICAST_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_PING_MULTICAST_ENABLED, isDefaultIsPingMulticastEnabled());
+    private final DynamicStringProperty BOOTCLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BOOTCLUSTER_NAME, getDefaultConfigBootclusterName());
+    private final DynamicStringProperty ES_DISCOVERY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_DISCOVERY_TYPE, getDefaultEsDiscoveryType());
     private final DynamicStringProperty SECURITY_GROUP_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_SECURITY_GROUP_NAME, getAppName());
-    private final DynamicBooleanProperty IS_MULTI_DC_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MULTI_DC_ENABLED, DEFAULT_IS_MULTI_DC_ENABLED);
-    private final DynamicBooleanProperty IS_ASG_BASED_DEPLOYMENT_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED, DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
-    private final DynamicStringProperty ES_CLUSTER_ROUTING_ATTRIBUTES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES, DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
-    private final DynamicBooleanProperty IS_SHARD_ALLOCATION_POLICY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED, DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
-    private final DynamicStringProperty ES_SHARD_ALLOCATION_ATTRIBUTE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE, DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
-    private final DynamicStringProperty EXTRA_PARAMS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_EXTRA_PARAMS, DEFAULT_CONFIG_EXTRA_PARAMS);
-    private final DynamicBooleanProperty IS_DEBUG_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_DEBUG_ENABLED, DEFAULT_IS_DEBUG_ENABLED);
-    private final DynamicBooleanProperty IS_SHARDS_PER_NODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARDS_PER_NODE_ENABLED, DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
-    private final DynamicIntProperty TOTAL_SHARDS_PER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_SHARDS_PER_NODE, DEFAULT_SHARDS_PER_NODE);
-    private final DynamicStringProperty INDEX_METADATA = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, DEFAULT_INDEX_METADATA);
-    private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
-    private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
-    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
-    private final DynamicIntProperty AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
-    private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
-    private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
-    private final DynamicIntProperty BACKUP_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_BACKUP_HOUR, DEFAULT_BACKUP_HOUR);
-    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_BACKUP = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_COMMA_SEPARATED_INDICES, DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
-    private final DynamicBooleanProperty PARTIALLY_BACKUP_INDICES = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_PARTIAL_INDICES, DEFAULT_BACKUP_PARTIAL_INDICES);
-    private final DynamicBooleanProperty INCLUDE_GLOBAL_STATE_DURING_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE, DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
-    private final DynamicBooleanProperty WAIT_FOR_COMPLETION_OF_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_WAIT_FOR_COMPLETION, DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
-    private final DynamicBooleanProperty INCLUDE_INDEX_NAME_IN_SNAPSHOT_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_INDEX_NAME, DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
-    private final DynamicBooleanProperty IS_RESTORE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_RESTORE_ENABLED, DEFAULT_IS_RESTORE_ENABLED);
-    private final DynamicStringProperty RESTORE_REPOSITORY_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_NAME, DEFAULT_RESTORE_REPOSITORY_NAME);
-    private final DynamicStringProperty RESTORE_REPOSITORY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_TYPE, DEFAULT_RESTORE_REPOSITORY_TYPE);
-    private final DynamicStringProperty RESTORE_SNAPSHOT_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SNAPSHOT_NAME, DEFAULT_RESTORE_SNAPSHOT_NAME);
-    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_RESTORE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_COMMA_SEPARATED_INDICES, DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
-    private final DynamicIntProperty RESTORE_TASK_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS, DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
-    private final DynamicStringProperty RESTORE_SOURCE_CLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_CLUSTER_NAME, DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
-    private final DynamicStringProperty RESTORE_SOURCE_REPO_REGION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_REPO_REGION, DEFAULT_RESTORE_SOURCE_REPO_REGION);
-    private final DynamicStringProperty RESTORE_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_LOCATION, DEFAULT_RESTORE_LOCATION);
-    private final DynamicBooleanProperty IS_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
-    private final DynamicBooleanProperty IS_HOURLY_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
-    private final DynamicLongProperty BACKUP_CRON_TIMER_SECONDS = DynamicPropertyFactory.getInstance().getLongProperty(CONFIG_BACKUP_CRON_TIMER_SECONDS, DEFAULT_BACKUP_CRON_TIMER_SECONDS);
-    private final DynamicBooleanProperty AM_I_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_TRIBE_NODE, DEFAULT_AM_I_TRIBE_NODE);
-    private final DynamicBooleanProperty AM_I_WRITE_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE, DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
-    private final DynamicBooleanProperty AM_I_METADATA_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE, DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
-    private final DynamicStringProperty COMMA_SEPARATED_SOURCE_CLUSTERS_IN_TRIBE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
-    private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
-    private final DynamicStringProperty COMMA_SEPARATED_TRIBE_CLUSTERS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
-    private final DynamicBooleanProperty IS_NODE_MISMATCH_WITH_DISCOVERY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED, DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
-    private final DynamicIntProperty DESIRED_NUM_NODES_IN_CLUSTER = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
-    private final DynamicBooleanProperty IS_EUREKA_HEALTH_CHECK_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
-    private final DynamicBooleanProperty IS_LOCAL_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_LOCAL_MODE_ENABLED, DEFAULT_IS_LOCAL_MODE_ENABLED);
-    private final DynamicStringProperty CASSANDRA_KEYSPACE_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME);
-    private final DynamicIntProperty CASSANDRA_THRIFT_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_CASSANDRA_THRIFT_PORT, DEFAULT_CASSANDRA_THRIFT_PORT);
-    private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
-    private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
-    private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
+    private final DynamicBooleanProperty IS_MULTI_DC_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_MULTI_DC_ENABLED, isDefaultIsMultiDcEnabled());
+    private final DynamicBooleanProperty IS_ASG_BASED_DEPLOYMENT_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED, isDefaultIsAsgBasedDeploymentEnabled());
+    private final DynamicStringProperty ES_CLUSTER_ROUTING_ATTRIBUTES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES, getDefaultEsClusterRoutingAttributes());
+    private final DynamicBooleanProperty IS_SHARD_ALLOCATION_POLICY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED, isDefaultIsShardAllocationPolicyEnabled());
+    private final DynamicStringProperty ES_SHARD_ALLOCATION_ATTRIBUTE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE, getDefaultEsShardAllocationAttribute());
+    private final DynamicStringProperty EXTRA_PARAMS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_EXTRA_PARAMS, getDefaultConfigExtraParams());
+    private final DynamicBooleanProperty IS_DEBUG_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_DEBUG_ENABLED, isDefaultIsDebugEnabled());
+    private final DynamicBooleanProperty IS_SHARDS_PER_NODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SHARDS_PER_NODE_ENABLED, isDefaultIsShardsPerNodeEnabled());
+    private final DynamicIntProperty TOTAL_SHARDS_PER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_SHARDS_PER_NODE, getDefaultShardsPerNode());
+    private final DynamicStringProperty INDEX_METADATA = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, getDefaultIndexMetadata());
+    private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, isDefaultIsIndexAutocreationEnabled());
+    private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, getDefaultAutocreateIndexTimeout());
+    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,getDefaultAutocreateIndexInitialStartDelaySeconds());
+    private final DynamicIntProperty AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, getDefaultAutocreateIndexPeriodicScheduledHour());
+    private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, getDefaultEsProcessName());
+    private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, getDefaultBackupLocation());
+    private final DynamicIntProperty BACKUP_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_BACKUP_HOUR, getDefaultBackupHour());
+    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_BACKUP = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_COMMA_SEPARATED_INDICES, getDefaultBackupCommaSeparatedIndices());
+    private final DynamicBooleanProperty PARTIALLY_BACKUP_INDICES = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_PARTIAL_INDICES, isDefaultBackupPartialIndices());
+    private final DynamicBooleanProperty INCLUDE_GLOBAL_STATE_DURING_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE, isDefaultBackupIncludeGlobalState());
+    private final DynamicBooleanProperty WAIT_FOR_COMPLETION_OF_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_WAIT_FOR_COMPLETION, isDefaultBackupWaitForCompletion());
+    private final DynamicBooleanProperty INCLUDE_INDEX_NAME_IN_SNAPSHOT_BACKUP = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_INCLUDE_INDEX_NAME, isDefaultBackupIncludeIndexName());
+    private final DynamicBooleanProperty IS_RESTORE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_RESTORE_ENABLED, isDefaultIsRestoreEnabled());
+    private final DynamicStringProperty RESTORE_REPOSITORY_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_NAME, getDefaultRestoreRepositoryName());
+    private final DynamicStringProperty RESTORE_REPOSITORY_TYPE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_REPOSITORY_TYPE, getDefaultRestoreRepositoryType());
+    private final DynamicStringProperty RESTORE_SNAPSHOT_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SNAPSHOT_NAME, getDefaultRestoreSnapshotName());
+    private final DynamicStringProperty COMMA_SEPARATED_INDICES_TO_RESTORE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_COMMA_SEPARATED_INDICES, getDefaultRestoreCommaSeparatedIndices());
+    private final DynamicIntProperty RESTORE_TASK_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS, getDefaultRestoreTaskInitialStartDelaySeconds());
+    private final DynamicStringProperty RESTORE_SOURCE_CLUSTER_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_CLUSTER_NAME, getDefaultRestoreSourceClusterName());
+    private final DynamicStringProperty RESTORE_SOURCE_REPO_REGION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_SOURCE_REPO_REGION, getDefaultRestoreSourceRepoRegion());
+    private final DynamicStringProperty RESTORE_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_RESTORE_LOCATION, getDefaultRestoreLocation());
+    private final DynamicBooleanProperty IS_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED, isDefaultBackupIsSnapshotEnabled());
+    private final DynamicBooleanProperty IS_HOURLY_SNAPSHOT_BACKUP_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED, isDefaultBackupIsHourlySnapshotEnabled());
+    private final DynamicLongProperty BACKUP_CRON_TIMER_SECONDS = DynamicPropertyFactory.getInstance().getLongProperty(CONFIG_BACKUP_CRON_TIMER_SECONDS, getDefaultBackupCronTimerSeconds());
+    private final DynamicBooleanProperty AM_I_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_TRIBE_NODE, isDefaultAmITribeNode());
+    private final DynamicBooleanProperty AM_I_WRITE_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE, isDefaultAmIWriteEnabledTribeNode());
+    private final DynamicBooleanProperty AM_I_METADATA_ENABLED_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE, isDefaultAmIMetadataEnabledTribeNode());
+    private final DynamicStringProperty COMMA_SEPARATED_SOURCE_CLUSTERS_IN_TRIBE = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS, getDefaultTribeCommaSeparatedSourceClusters());
+    private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE, isDefaultAmISourceClusterForTribeNode());
+    private final DynamicStringProperty COMMA_SEPARATED_TRIBE_CLUSTERS = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS, getDefaultTribeCommaSeparatedTribeClusters());
+    private final DynamicBooleanProperty IS_NODE_MISMATCH_WITH_DISCOVERY_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED, isDefaultIsNodemismatchWithDiscoveryEnabled());
+    private final DynamicIntProperty DESIRED_NUM_NODES_IN_CLUSTER = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, getDefaultDesiredNumNodesInCluster());
+    private final DynamicBooleanProperty IS_EUREKA_HEALTH_CHECK_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, isDefaultIsEurekaHealthCheckEnabled());
+    private final DynamicBooleanProperty IS_LOCAL_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_LOCAL_MODE_ENABLED, isDefaultIsLocalModeEnabled());
+    private final DynamicStringProperty CASSANDRA_KEYSPACE_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME, getDefaultCassandraKeyspaceName());
+    private final DynamicIntProperty CASSANDRA_THRIFT_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_CASSANDRA_THRIFT_PORT, getDefaultCassandraThriftPort());
+    private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, isDefaultIsEurekaHostSupplierEnabled());
+    private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, getDefaultCommaSeparatedCassandraHostnames());
+    private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, isDefaultIsSecurityGroupInMultiDc());
 
 
     @Inject
@@ -548,7 +549,7 @@ public class RaigadConfiguration implements IConfiguration
 
     @Override
     public String getAppName() {
-        return DEFAULT_CLUSTER_NAME;
+        return config.get(CONFIG_CLUSTER_NAME, DEFAULT_CLUSTER_NAME);
     }
 
     @Override
@@ -812,6 +813,297 @@ public class RaigadConfiguration implements IConfiguration
     @Override
     public boolean isSecutrityGroupInMultiDC() {
         return IS_SECURITY_GROUP_IN_MULTI_DC.get();
+    }
+
+    public String getDefaultCredentialProvider()
+    {
+       return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
+    }
+
+    public String getDefaultEsStartScript()
+    {
+        return config.get(CONFIG_ES_START_SCRIPT,DEFAULT_ES_START_SCRIPT);
+    }
+
+    public String getDefaultEsStopScript()
+    {
+        return config.get(CONFIG_ES_STOP_SCRIPT,DEFAULT_ES_STOP_SCRIPT);
+    }
+
+    public String getDefaultDataLocation()
+    {
+        return config.get(CONFIG_DATA_LOCATION,DEFAULT_DATA_LOCATION);
+    }
+
+    public String getDefaultLogLocation()
+    {
+        return config.get(CONFIG_LOG_LOCATION,DEFAULT_LOG_LOCATION);
+    }
+
+    public String getDefaultYamlLocation()
+    {
+        return config.get(CONFIG_YAML_LOCATION,DEFAULT_YAML_LOCATION);
+    }
+
+    public String getDefaultEsHome()
+    {
+        return config.get(CONFIG_ES_HOME,DEFAULT_ES_HOME);
+    }
+
+    public String getDefaultFdPingInterval()
+    {
+        return config.get(CONFIG_FD_PING_INTERVAL,DEFAULT_FD_PING_INTERVAL);
+    }
+
+    public String getDefaultFdPingTimeout()
+    {
+        return config.get(CONFIG_FD_PING_TIMEOUT,DEFAULT_FD_PING_TIMEOUT);
+    }
+
+    public int getDefaultHttpPort()
+    {
+        return config.get(CONFIG_HTTP_PORT,DEFAULT_HTTP_PORT);
+    }
+
+    public int getDefaultTransportTcpPort()
+    {
+        return config.get(CONFIG_TRANSPORT_TCP_PORT,DEFAULT_TRANSPORT_TCP_PORT);
+    }
+
+    public int getDefaultMinMasterNodes()
+    {
+        return config.get(CONFIG_MIN_MASTER_NODES,DEFAULT_MIN_MASTER_NODES);
+    }
+
+    public int getDefaultNumReplicas()
+    {
+        return config.get(CONFIG_NUM_REPLICAS,DEFAULT_NUM_REPLICAS);
+    }
+
+    public int getDefaultNumShards()
+    {
+        return config.get(CONFIG_NUM_SHARDS,DEFAULT_NUM_SHARDS);
+    }
+
+    public String getDefaultPingTimeout()
+    {
+        return config.get(CONFIG_PING_TIMEOUT,DEFAULT_PING_TIMEOUT);
+    }
+
+    public String getDefaultIndexRefreshInterval() {
+        return config.get(CONFIG_INDEX_REFRESH_INTERVAL,DEFAULT_INDEX_REFRESH_INTERVAL);
+    }
+
+    public boolean isDefaultIsMasterQuorumEnabled() {
+        return config.get(CONFIG_IS_MASTER_QUORUM_ENABLED,DEFAULT_IS_MASTER_QUORUM_ENABLED);
+    }
+
+    public boolean isDefaultIsPingMulticastEnabled() {
+        return config.get(CONFIG_IS_PING_MULTICAST_ENABLED,DEFAULT_IS_PING_MULTICAST_ENABLED);
+    }
+
+    public String getDefaultConfigBootclusterName() {
+        return config.get(CONFIG_BOOTCLUSTER_NAME,DEFAULT_CONFIG_BOOTCLUSTER_NAME);
+    }
+
+    public String getDefaultEsDiscoveryType() {
+        return config.get(CONFIG_ES_DISCOVERY_TYPE,DEFAULT_ES_DISCOVERY_TYPE);
+    }
+
+    public boolean isDefaultIsMultiDcEnabled() {
+        return config.get(CONFIG_IS_MULTI_DC_ENABLED,DEFAULT_IS_MULTI_DC_ENABLED);
+    }
+
+    public boolean isDefaultIsAsgBasedDeploymentEnabled() {
+        return config.get(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED,DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
+    }
+
+    public String getDefaultEsClusterRoutingAttributes() {
+        return config.get(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES,DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
+    }
+
+    public String getDefaultEsProcessName() {
+        return config.get(CONFIG_ES_PROCESS_NAME,DEFAULT_ES_PROCESS_NAME);
+    }
+
+    public boolean isDefaultIsShardAllocationPolicyEnabled() {
+        return config.get(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED,DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
+    }
+
+    public String getDefaultEsShardAllocationAttribute() {
+        return config.get(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE,DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
+    }
+
+    public String getDefaultConfigExtraParams() {
+        return config.get(CONFIG_EXTRA_PARAMS,DEFAULT_CONFIG_EXTRA_PARAMS);
+    }
+
+    public boolean isDefaultIsDebugEnabled() {
+        return config.get(CONFIG_IS_DEBUG_ENABLED,DEFAULT_IS_DEBUG_ENABLED);
+    }
+
+    public boolean isDefaultIsShardsPerNodeEnabled() {
+        return config.get(CONFIG_IS_SHARDS_PER_NODE_ENABLED,DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
+    }
+
+    public int getDefaultShardsPerNode() {
+        return config.get(CONFIG_SHARDS_PER_NODE,DEFAULT_SHARDS_PER_NODE);
+    }
+
+    public boolean isDefaultIsIndexAutocreationEnabled() {
+        return config.get(CONFIG_IS_INDEX_AUTOCREATION_ENABLED,DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
+    }
+
+    public int getDefaultAutocreateIndexTimeout() {
+        return config.get(CONFIG_AUTOCREATE_INDEX_TIMEOUT,DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
+    }
+
+    public int getDefaultAutocreateIndexInitialStartDelaySeconds() {
+        return config.get(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
+    }
+
+    public int getDefaultAutocreateIndexPeriodicScheduledHour() {
+        return config.get(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR,DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
+    }
+
+    public String getDefaultIndexMetadata() {
+        return config.get(CONFIG_INDEX_METADATA,DEFAULT_INDEX_METADATA);
+    }
+
+    public String getDefaultBackupLocation() {
+        return config.get(CONFIG_BACKUP_LOCATION,DEFAULT_BACKUP_LOCATION);
+    }
+
+    public int getDefaultBackupHour() {
+        return config.get(CONFIG_BACKUP_HOUR,DEFAULT_BACKUP_HOUR);
+    }
+
+    public String getDefaultBackupCommaSeparatedIndices() {
+        return config.get(CONFIG_BACKUP_COMMA_SEPARATED_INDICES,DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
+    }
+
+    public boolean isDefaultBackupPartialIndices() {
+        return config.get(CONFIG_BACKUP_PARTIAL_INDICES,DEFAULT_BACKUP_PARTIAL_INDICES);
+    }
+
+    public boolean isDefaultBackupIncludeGlobalState() {
+        return config.get(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE,DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
+    }
+
+    public boolean isDefaultBackupWaitForCompletion() {
+        return config.get(CONFIG_BACKUP_WAIT_FOR_COMPLETION,DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
+    }
+
+    public boolean isDefaultBackupIncludeIndexName() {
+        return config.get(CONFIG_BACKUP_INCLUDE_INDEX_NAME,DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
+    }
+
+    public boolean isDefaultIsRestoreEnabled() {
+        return config.get(CONFIG_IS_RESTORE_ENABLED,DEFAULT_IS_RESTORE_ENABLED);
+    }
+
+    public String getDefaultRestoreRepositoryName() {
+        return config.get(CONFIG_RESTORE_REPOSITORY_NAME,DEFAULT_RESTORE_REPOSITORY_NAME);
+    }
+
+    public String getDefaultRestoreRepositoryType() {
+        return config.get(CONFIG_RESTORE_REPOSITORY_TYPE,DEFAULT_RESTORE_REPOSITORY_TYPE);
+    }
+
+    public String getDefaultRestoreSnapshotName() {
+        return config.get(CONFIG_RESTORE_SNAPSHOT_NAME,DEFAULT_RESTORE_SNAPSHOT_NAME);
+    }
+
+    public String getDefaultRestoreCommaSeparatedIndices() {
+        return config.get(CONFIG_RESTORE_COMMA_SEPARATED_INDICES,DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
+    }
+
+    public int getDefaultRestoreTaskInitialStartDelaySeconds() {
+        return config.get(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS,DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
+    }
+
+    public String getDefaultRestoreSourceClusterName() {
+        return config.get(CONFIG_RESTORE_SOURCE_CLUSTER_NAME,DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
+    }
+
+    public String getDefaultRestoreSourceRepoRegion() {
+        return config.get(CONFIG_RESTORE_SOURCE_REPO_REGION,DEFAULT_RESTORE_SOURCE_REPO_REGION);
+    }
+
+    public String getDefaultRestoreLocation() {
+        return config.get(CONFIG_RESTORE_LOCATION,DEFAULT_RESTORE_LOCATION);
+    }
+
+    public boolean isDefaultBackupIsSnapshotEnabled() {
+        return config.get(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED,DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
+    }
+
+    public boolean isDefaultBackupIsHourlySnapshotEnabled() {
+        return config.get(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED,DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
+    }
+
+    public long getDefaultBackupCronTimerSeconds() {
+        return config.get(CONFIG_BACKUP_CRON_TIMER_SECONDS,DEFAULT_BACKUP_CRON_TIMER_SECONDS);
+    }
+
+    public boolean isDefaultAmITribeNode() {
+        return config.get(CONFIG_AM_I_TRIBE_NODE,DEFAULT_AM_I_TRIBE_NODE);
+    }
+
+    public boolean isDefaultAmIWriteEnabledTribeNode() {
+        return config.get(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE,DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
+    }
+
+    public boolean isDefaultAmIMetadataEnabledTribeNode() {
+        return config.get(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE,DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
+    }
+
+    public String getDefaultTribeCommaSeparatedSourceClusters() {
+        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS,DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
+    }
+
+    public boolean isDefaultAmISourceClusterForTribeNode() {
+        return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE,DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
+    }
+
+    public String getDefaultTribeCommaSeparatedTribeClusters() {
+        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS,DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
+    }
+
+    public boolean isDefaultIsNodemismatchWithDiscoveryEnabled() {
+        return config.get(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED,DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
+    }
+
+    public int getDefaultDesiredNumNodesInCluster() {
+        return config.get(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER,DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
+    }
+
+    public boolean isDefaultIsEurekaHealthCheckEnabled() {
+        return config.get(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED,DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
+    }
+
+    public boolean isDefaultIsLocalModeEnabled() {
+        return config.get(CONFIG_IS_LOCAL_MODE_ENABLED,DEFAULT_IS_LOCAL_MODE_ENABLED);
+    }
+
+    public String getDefaultCassandraKeyspaceName() {
+        return config.get(CONFIG_CASSANDRA_KEYSPACE_NAME,DEFAULT_CASSANDRA_KEYSPACE_NAME);
+    }
+
+    public int getDefaultCassandraThriftPort() {
+        return config.get(CONFIG_CASSANDRA_THRIFT_PORT,DEFAULT_CASSANDRA_THRIFT_PORT);
+    }
+
+    public boolean isDefaultIsEurekaHostSupplierEnabled() {
+        return config.get(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED,DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
+    }
+
+    public String getDefaultCommaSeparatedCassandraHostnames() {
+        return config.get(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES,DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
+    }
+
+    public boolean isDefaultIsSecurityGroupInMultiDc() {
+        return config.get(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC,DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
     }
 
 }
