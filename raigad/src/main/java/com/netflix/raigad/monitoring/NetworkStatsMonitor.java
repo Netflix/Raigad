@@ -37,81 +37,81 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class NetworkStatsMonitor extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(NetworkStatsMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(NetworkStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_FsMonitor";
     private final Elasticsearch_NetworkStatsReporter networkStatsReporter;
-    
+
     @Inject
     public NetworkStatsMonitor(IConfiguration config)
     {
         super(config);
         networkStatsReporter = new Elasticsearch_NetworkStatsReporter();
-    		Monitors.registerObject(networkStatsReporter);
+        Monitors.registerObject(networkStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}        		
-	
-  		NetworkStatsBean networkStatsBean = new NetworkStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			NetworkStats networkStats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
+
+        NetworkStatsBean networkStatsBean = new NetworkStatsBean();
+        try
+        {
+            NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NetworkStats networkStats = null;
+            NodeStats ndStat = null;
+            if (ndsStatsResponse.getNodes().length > 0) {
+                ndStat = ndsStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No NetworkStats).");
-				return;
-			}
-			networkStats = ndStat.getNetwork();
-			if (networkStats == null) {
-				logger.info("NetworkStats is null,hence returning (No NetworkStats).");
-				return;
-			}
-	
-			networkStatsBean.activeOpens = networkStats.getTcp().getActiveOpens();
-			networkStatsBean.passiveOpens = networkStats.getTcp().getPassiveOpens();
-			networkStatsBean.attemptFails = networkStats.getTcp().getAttemptFails();
-			networkStatsBean.estabResets = networkStats.getTcp().getEstabResets();
-			networkStatsBean.currEstab = networkStats.getTcp().getCurrEstab();
-			networkStatsBean.inSegs = networkStats.getTcp().getInSegs();
-			networkStatsBean.outSegs = networkStats.getTcp().getOutSegs();  	
-			networkStatsBean.retransSegs = networkStats.getTcp().getRetransSegs();
-			networkStatsBean.inErrs = networkStats.getTcp().getInErrs();
-			networkStatsBean.outRsts = networkStats.getTcp().getOutRsts();
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Network stats data", e);
-  		}
+            if (ndStat == null) {
+                logger.info("NodeStats is null,hence returning (No NetworkStats).");
+                return;
+            }
+            networkStats = ndStat.getNetwork();
+            if (networkStats == null) {
+                logger.info("NetworkStats is null,hence returning (No NetworkStats).");
+                return;
+            }
 
-  		networkStatsReporter.networkStatsBean.set(networkStatsBean);
-	}
-  	
+            networkStatsBean.activeOpens = networkStats.getTcp().getActiveOpens();
+            networkStatsBean.passiveOpens = networkStats.getTcp().getPassiveOpens();
+            networkStatsBean.attemptFails = networkStats.getTcp().getAttemptFails();
+            networkStatsBean.estabResets = networkStats.getTcp().getEstabResets();
+            networkStatsBean.currEstab = networkStats.getTcp().getCurrEstab();
+            networkStatsBean.inSegs = networkStats.getTcp().getInSegs();
+            networkStatsBean.outSegs = networkStats.getTcp().getOutSegs();
+            networkStatsBean.retransSegs = networkStats.getTcp().getRetransSegs();
+            networkStatsBean.inErrs = networkStats.getTcp().getInErrs();
+            networkStatsBean.outRsts = networkStats.getTcp().getOutRsts();
+        }
+        catch(Exception e)
+        {
+            logger.warn("failed to load Network stats data", e);
+        }
+
+        networkStatsReporter.networkStatsBean.set(networkStatsBean);
+    }
+
     public class Elasticsearch_NetworkStatsReporter
     {
         private final AtomicReference<NetworkStatsBean> networkStatsBean;
 
         public Elasticsearch_NetworkStatsReporter()
         {
-        		networkStatsBean = new AtomicReference<NetworkStatsBean>(new NetworkStatsBean());
+            networkStatsBean = new AtomicReference<NetworkStatsBean>(new NetworkStatsBean());
         }
-        
+
         @Monitor(name ="active_opens", type=DataSourceType.GAUGE)
         public long getActiveOpens()
         {
             return networkStatsBean.get().activeOpens;
         }
-        
+
         @Monitor(name ="passive_opens", type=DataSourceType.GAUGE)
         public long getPassiveOpens()
         {
@@ -158,31 +158,31 @@ public class NetworkStatsMonitor extends Task
             return networkStatsBean.get().outRsts;
         }
     }
-    
+
     private static class NetworkStatsBean
     {
-    	  private long activeOpens=0;
-    	  private long passiveOpens=0;
-    	  private long attemptFails=0;
-    	  private long estabResets=0;
-    	  private long currEstab=0;
-    	  private long inSegs=0;
-    	  private long outSegs=0;
-    	  private long retransSegs=0;
-    	  private long inErrs=0;
-    	  private long outRsts=0;
+        private long activeOpens;
+        private long passiveOpens;
+        private long attemptFails;
+        private long estabResets;
+        private long currEstab;
+        private long inSegs;
+        private long outSegs;
+        private long retransSegs;
+        private long inErrs;
+        private long outRsts;
 
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public static TaskTimer getTimer(String name)
+    {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName()
+    {
+        return METRIC_NAME;
+    }
 
 }

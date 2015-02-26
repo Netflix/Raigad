@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @Singleton
 public class ProcessStatsMonitor extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(ProcessStatsMonitor.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProcessStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_ProcessStatsMonitor";
     private final Elasticsearch_ProcessStatsReporter processStatsReporter;
 
@@ -46,59 +46,59 @@ public class ProcessStatsMonitor extends Task
     {
         super(config);
         processStatsReporter = new Elasticsearch_ProcessStatsReporter();
-    	Monitors.registerObject(processStatsReporter);
+        Monitors.registerObject(processStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
 
-  		ProcessStatsBean processStatsBean = new ProcessStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			ProcessStats processStats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+        ProcessStatsBean processStatsBean = new ProcessStatsBean();
+        try
+        {
+            NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            ProcessStats processStats = null;
+            NodeStats ndStat = null;
+            if (ndsStatsResponse.getNodes().length > 0) {
+                ndStat = ndsStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No ProcessStats).");
-				return;
-			}
-			processStats = ndStat.getProcess();
-			if (processStats == null) {
-				logger.info("ProcessStats is null,hence returning (No ProcessStats).");
-				return;
-			}
+            if (ndStat == null) {
+                logger.info("NodeStats is null,hence returning (No ProcessStats).");
+                return;
+            }
+            processStats = ndStat.getProcess();
+            if (processStats == null) {
+                logger.info("ProcessStats is null,hence returning (No ProcessStats).");
+                return;
+            }
 
             //Mem
-			processStatsBean.residentInBytes = processStats.getMem().getResident().getBytes();
-			processStatsBean.shareInBytes = processStats.getMem().getShare().getBytes();
-			processStatsBean.totalVirtualInBytes = processStats.getMem().getTotalVirtual().getBytes();
+            processStatsBean.residentInBytes = processStats.getMem().getResident().getBytes();
+            processStatsBean.shareInBytes = processStats.getMem().getShare().getBytes();
+            processStatsBean.totalVirtualInBytes = processStats.getMem().getTotalVirtual().getBytes();
             //CPU
-			processStatsBean.cpuPercent = processStats.getCpu().getPercent();
-			processStatsBean.sysInMillis = processStats.getCpu().getSys().getMillis();
-			processStatsBean.userInMillis = processStats.getCpu().getUser().getMillis();
-			processStatsBean.totalInMillis = processStats.getCpu().getTotal().getMillis();
+            processStatsBean.cpuPercent = processStats.getCpu().getPercent();
+            processStatsBean.sysInMillis = processStats.getCpu().getSys().getMillis();
+            processStatsBean.userInMillis = processStats.getCpu().getUser().getMillis();
+            processStatsBean.totalInMillis = processStats.getCpu().getTotal().getMillis();
             //Open File Descriptors
-			processStatsBean.openFileDescriptors = processStats.getOpenFileDescriptors();
+            processStatsBean.openFileDescriptors = processStats.getOpenFileDescriptors();
             //Timestamp
-			processStatsBean.cpuTimestamp = processStats.getTimestamp();
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Process stats data", e);
-  		}
+            processStatsBean.cpuTimestamp = processStats.getTimestamp();
+        }
+        catch(Exception e)
+        {
+            logger.warn("failed to load Process stats data", e);
+        }
 
-  		processStatsReporter.processStatsBean.set(processStatsBean);
-	}
+        processStatsReporter.processStatsBean.set(processStatsBean);
+    }
 
     public class Elasticsearch_ProcessStatsReporter
     {
@@ -106,15 +106,15 @@ public class ProcessStatsMonitor extends Task
 
         public Elasticsearch_ProcessStatsReporter()
         {
-        		processStatsBean = new AtomicReference<ProcessStatsBean>(new ProcessStatsBean());
+            processStatsBean = new AtomicReference<ProcessStatsBean>(new ProcessStatsBean());
         }
-        
+
         @Monitor(name ="resident_in_bytes", type=DataSourceType.GAUGE)
         public long getResidentInBytes()
         {
             return processStatsBean.get().residentInBytes;
         }
-        
+
         @Monitor(name ="share_in_bytes", type=DataSourceType.GAUGE)
         public long getShareInBytes()
         {
@@ -156,29 +156,29 @@ public class ProcessStatsMonitor extends Task
             return processStatsBean.get().cpuTimestamp;
         }
     }
-    
+
     private static class ProcessStatsBean
     {
-    	  private long residentInBytes = -1;
-    	  private long shareInBytes = -1;
-    	  private long totalVirtualInBytes = -1;
-    	  private short cpuPercent = -1;
-    	  private long sysInMillis = -1;
-    	  private long userInMillis = -1;
-    	  private long totalInMillis = -1;
-    	  private long openFileDescriptors = -1;
-    	  private long cpuTimestamp = -1;
+        private long residentInBytes;
+        private long shareInBytes;
+        private long totalVirtualInBytes;
+        private short cpuPercent;
+        private long sysInMillis;
+        private long userInMillis;
+        private long totalInMillis;
+        private long openFileDescriptors;
+        private long cpuTimestamp;
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public static TaskTimer getTimer(String name)
+    {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName()
+    {
+        return METRIC_NAME;
+    }
 
 }
