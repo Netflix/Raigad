@@ -1,0 +1,8 @@
+apply plugin: 'war'
+apply plugin: 'jetty'
+dependencies {
+    compile project(':raigad')
+    compile project(':raigad-es-extensions')
+}
+
+war.archiveName 'Raigad.war'
