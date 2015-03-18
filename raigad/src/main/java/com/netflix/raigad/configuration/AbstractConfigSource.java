@@ -26,49 +26,40 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * Base implementations for most methods on {@link IConfigSource}.
  */
-public abstract class AbstractConfigSource implements IConfigSource
-{
+public abstract class AbstractConfigSource implements IConfigSource {
 
     private String asgName;
     private String region;
 
     @Override
-    public void initialize(final String asgName, final String region)
-    {
+    public void initialize(final String asgName, final String region) {
         this.asgName = checkNotNull(asgName, "ASG name is not defined");
         this.region = checkNotNull(region, "Region is not defined");
     }
 
     @Override
-    public boolean contains(final String key)
-    {
+    public boolean contains(final String key) {
         return get(key) != null;
     }
 
     @Override
-    public boolean isEmpty()
-    {
+    public boolean isEmpty() {
         return size() == 0;
     }
 
     @Override
-    public String get(final String key, final String defaultValue)
-    {
+    public String get(final String key, final String defaultValue) {
         final String value = get(key);
         return (value != null) ? value : defaultValue;
     }
 
     @Override
-    public boolean get(final String key, final boolean defaultValue)
-    {
+    public boolean get(final String key, final boolean defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Boolean.parseBoolean(value);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // ignore and return default
             }
         }
@@ -76,17 +67,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public Class<?> get(final String key, final Class<?> defaultValue)
-    {
+    public Class<?> get(final String key, final Class<?> defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Class.forName(value);
-            }
-            catch (ClassNotFoundException e)
-            {
+            } catch (ClassNotFoundException e) {
                 // ignore and return default
             }
         }
@@ -94,17 +80,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public <T extends Enum<T>> T get(final String key, final T defaultValue)
-    {
+    public <T extends Enum<T>> T get(final String key, final T defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Enum.valueOf(defaultValue.getDeclaringClass(), value);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // ignore and return default.
             }
         }
@@ -112,17 +93,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public int get(final String key, final int defaultValue)
-    {
+    public int get(final String key, final int defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Integer.parseInt(value);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // ignore and return default
             }
         }
@@ -130,17 +106,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public long get(final String key, final long defaultValue)
-    {
+    public long get(final String key, final long defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Long.parseLong(value);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // return default.
             }
         }
@@ -148,17 +119,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public float get(final String key, final float defaultValue)
-    {
+    public float get(final String key, final float defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Float.parseFloat(value);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // ignore and return default;
             }
         }
@@ -166,17 +132,12 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public double get(final String key, final double defaultValue)
-    {
+    public double get(final String key, final double defaultValue) {
         final String value = get(key);
-        if (value != null)
-        {
-            try
-            {
+        if (value != null) {
+            try {
                 return Double.parseDouble(value);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 // ignore and return default.
             }
         }
@@ -184,37 +145,30 @@ public abstract class AbstractConfigSource implements IConfigSource
     }
 
     @Override
-    public List<String> getList(String prop)
-    {
+    public List<String> getList(String prop) {
         return getList(prop, ImmutableList.<String>of());
     }
 
     @Override
-    public List<String> getList(String prop, List<String> defaultValue)
-    {
+    public List<String> getList(String prop, List<String> defaultValue) {
         final String value = get(prop);
-        if (value != null)
-        {
+        if (value != null) {
             return getTrimmedStringList(value.split(","));
         }
         return defaultValue;
     }
 
-    protected String getAsgName()
-    {
+    protected String getAsgName() {
         return asgName;
     }
 
-    protected String getRegion()
-    {
+    protected String getRegion() {
         return region;
     }
 
-    private List<String> getTrimmedStringList(String[] strings)
-    {
+    private List<String> getTrimmedStringList(String[] strings) {
         List<String> list = Lists.newArrayList();
-        for (String s : strings)
-        {
+        for (String s : strings) {
             list.add(StringUtils.strip(s));
         }
         return list;

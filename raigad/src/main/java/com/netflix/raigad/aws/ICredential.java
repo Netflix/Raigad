@@ -19,12 +19,11 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.google.inject.ImplementedBy;
 
 /**
- * Credential file interface for services supporting 
+ * Credential file interface for services supporting
  * Access ID and key authentication
  */
 @ImplementedBy(ClearCredential.class)
-public interface ICredential
-{
-    
+public interface ICredential {
+
     public AWSCredentialsProvider getAwsCredentialProvider();
 }

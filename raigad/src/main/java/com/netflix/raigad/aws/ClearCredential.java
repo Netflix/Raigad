@@ -29,73 +29,62 @@ import java.util.Properties;
  * This is a basic implementation of ICredentials. User should prefer to
  * implement their own versions for more secured access. This class requires
  * clear AWS key and access.
- * 
- * Set the following properties in "conf/awscredntial.properties" 
- * 
+ * <p/>
+ * Set the following properties in "conf/awscredntial.properties"
  */
-public class ClearCredential implements ICredential
-{
+public class ClearCredential implements ICredential {
     private static final Logger logger = LoggerFactory.getLogger(ClearCredential.class);
     private static final String CRED_FILE = "/etc/awscredential.properties";
     private final Properties props;
     private final String AWS_ACCESS_ID;
     private final String AWS_KEY;
 
-    public ClearCredential()
-    {
+    public ClearCredential() {
         FileInputStream fis = null;
-        try
-        {
+        try {
             fis = new FileInputStream(CRED_FILE);
             props = new Properties();
             props.load(fis);
             AWS_ACCESS_ID = props.getProperty("AWSACCESSID") != null ? props.getProperty("AWSACCESSID").trim() : "";
-            AWS_KEY = props.getProperty("AWSKEY") != null ? props.getProperty("AWSKEY").trim() : "";            
-        }
-        catch (Exception e)
-        {
+            AWS_KEY = props.getProperty("AWSKEY") != null ? props.getProperty("AWSKEY").trim() : "";
+        } catch (Exception e) {
             logger.error("Exception with credential file ", e);
             throw new RuntimeException("Problem reading credential file. Cannot start.", e);
-        }
-        finally
-        {
+        } finally {
             try {
-				fis.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+                fis.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
     }
 
 
-    public String getAccessKeyId()
-    {
+    public String getAccessKeyId() {
         return AWS_ACCESS_ID;
     }
 
 
-    public String getSecretAccessKey()
-    {
+    public String getSecretAccessKey() {
         return AWS_KEY;
     }
 
-    public AWSCredentials getCredentials()
-    {
+    public AWSCredentials getCredentials() {
         return new BasicAWSCredentials(getAccessKeyId(), getSecretAccessKey());
     }
 
-	@Override
-	public AWSCredentialsProvider getAwsCredentialProvider() {
-		return new AWSCredentialsProvider(){
-			public AWSCredentials getCredentials(){
-				return ClearCredential.this.getCredentials();
-			}
+    @Override
+    public AWSCredentialsProvider getAwsCredentialProvider() {
+        return new AWSCredentialsProvider() {
+            public AWSCredentials getCredentials() {
+                return ClearCredential.this.getCredentials();
+            }
 
-			@Override
-			public void refresh() {
-				// NOP				
-			}
-		};
-	}
+            @Override
+            public void refresh() {
+                // NOP
+            }
+        };
+    }
 }

@@ -24,19 +24,16 @@ import org.quartz.spi.TriggerFiredBundle;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
-public class GuiceJobFactory implements JobFactory
-{
+public class GuiceJobFactory implements JobFactory {
     public final Injector guice;
 
     @Inject
-    public GuiceJobFactory(Injector guice)
-    {
+    public GuiceJobFactory(Injector guice) {
         this.guice = guice;
     }
 
     @Override
-    public Job newJob(TriggerFiredBundle bundle) throws SchedulerException
-    {
+    public Job newJob(TriggerFiredBundle bundle) throws SchedulerException {
         JobDetail jobDetail = bundle.getJobDetail();
         Class<?> jobClass = jobDetail.getJobClass();
         Job job = (Job) guice.getInstance(jobClass);

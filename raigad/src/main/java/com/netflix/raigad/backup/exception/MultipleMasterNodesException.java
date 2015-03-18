@@ -19,23 +19,19 @@ public class MultipleMasterNodesException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public MultipleMasterNodesException(String msg, Throwable th)
-    {
+    public MultipleMasterNodesException(String msg, Throwable th) {
         super(msg, th);
     }
 
-    public MultipleMasterNodesException(String msg)
-    {
+    public MultipleMasterNodesException(String msg) {
         super(msg);
     }
 
-    public MultipleMasterNodesException(Exception ex)
-    {
+    public MultipleMasterNodesException(Exception ex) {
         super(ex);
     }
 
-    public MultipleMasterNodesException(Throwable th)
-    {
+    public MultipleMasterNodesException(Throwable th) {
         super(th);
     }
 }

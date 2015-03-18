@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
-public class HealthMonitor extends Task
-{
+public class HealthMonitor extends Task {
     private static final Logger logger = LoggerFactory.getLogger(HealthMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_HealthMonitor";
     private final Elasticsearch_HealthReporter healthReporter;
@@ -49,8 +48,7 @@ public class HealthMonitor extends Task
     private final DiscoveryClient discoveryClient;
 
     @Inject
-    public HealthMonitor(IConfiguration config,InstanceManager instanceManager)
-    {
+    public HealthMonitor(IConfiguration config, InstanceManager instanceManager) {
         super(config);
         this.instanceManager = instanceManager;
         healthReporter = new Elasticsearch_HealthReporter();
@@ -69,8 +67,7 @@ public class HealthMonitor extends Task
         }
 
         HealthBean healthBean = new HealthBean();
-        try
-        {
+        try {
             Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
             ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
@@ -86,27 +83,23 @@ public class HealthMonitor extends Task
             if (clusterHealthStatus.name().equalsIgnoreCase("GREEN")) {
                 healthBean.greenorredstatus = 0;
                 healthBean.greenoryellowstatus = 0;
-            }
-            else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
+            } else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
                 healthBean.greenoryellowstatus = 1;
                 healthBean.greenorredstatus = 0;
-            }
-            else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
+            } else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
                 healthBean.greenorredstatus = 1;
                 healthBean.greenoryellowstatus = 0;
             }
 
-            if(config.isNodeMismatchWithDiscoveryEnabled())
+            if (config.isNodeMismatchWithDiscoveryEnabled())
                 //Check if there is Node Mismatch between Discovery and ES
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
             else
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
 
-            if(config.isEurekaHealthCheckEnabled())
+            if (config.isEurekaHealthCheckEnabled())
                 healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             resetHealthStats(healthBean);
             logger.warn("failed to load Cluster Health Status", e);
         }
@@ -114,60 +107,51 @@ public class HealthMonitor extends Task
         healthReporter.healthBean.set(healthBean);
     }
 
-    public class Elasticsearch_HealthReporter
-    {
+    public class Elasticsearch_HealthReporter {
         private final AtomicReference<HealthBean> healthBean;
 
-        public Elasticsearch_HealthReporter()
-        {
+        public Elasticsearch_HealthReporter() {
             healthBean = new AtomicReference<HealthBean>(new HealthBean());
         }
 
-        @Monitor(name ="es_healthstatus_greenorred", type=DataSourceType.GAUGE)
-        public int getEsHealthstatusGreenorred()
-        {
+        @Monitor(name = "es_healthstatus_greenorred", type = DataSourceType.GAUGE)
+        public int getEsHealthstatusGreenorred() {
             return healthBean.get().greenorredstatus;
         }
 
-        @Monitor(name ="es_healthstatus_greenoryellow", type=DataSourceType.GAUGE)
-        public int getEsHealthstatusGreenoryellow()
-        {
+        @Monitor(name = "es_healthstatus_greenoryellow", type = DataSourceType.GAUGE)
+        public int getEsHealthstatusGreenoryellow() {
             return healthBean.get().greenoryellowstatus;
         }
 
-        @Monitor(name ="es_nodematchstatus", type=DataSourceType.GAUGE)
-        public int getEsNodematchstatus()
-        {
+        @Monitor(name = "es_nodematchstatus", type = DataSourceType.GAUGE)
+        public int getEsNodematchstatus() {
             return healthBean.get().nodematch;
         }
 
-        @Monitor(name ="es_eurekanodematchstatus", type=DataSourceType.GAUGE)
-        public int getEsEurekanodematchstatus()
-        {
+        @Monitor(name = "es_eurekanodematchstatus", type = DataSourceType.GAUGE)
+        public int getEsEurekanodematchstatus() {
             return healthBean.get().eurekanodematch;
         }
     }
 
-    private static class HealthBean
-    {
+    private static class HealthBean {
         private int greenorredstatus = -1;
         private int greenoryellowstatus = -1;
         private int nodematch = -1;
         private int eurekanodematch = -1;
     }
 
-    public static TaskTimer getTimer(String name)
-    {
+    public static TaskTimer getTimer(String name) {
         return new SimpleTimer(name, 60 * 1000);
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return METRIC_NAME;
     }
 
-    private void resetHealthStats(HealthBean healthBean){
+    private void resetHealthStats(HealthBean healthBean) {
         healthBean.greenorredstatus = -1;
         healthBean.greenoryellowstatus = -1;
         healthBean.nodematch = -1;

@@ -19,23 +19,19 @@ public class NoMasterNodeException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public NoMasterNodeException(String msg, Throwable th)
-    {
+    public NoMasterNodeException(String msg, Throwable th) {
         super(msg, th);
     }
 
-    public NoMasterNodeException(String msg)
-    {
+    public NoMasterNodeException(String msg) {
         super(msg);
     }
 
-    public NoMasterNodeException(Exception ex)
-    {
+    public NoMasterNodeException(Exception ex) {
         super(ex);
     }
 
-    public NoMasterNodeException(Throwable th)
-    {
+    public NoMasterNodeException(Throwable th) {
         super(th);
     }
 }

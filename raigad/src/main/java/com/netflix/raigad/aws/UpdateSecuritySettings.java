@@ -50,10 +50,9 @@ import java.util.Random;
  *
  */
 @Singleton
-public class UpdateSecuritySettings extends Task
-{
-	private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
-	public static final String JOBNAME = "Update_SG";
+public class UpdateSecuritySettings extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
+    public static final String JOBNAME = "Update_SG";
     public static boolean firstTimeUpdated = false;
 
     private static final Random ran = new Random();
@@ -62,8 +61,7 @@ public class UpdateSecuritySettings extends Task
 
 
     @Inject
-    public UpdateSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
-    {
+    public UpdateSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory) {
         super(config);
         this.membership = membership;
         this.factory = factory;
@@ -74,8 +72,7 @@ public class UpdateSecuritySettings extends Task
      * Other nodes run only on startup.
      */
     @Override
-    public void execute()
-    {
+    public void execute() {
         int port = config.getTransportTcpPort();
         List<String> acls = membership.listACL(port, port);
 
@@ -84,23 +81,20 @@ public class UpdateSecuritySettings extends Task
 
         // iterate to add...
         List<String> add = Lists.newArrayList();
-        for (RaigadInstance instance : getInstanceList())
-        {
+        for (RaigadInstance instance : getInstanceList()) {
             String range = instance.getHostIP() + "/32";
             if (!acls.contains(range))
                 add.add(range);
         }
 
-        if (add.size() > 0)
-        {
+        if (add.size() > 0) {
             membership.addACL(add, port, port);
             firstTimeUpdated = true;
         }
 
         // just iterate to generate ranges.
         List<String> currentRanges = Lists.newArrayList();
-        for (RaigadInstance instance : instances)
-        {
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
             currentRanges.add(range);
         }
@@ -110,49 +104,43 @@ public class UpdateSecuritySettings extends Task
         for (String acl : acls)
             if (!currentRanges.contains(acl)) // if not found then remove....
                 remove.add(acl);
-        if (remove.size() > 0)
-        {
+        if (remove.size() > 0) {
             membership.removeACL(remove, port, port);
             firstTimeUpdated = true;
         }
     }
 
-    private List<RaigadInstance> getInstanceList()
-    {
+    private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
 
-        if(config.amISourceClusterForTribeNode())
-        {
+        if (config.amISourceClusterForTribeNode()) {
             List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
             assert (tribeClusters.size() != 0) : "I am a source cluster but I need One or more tribe clusters";
 
-            for(String tribeClusterName : tribeClusters)
-                 _instances.addAll(factory.getAllIds(tribeClusterName));
+            for (String tribeClusterName : tribeClusters)
+                _instances.addAll(factory.getAllIds(tribeClusterName));
         }
 
         //Adding Current cluster
         _instances.addAll(factory.getAllIds(config.getAppName()));
 
-        if(config.isDebugEnabled())
-        {
-            for(RaigadInstance instance:_instances)
+        if (config.isDebugEnabled()) {
+            for (RaigadInstance instance : _instances)
                 logger.debug(instance.toString());
         }
         return _instances;
     }
 
-    public static TaskTimer getTimer(InstanceManager instanceManager)
-    {
+    public static TaskTimer getTimer(InstanceManager instanceManager) {
         //Only Master nodes will Update Security Group Settings
-        if(!instanceManager.isMaster())
+        if (!instanceManager.isMaster())
             return new SimpleTimer(JOBNAME);
         else
             return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return JOBNAME;
     }
 }

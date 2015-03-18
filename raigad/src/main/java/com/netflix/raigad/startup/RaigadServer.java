@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
  * Incremental backup
  */
 @Singleton
-public class RaigadServer
-{
+public class RaigadServer {
     private final RaigadScheduler scheduler;
     private final IConfiguration config;
     private final Sleeper sleeper;
@@ -59,8 +58,7 @@ public class RaigadServer
     public RaigadServer(IConfiguration config, RaigadScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper,
                         InstanceManager instanceManager,
                         ElasticSearchIndexManager esIndexManager,
-                        SnapshotBackupManager snapshotBackupManager)
-    {
+                        SnapshotBackupManager snapshotBackupManager) {
         this.config = config;
         this.scheduler = scheduler;
         this.httpModule = httpModule;
@@ -71,18 +69,17 @@ public class RaigadServer
         this.snapshotBackupManager = snapshotBackupManager;
     }
 
-    public void initialize() throws Exception
-    {     
-    	//Check If it's really needed
+    public void initialize() throws Exception {
+        //Check If it's really needed
         if (instanceManager.getInstance().isOutOfService())
             return;
-        
+
         logger.info("Initializing RaigadServer now ...");
 
         // start to schedule jobs
         scheduler.start();
 
-        if(!config.isLocalModeEnabled()) {
+        if (!config.isLocalModeEnabled()) {
             if (config.amITribeNode()) {
                 // update security settings
                 scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
@@ -91,7 +88,7 @@ public class RaigadServer
                     sleeper.sleep(60 * 1000);
                 scheduler.addTask(UpdateTribeSecuritySettings.JOBNAME, UpdateTribeSecuritySettings.class, UpdateTribeSecuritySettings.getTimer(instanceManager));
             } else {
-                if(config.isSecutrityGroupInMultiDC()) {
+                if (config.isSecutrityGroupInMultiDC()) {
                     // update security settings
                     scheduler.runTaskNow(UpdateSecuritySettings.class);
                     // sleep for 60 sec for the SG update to happen.
@@ -104,37 +101,32 @@ public class RaigadServer
 
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
-        
+
         logger.info("Trying to start Elastic Search now ...");
-        
-		if (!config.doesElasticsearchStartManually()) {
+
+        if (!config.doesElasticsearchStartManually()) {
             esProcess.start(true); // Start elasticsearch.
             if (config.isRestoreEnabled())
                 scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME, RestoreBackupManager.class, RestoreBackupManager.getTimer(config), config.getRestoreTaskInitialDelayInSeconds());
-        }
-		else {
+        } else {
             logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually. Restore task needs to be started manually as well (if needed).");
         }
 
         /*
          *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process
          */
-        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
+        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME, ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
         /*
          *  Run Snapshot Backup task
          */
-        if (config.isAsgBasedDedicatedDeployment())
-        {
-            if (config.getASGName().toLowerCase().contains("master"))
-            {   // Run Snapshot task only on Master Nodes
+        if (config.isAsgBasedDedicatedDeployment()) {
+            if (config.getASGName().toLowerCase().contains("master")) {   // Run Snapshot task only on Master Nodes
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
                 scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
             }
-        }
-        else
-        {
+        } else {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
             scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
         }
@@ -153,22 +145,19 @@ public class RaigadServer
         scheduler.addTask(HttpStatsMonitor.METRIC_NAME, HttpStatsMonitor.class, HttpStatsMonitor.getTimer("HttpStatsMonitor"));
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
-        scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+        scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"), ES_HEALTH_MONITOR_DELAY);
 
     }
 
-    public InstanceManager getInstanceManager()
-    {
+    public InstanceManager getInstanceManager() {
         return instanceManager;
     }
 
-    public RaigadScheduler getScheduler()
-    {
+    public RaigadScheduler getScheduler() {
         return scheduler;
     }
 
-    public IConfiguration getConfiguration()
-    {
+    public IConfiguration getConfiguration() {
         return config;
     }
 

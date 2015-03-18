@@ -45,8 +45,7 @@ import org.slf4j.LoggerFactory;
 
  */
 @Singleton
-public class S3Repository extends AbstractRepository
-{
+public class S3Repository extends AbstractRepository {
     private static final Logger logger = LoggerFactory.getLogger(S3Repository.class);
     private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
@@ -54,9 +53,8 @@ public class S3Repository extends AbstractRepository
     private AbstractRepositorySettingsParams repositorySettingsParams;
 
     @Inject
-    private S3Repository(IConfiguration config,AbstractRepositorySettingsParams repositorySettingsParams)
-    {
-        super(config,repositorySettingsParams);
+    private S3Repository(IConfiguration config, AbstractRepositorySettingsParams repositorySettingsParams) {
+        super(config, repositorySettingsParams);
         this.type = RepositoryType.s3;
         this.repositorySettingsParams = repositorySettingsParams;
     }
@@ -64,21 +62,20 @@ public class S3Repository extends AbstractRepository
     /**
      * 0.0.0.0:9200/_snapshot/s3_repo
      * { "type": "s3",
-     * 	 "settings": { "bucket": "us-east-1.es-test",
-     * 	               "base_path": "es_abc/20140410",
-     *                 "region": "us-east-1"
-     *                }
+     * "settings": { "bucket": "us-east-1.es-test",
+     * "base_path": "es_abc/20140410",
+     * "region": "us-east-1"
+     * }
      * }
      */
 
     @Override
-    public String createOrGetSnapshotRepository() throws Exception
-    {
+    public String createOrGetSnapshotRepository() throws Exception {
         String s3RepoName = null;
         try {
 
             s3RepoName = getRemoteRepositoryName();
-            logger.info("Snapshot Repository Name : <"+s3RepoName+">");
+            logger.info("Snapshot Repository Name : <" + s3RepoName + ">");
 
             //Set Snapshot Backup related parameters
             repositorySettingsParams.setBackupParams();
@@ -86,42 +83,34 @@ public class S3Repository extends AbstractRepository
             if (!doesRepositoryExists(s3RepoName, getRepositoryType())) {
                 createNewRepository(s3RepoName);
             }
-        }
-        catch (Exception e)
-        {
-            throw new CreateRepositoryException("Creation of Snapshot Repository failed !!",e);
+        } catch (Exception e) {
+            throw new CreateRepositoryException("Creation of Snapshot Repository failed !!", e);
         }
 
         return s3RepoName;
     }
 
     @Override
-    public void createRestoreRepository(String s3RepoName, String basePathSuffix) throws Exception
-    {
+    public void createRestoreRepository(String s3RepoName, String basePathSuffix) throws Exception {
         try {
             //Set Restore related parameters
             repositorySettingsParams.setRestoreParams(basePathSuffix);
 
             //Check if Repository Exists
             createNewRepository(s3RepoName);
-        }
-        catch (Exception e)
-        {
-            throw new CreateRepositoryException("Creation of Restore Repository failed !!",e);
+        } catch (Exception e) {
+            throw new CreateRepositoryException("Creation of Restore Repository failed !!", e);
         }
     }
 
-    public void createNewRepository(String s3RepoName) throws Exception
-    {
+    public void createNewRepository(String s3RepoName) throws Exception {
         Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
         //Creating New Repository now
-        PutRepositoryResponse putRepositoryResponse = getPutRepositoryResponse(esTransportClient,s3RepoName);
+        PutRepositoryResponse putRepositoryResponse = getPutRepositoryResponse(esTransportClient, s3RepoName);
 
-        if(putRepositoryResponse.isAcknowledged())
-        {
+        if (putRepositoryResponse.isAcknowledged()) {
             logger.info("Successfully created a repository : <" + s3RepoName + "> " + getRepoParamPrint());
-        }
-        else {
+        } else {
             throw new CreateRepositoryException("Creation of repository failed : <" + s3RepoName + "> " +
                     getRepoParamPrint());
         }
@@ -131,29 +120,27 @@ public class S3Repository extends AbstractRepository
     public String getRemoteRepositoryName() {
         DateTime dt = new DateTime();
         DateTime dtGmt = dt.withZone(currentZone);
-        return SystemUtils.formatDate(dtGmt,S3_REPO_DATE_FORMAT);
+        return SystemUtils.formatDate(dtGmt, S3_REPO_DATE_FORMAT);
     }
 
-    public RepositoryType getRepositoryType()
-    {
+    public RepositoryType getRepositoryType() {
         return type;
     }
 
-    public String getRepoParamPrint()
-    {
-        return  "bucket : <"+repositorySettingsParams.getBucket()+"> " +
-                "base_path : <"+repositorySettingsParams.getBase_path()+"> " +
-                "region : <"+repositorySettingsParams.getRegion()+">";
+    public String getRepoParamPrint() {
+        return "bucket : <" + repositorySettingsParams.getBucket() + "> " +
+                "base_path : <" + repositorySettingsParams.getBase_path() + "> " +
+                "region : <" + repositorySettingsParams.getRegion() + ">";
     }
 
     /**
      * Following method is isolated so that it helps in Unit Testing for Mocking
+     *
      * @param esTransportClient
      * @param s3RepoName
      * @return
      */
-    public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient,String s3RepoName)
-    {
+    public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient, String s3RepoName) {
         return esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
                 .setType(getRepositoryType().name()).setSettings(ImmutableSettings.settingsBuilder()
                                 .put("base_path", repositorySettingsParams.getBase_path())

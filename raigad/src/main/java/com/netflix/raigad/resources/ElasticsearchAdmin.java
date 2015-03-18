@@ -36,8 +36,7 @@ import java.io.IOException;
 
 @Path("/v1/esadmin")
 @Produces(MediaType.APPLICATION_JSON)
-public class ElasticsearchAdmin 
-{
+public class ElasticsearchAdmin {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchAdmin.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
     private static final String REST_REPOSITORY_NAME = "name";
@@ -48,8 +47,7 @@ public class ElasticsearchAdmin
     private static final String SHARD_REALLOCATION_PROPERTY = "cluster.routing.allocation.enable";
 
     @Inject
-    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess,ElasticSearchIndexManager esIndexManager)
-    {
+    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess, ElasticSearchIndexManager esIndexManager) {
         this.config = config;
         this.esProcess = esProcess;
         this.esIndexManager = esIndexManager;
@@ -57,18 +55,16 @@ public class ElasticsearchAdmin
 
     @GET
     @Path("/start")
-    public Response esStart() throws IOException, InterruptedException, JSONException
-    {
-    	logger.info("Starting Elastic Search now through REST call ...");
+    public Response esStart() throws IOException, InterruptedException, JSONException {
+        logger.info("Starting Elastic Search now through REST call ...");
         esProcess.start(true);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("/stop")
-    public Response esStop() throws IOException, InterruptedException, JSONException
-    {
-		logger.info("Stopping Elastic Search now through REST call ...");
+    public Response esStop() throws IOException, InterruptedException, JSONException {
+        logger.info("Stopping Elastic Search now through REST call ...");
         esProcess.stop();
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
@@ -76,8 +72,7 @@ public class ElasticsearchAdmin
     @GET
     @Path("/run_indexmanager")
     public Response manageIndex()
-            throws Exception
-    {
+            throws Exception {
         logger.info("Running Index Manager through REST call ...");
         esIndexManager.runIndexManagement();
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
@@ -86,8 +81,7 @@ public class ElasticsearchAdmin
 
     @GET
     @Path("/existingRepositories")
-    public Response esExistingRepositories() throws Exception
-    {
+    public Response esExistingRepositories() throws Exception {
         logger.info("Retrieving existing repositories through REST call ...");
         //URL
         String URL = "http://127.0.0.1:" + config.getHttpPort() + "/_snapshot/";
@@ -98,35 +92,33 @@ public class ElasticsearchAdmin
 
     @GET
     @Path("/shard_allocation_enable/{type}")
-    public Response esShardAllocationEnable(@PathParam("type") String type) throws IOException, InterruptedException, JSONException
-    {
+    public Response esShardAllocationEnable(@PathParam("type") String type) throws IOException, InterruptedException, JSONException {
         logger.info("Enabling Shard Allocation through REST call ...");
-        if(!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent"))
-           throw new IOException("Parameter must be equal to transient or persistent");
+        if (!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent"))
+            throw new IOException("Parameter must be equal to transient or persistent");
         //URL
-        String url = "http://127.0.0.1:"+config.getHttpPort()+"/_cluster/settings";
+        String url = "http://127.0.0.1:" + config.getHttpPort() + "/_cluster/settings";
         JSONObject settings = new JSONObject();
         JSONObject property = new JSONObject();
-        property.put(SHARD_REALLOCATION_PROPERTY,"all");
-        settings.put(type,property);
-        String RESPONSE = SystemUtils.runHttpPutCommand(url,settings.toJSONString());
+        property.put(SHARD_REALLOCATION_PROPERTY, "all");
+        settings.put(type, property);
+        String RESPONSE = SystemUtils.runHttpPutCommand(url, settings.toJSONString());
         return Response.ok(RESPONSE, MediaType.APPLICATION_JSON).build();
     }
 
     @GET
     @Path("/shard_allocation_disable/{type}")
-    public Response esShardAllocationDisable(@PathParam("type") String type) throws IOException, InterruptedException, JSONException
-    {
+    public Response esShardAllocationDisable(@PathParam("type") String type) throws IOException, InterruptedException, JSONException {
         logger.info("Disabling Shard Allocation through REST call ...");
-        if(!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent"))
+        if (!type.equalsIgnoreCase("transient") && !type.equalsIgnoreCase("persistent"))
             throw new IOException("Parameter must be equal to transient or persistent");
         //URL
-        String url = "http://127.0.0.1:"+config.getHttpPort()+"/_cluster/settings";
+        String url = "http://127.0.0.1:" + config.getHttpPort() + "/_cluster/settings";
         JSONObject settings = new JSONObject();
         JSONObject property = new JSONObject();
-        property.put(SHARD_REALLOCATION_PROPERTY,"none");
-        settings.put(type,property);
-        String RESPONSE = SystemUtils.runHttpPutCommand(url,settings.toJSONString());
+        property.put(SHARD_REALLOCATION_PROPERTY, "none");
+        settings.put(type, property);
+        String RESPONSE = SystemUtils.runHttpPutCommand(url, settings.toJSONString());
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

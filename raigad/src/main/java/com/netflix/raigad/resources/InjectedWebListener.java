@@ -50,46 +50,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InjectedWebListener extends GuiceServletContextListener
-{
+public class InjectedWebListener extends GuiceServletContextListener {
     protected static final Logger logger = LoggerFactory.getLogger(InjectedWebListener.class);
 
     @Override
-    protected Injector getInjector()
-    {
+    protected Injector getInjector() {
         List<Module> moduleList = Lists.newArrayList();
         moduleList.add(new JaxServletModule());
         moduleList.add(new RaigadGuiceModule());
         Injector injector;
-        try
-        {   injector = LifecycleInjector.builder().withModules(moduleList).build().createInjector();
+        try {
+            injector = LifecycleInjector.builder().withModules(moduleList).build().createInjector();
             startJobs(injector);
 
             LifecycleManager manager = injector.getInstance(LifecycleManager.class);
             manager.start();
-        }
-        catch (Exception e)
-        {
-            logger.error(e.getMessage(),e);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
 
         return injector;
     }
 
-    private void startJobs(Injector injector) throws Exception
-    {
+    private void startJobs(Injector injector) throws Exception {
         injector.getInstance(IConfiguration.class).initialize();
 
         logger.info("**Now starting to initialize raigadserver from OSS");
         injector.getInstance(RaigadServer.class).initialize();
     }
 
-    public static class JaxServletModule extends ServletModule
-    {
+    public static class JaxServletModule extends ServletModule {
         @Override
-        protected void configureServlets()
-        {
+        protected void configureServlets() {
             Map<String, String> params = new HashMap<String, String>();
             params.put(PackagesResourceConfig.PROPERTY_PACKAGES
                     , "unbound");
@@ -100,12 +93,10 @@ public class InjectedWebListener extends GuiceServletContextListener
     }
 
 
-    public static class RaigadGuiceModule extends AbstractModule
-    {
+    public static class RaigadGuiceModule extends AbstractModule {
         @Override
-        protected void configure()
-        {
-    		logger.info("**Binding OSS Config classes.");
+        protected void configure() {
+            logger.info("**Binding OSS Config classes.");
             // fix bug in Jersey-Guice integration exposed by child injectors
             binder().bind(GuiceContainer.class).asEagerSingleton();
             binder().bind(GuiceJobFactory.class).asEagerSingleton();

@@ -25,37 +25,32 @@ import java.text.ParseException;
 /**
  * Runs jobs at the specified absolute time and frequency
  */
-public class CronTimer implements TaskTimer
-{
+public class CronTimer implements TaskTimer {
     private String cronExpression;
     private String triggerName;
 
-    public enum DayOfWeek
-    {
+    public enum DayOfWeek {
         SUN, MON, TUE, WED, THU, FRI, SAT
     }
 
     /**
      * Hourly cron.
      */
-    public CronTimer(int minute, int sec)
-    {
+    public CronTimer(int minute, int sec) {
         cronExpression = sec + " " + minute + " * * * ?";
     }
 
     /**
      * Daily Cron
      */
-    public CronTimer(int hour, int minute, int sec)
-    {
+    public CronTimer(int hour, int minute, int sec) {
         cronExpression = sec + " " + minute + " " + hour + " * * ?";
     }
 
     /**
      * Daily Cron with explicit TriggerName
      */
-    public CronTimer(int hour, int minute, int sec, String triggerName)
-    {
+    public CronTimer(int hour, int minute, int sec, String triggerName) {
         this.triggerName = triggerName;
         cronExpression = sec + " " + minute + " " + hour + " * * ?";
     }
@@ -63,23 +58,20 @@ public class CronTimer implements TaskTimer
     /**
      * Weekly cron jobs
      */
-    public CronTimer(DayOfWeek dayofweek, int hour, int minute, int sec)
-    {
+    public CronTimer(DayOfWeek dayofweek, int hour, int minute, int sec) {
         cronExpression = sec + " " + minute + " " + hour + " * * " + dayofweek;
     }
 
     /**
      * Cron Expression.
      */
-    public CronTimer(String expression)
-    {
+    public CronTimer(String expression) {
         this.cronExpression = expression;
     }
 
-    public Trigger getTrigger() throws ParseException
-    {
+    public Trigger getTrigger() throws ParseException {
         if (StringUtils.isNotBlank(triggerName))
-            return new CronTrigger("CronTrigger"+triggerName, Scheduler.DEFAULT_GROUP, cronExpression);
+            return new CronTrigger("CronTrigger" + triggerName, Scheduler.DEFAULT_GROUP, cronExpression);
         else
             return new CronTrigger("CronTrigger", Scheduler.DEFAULT_GROUP, cronExpression);
 

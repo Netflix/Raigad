@@ -28,8 +28,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
         }
    ]
  */
-public class MasterNodeInformationDO
-{
+public class MasterNodeInformationDO {
     private final String id;
     private final String host;
     private final String ip;
@@ -39,8 +38,7 @@ public class MasterNodeInformationDO
     public MasterNodeInformationDO(@JsonProperty("id") final String id,
                                    @JsonProperty("host") final String host,
                                    @JsonProperty("ip") final String ip,
-                                   @JsonProperty("node") final String node)
-    {
+                                   @JsonProperty("node") final String node) {
         this.id = id;
         this.host = host;
         this.ip = ip;

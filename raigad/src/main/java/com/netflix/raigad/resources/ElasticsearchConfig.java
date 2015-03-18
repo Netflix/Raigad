@@ -36,36 +36,33 @@ import java.util.List;
  */
 @Path("/v1/esconfig")
 @Produces(MediaType.TEXT_PLAIN)
-public class ElasticsearchConfig 
-{
-	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
-	private final RaigadServer raigadServer;
+public class ElasticsearchConfig {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
+    private final RaigadServer raigadServer;
 
-	@Inject
-	public ElasticsearchConfig(RaigadServer raigadServer) {
-		this.raigadServer = raigadServer;
-	}
+    @Inject
+    public ElasticsearchConfig(RaigadServer raigadServer) {
+        this.raigadServer = raigadServer;
+    }
 
-	@GET
-	@Path("/get_nodes")
-	public Response getNodes() 
-	{
-		try 
-		{
-			logger.info("Fetching nodes via get_nodes ...");
-			final List<RaigadInstance> instances = raigadServer
-					.getInstanceManager().getAllInstances();
-			if (instances != null && !instances.isEmpty()) {
-				JSONObject esCarJson = EsUtils
-						.transformRaigadInstanceToJson(instances);
-				return Response.ok(esCarJson.toString())
-						.build();
-			}
-		} catch (Exception e) {
-			logger.error("Error while executing get_nodes", e);
-			return Response.serverError().build();
-		}
-		return Response.status(500).build();
-	}
+    @GET
+    @Path("/get_nodes")
+    public Response getNodes() {
+        try {
+            logger.info("Fetching nodes via get_nodes ...");
+            final List<RaigadInstance> instances = raigadServer
+                    .getInstanceManager().getAllInstances();
+            if (instances != null && !instances.isEmpty()) {
+                JSONObject esCarJson = EsUtils
+                        .transformRaigadInstanceToJson(instances);
+                return Response.ok(esCarJson.toString())
+                        .build();
+            }
+        } catch (Exception e) {
+            logger.error("Error while executing get_nodes", e);
+            return Response.serverError().build();
+        }
+        return Response.status(500).build();
+    }
 
 }

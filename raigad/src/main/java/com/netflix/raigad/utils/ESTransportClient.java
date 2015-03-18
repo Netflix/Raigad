@@ -37,8 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Class to get data out of Elasticsearch
  */
 @Singleton
-public class ESTransportClient
-{
+public class ESTransportClient {
     private static final Logger logger = LoggerFactory.getLogger(ESTransportClient.class);
     private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<ESTransportClient>(null);
     private NodesStatsRequestBuilder ndStatsRequestBuilder;
@@ -47,84 +46,74 @@ public class ESTransportClient
     /**
      * Hostname and Port to talk to will be same server for now optionally we
      * might want the ip to poll.
-     * 
+     * <p/>
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
-     * 
+     * <p/>
      * This will work only if Elasticsearch runs.
      */
-    public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
-    {
+    public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException {
         Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
                 .put("client.transport.sniff", true)
                 .build();
         client = new TransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(host,port));
+        client.addTransportAddress(new InetSocketTransportAddress(host, port));
 
         ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
     }
 
     @Inject
-    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException
-    {
+    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException {
         this("localhost", config.getTransportTcpPort(), config.getAppName());
     }
 
     /**
      * try to create if it is null.
-     * @throws IOException 
+     *
+     * @throws IOException
      */
-    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException
-    {
-   		if (esTransportClient.get() == null)
-        		esTransportClient.set(connect(config));
-        
+    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException {
+        if (esTransportClient.get() == null)
+            esTransportClient.set(connect(config));
+
         return esTransportClient.get();
     }
 
-    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config)
-    {
-   		try
-        {
-             return ESTransportClient.instance(config).ndStatsRequestBuilder.execute().actionGet();
-        }
-        catch (Exception e)
-        {
+    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config) {
+        try {
+            return ESTransportClient.instance(config).ndStatsRequestBuilder.execute().actionGet();
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
         return null;
     }
 
-    public static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException
-    {
-    		ESTransportClient ESTransportClient = null;
-    		
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			//TODO: Change logger to debug
-			logger.info(exceptionMsg);
-			throw new ESTransportClientConnectionException(exceptionMsg);
-		}        		
-    		
-    		try {
-    				ESTransportClient = new BoundedExponentialRetryCallable<ESTransportClient>()
-						{
-							@Override
-							public ESTransportClient retriableCall() throws Exception
-							{
-								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(),config.getAppName());
-						   		return esTransportClientLocal;
-							}
-						}.call();
-			} catch (Exception e) {
-				logger.error(e.getMessage(), e);
-				throw new ESTransportClientConnectionException(e.getMessage());
-			}
-    		return ESTransportClient;
+    public static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException {
+        ESTransportClient ESTransportClient = null;
+
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            //TODO: Change logger to debug
+            logger.info(exceptionMsg);
+            throw new ESTransportClientConnectionException(exceptionMsg);
+        }
+
+        try {
+            ESTransportClient = new BoundedExponentialRetryCallable<ESTransportClient>() {
+                @Override
+                public ESTransportClient retriableCall() throws Exception {
+                    ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(), config.getAppName());
+                    return esTransportClientLocal;
+                }
+            }.call();
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            throw new ESTransportClientConnectionException(e.getMessage());
+        }
+        return ESTransportClient;
     }
 
-    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status, String state, String load, String owns, String token) throws JSONException
-    {
+    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status, String state, String load, String owns, String token) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("endpoint", primaryEndpoint);
         object.put("dc", dataCenter);
@@ -137,7 +126,7 @@ public class ESTransportClient
         return object;
     }
 
-    public Client getTransportClient(){
+    public Client getTransportClient() {
         return client;
     }
 }

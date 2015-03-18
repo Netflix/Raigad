@@ -35,97 +35,85 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
-public class HttpStatsMonitor extends Task
-{
-	private static final Logger logger = LoggerFactory.getLogger(HttpStatsMonitor.class);
+public class HttpStatsMonitor extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(HttpStatsMonitor.class);
     public static final String METRIC_NAME = "Elasticsearch_HttpStatsMonitor";
     private final Elasticsearch_HttpStatsReporter httpStatsReporter;
 
     @Inject
-    public HttpStatsMonitor(IConfiguration config)
-    {
+    public HttpStatsMonitor(IConfiguration config) {
         super(config);
         httpStatsReporter = new Elasticsearch_HttpStatsReporter();
-    		Monitors.registerObject(httpStatsReporter);
+        Monitors.registerObject(httpStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
 
-  		HttpStatsBean httpStatsBean = new HttpStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			HttpStats httpStats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+        HttpStatsBean httpStatsBean = new HttpStatsBean();
+        try {
+            NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            HttpStats httpStats = null;
+            NodeStats ndStat = null;
+            if (ndsStatsResponse.getNodes().length > 0) {
+                ndStat = ndsStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No HttpStats).");
-				return;
-			}
-			httpStats = ndStat.getHttp();
-			if (httpStats == null) {
-				logger.info("HttpStats is null,hence returning (No HttpStats).");
-				return;
-			}
+            if (ndStat == null) {
+                logger.info("NodeStats is null,hence returning (No HttpStats).");
+                return;
+            }
+            httpStats = ndStat.getHttp();
+            if (httpStats == null) {
+                logger.info("HttpStats is null,hence returning (No HttpStats).");
+                return;
+            }
 
-			httpStatsBean.serverOpen = httpStats.getServerOpen();
-			httpStatsBean.totalOpen = httpStats.getTotalOpen();
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Http stats data", e);
-  		}
+            httpStatsBean.serverOpen = httpStats.getServerOpen();
+            httpStatsBean.totalOpen = httpStats.getTotalOpen();
+        } catch (Exception e) {
+            logger.warn("failed to load Http stats data", e);
+        }
 
-  		httpStatsReporter.httpStatsBean.set(httpStatsBean);
-	}
+        httpStatsReporter.httpStatsBean.set(httpStatsBean);
+    }
 
-    public class Elasticsearch_HttpStatsReporter
-    {
+    public class Elasticsearch_HttpStatsReporter {
         private final AtomicReference<HttpStatsBean> httpStatsBean;
 
-        public Elasticsearch_HttpStatsReporter()
-        {
-        		httpStatsBean = new AtomicReference<HttpStatsBean>(new HttpStatsBean());
+        public Elasticsearch_HttpStatsReporter() {
+            httpStatsBean = new AtomicReference<HttpStatsBean>(new HttpStatsBean());
         }
-        
-        @Monitor(name ="server_open", type=DataSourceType.GAUGE)
-        public long getServerOpen()
-        {
+
+        @Monitor(name = "server_open", type = DataSourceType.GAUGE)
+        public long getServerOpen() {
             return httpStatsBean.get().serverOpen;
         }
-        
-        @Monitor(name ="total_open", type=DataSourceType.GAUGE)
-        public long getTotalOpen()
-        {
+
+        @Monitor(name = "total_open", type = DataSourceType.GAUGE)
+        public long getTotalOpen() {
             return httpStatsBean.get().totalOpen;
         }
     }
-    
-    private static class HttpStatsBean
-    {
-    	  private long serverOpen;
-    	  private long totalOpen;
+
+    private static class HttpStatsBean {
+        private long serverOpen;
+        private long totalOpen;
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public static TaskTimer getTimer(String name) {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+    @Override
+    public String getName() {
+        return METRIC_NAME;
+    }
 
 }

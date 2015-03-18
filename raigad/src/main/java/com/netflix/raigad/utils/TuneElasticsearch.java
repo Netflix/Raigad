@@ -25,31 +25,26 @@ import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
 
 @Singleton
-public class TuneElasticsearch extends Task
-{
+public class TuneElasticsearch extends Task {
     public static final String JOBNAME = "Tune-Elasticsearch";
     private final IElasticsearchTuner tuner;
 
     @Inject
-    public TuneElasticsearch(IConfiguration config, IElasticsearchTuner tuner)
-    {
+    public TuneElasticsearch(IConfiguration config, IElasticsearchTuner tuner) {
         super(config);
         this.tuner = tuner;
     }
 
-    public void execute() throws IOException
-    {
+    public void execute() throws IOException {
         tuner.writeAllProperties(config.getYamlLocation(), null);
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "Tune-Elasticsearch";
     }
 
-    public static TaskTimer getTimer()
-    {
+    public static TaskTimer getTimer() {
         return new SimpleTimer(JOBNAME);
     }
 }

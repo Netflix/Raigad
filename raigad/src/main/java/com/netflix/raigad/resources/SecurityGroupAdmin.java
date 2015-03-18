@@ -31,29 +31,23 @@ import java.util.Collections;
  */
 @Path("/v1/secgroup")
 @Produces(MediaType.TEXT_PLAIN)
-public class SecurityGroupAdmin
-{
+public class SecurityGroupAdmin {
     private static final Logger log = LoggerFactory.getLogger(SecurityGroupAdmin.class);
     private static final String CIDR_TAG = "/32";
     private final IMembership membership;
 
     @Inject
-    public SecurityGroupAdmin(IMembership membership)
-    {
+    public SecurityGroupAdmin(IMembership membership) {
         this.membership = membership;
     }
 
     @POST
-    public Response addACL(@QueryParam("ip") String ipAddr, @QueryParam("fromPort") int fromPort, @QueryParam("toPort") int toPort)
-    {
-        if(!ipAddr.endsWith(CIDR_TAG))
+    public Response addACL(@QueryParam("ip") String ipAddr, @QueryParam("fromPort") int fromPort, @QueryParam("toPort") int toPort) {
+        if (!ipAddr.endsWith(CIDR_TAG))
             ipAddr += CIDR_TAG;
-        try
-        {
+        try {
             membership.addACL(Collections.singletonList(ipAddr), fromPort, toPort);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             log.error("Error while trying to add an ACL to a security group", e);
             return Response.serverError().build();
         }
@@ -61,16 +55,12 @@ public class SecurityGroupAdmin
     }
 
     @DELETE
-    public Response removeACL(@QueryParam("ip") String ipAddr, @QueryParam("fromPort") int fromPort, @QueryParam("toPort") int toPort)
-    {
-        if(!ipAddr.endsWith(CIDR_TAG))
+    public Response removeACL(@QueryParam("ip") String ipAddr, @QueryParam("fromPort") int fromPort, @QueryParam("toPort") int toPort) {
+        if (!ipAddr.endsWith(CIDR_TAG))
             ipAddr += CIDR_TAG;
-        try
-        {
+        try {
             membership.removeACL(Collections.singletonList(ipAddr), fromPort, toPort);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             log.error("Error while trying to remove an ACL to a security group", e);
             return Response.serverError().build();
         }

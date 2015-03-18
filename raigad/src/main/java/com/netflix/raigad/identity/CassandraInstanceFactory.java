@@ -39,15 +39,15 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
 
     @Override
     public RaigadInstance create(String app, String id, String instanceID,
-                                     String hostname, String ip, String zone, String dc, String asgName,
-                                     Map<String, Object> volumes) {
+                                 String hostname, String ip, String zone, String dc, String asgName,
+                                 Map<String, Object> volumes) {
 
         try {
             logger.info("App = (" + app + ") " +
                             "id = (" + id + ") " +
-                            "instanceID = ("	+ instanceID + ") " +
+                            "instanceID = (" + instanceID + ") " +
                             "hostname = (" + hostname + ") " +
-                            "ip = ("	+ ip + ") " +
+                            "ip = (" + ip + ") " +
                             "zone = (" + zone + ") " +
                             "dc = (" + dc + ")"
             );
@@ -111,7 +111,7 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
             dao.deleteInstanceEntry(instance);
         } catch (Exception e) {
             logger.error(e.getMessage());
-            throw new RuntimeException("Unable to deregister RaigadInstance",e);
+            throw new RuntimeException("Unable to deregister RaigadInstance", e);
         }
     }
 

@@ -23,8 +23,7 @@ import java.util.List;
  * Defines the configurations for an application.
  */
 @ImplementedBy(RaigadConfigSource.class)
-public interface IConfigSource
-{
+public interface IConfigSource {
 
     /**
      * Must be called before any other method.  This method will allow implementations to do any setup that they require
@@ -138,7 +137,7 @@ public interface IConfigSource
     /**
      * Get a list of strings associated with the given configuration key.
      *
-     * @param key          to look up value.
+     * @param key to look up value.
      * @return value from config or an immutable list if not present.
      */
     List<String> getList(String key);

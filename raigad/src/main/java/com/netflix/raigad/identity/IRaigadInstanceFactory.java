@@ -23,10 +23,10 @@ import java.util.Map;
  *  to register, update, delete or list instances from the registry 
  */
 
-public interface IRaigadInstanceFactory
-{
+public interface IRaigadInstanceFactory {
     /**
      * Return a list of all Elasticsearch server nodes registered.
+     *
      * @param appName the cluster name
      * @return a list of all nodes in {@code appName}
      */
@@ -34,14 +34,16 @@ public interface IRaigadInstanceFactory
 
     /**
      * Return the Elasticsearch server node with the given {@code id}.
+     *
      * @param appName the cluster name
-     * @param id the node id
+     * @param id      the node id
      * @return the node with the given {@code id}, or {@code null} if none found
      */
     public RaigadInstance getInstance(String appName, String dc, String id);
 
     /**
      * Create/Register an instance of the server with its info.
+     *
      * @param app
      * @param id
      * @param instanceID
@@ -53,29 +55,33 @@ public interface IRaigadInstanceFactory
      * @param volumes
      * @return the new node
      */
-	public RaigadInstance create(String app, String id, String instanceID,
-			String hostname, String ip, String rac, String dc, String asgname, Map<String, Object> volumes);
+    public RaigadInstance create(String app, String id, String instanceID,
+                                 String hostname, String ip, String rac, String dc, String asgname, Map<String, Object> volumes);
 
     /**
      * Delete the server node from the registry
+     *
      * @param inst the node to delete
      */
     public void delete(RaigadInstance inst);
 
     /**
      * Update the details of the server node in registry
+     *
      * @param inst the node to update
      */
     public void update(RaigadInstance inst);
 
     /**
      * Sort the list by instance ID
+     *
      * @param return_ the list of nodes to sort
      */
     public void sort(List<RaigadInstance> return_);
 
     /**
      * Attach volumes if required
+     *
      * @param instance
      * @param mountPath
      * @param device

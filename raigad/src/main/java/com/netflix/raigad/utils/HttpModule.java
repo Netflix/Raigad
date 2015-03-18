@@ -8,8 +8,7 @@ import com.netflix.raigad.configuration.IConfiguration;
  * Created by sloke on 7/10/14.
  */
 @Singleton
-public class HttpModule
-{
+public class HttpModule {
     private static final String HTTP_TAG = "http://";
     private static final String LOCAL_HOST = "127.0.0.1";
     private static final String URL_PORT_SEPARATOR = ":";
@@ -21,13 +20,11 @@ public class HttpModule
     private final IConfiguration config;
 
     @Inject
-    public HttpModule(IConfiguration config)
-    {
+    public HttpModule(IConfiguration config) {
         this.config = config;
     }
 
-    public String findMasterNodeURL()
-    {
+    public String findMasterNodeURL() {
         StringBuilder builder = new StringBuilder();
         builder.append(HTTP_TAG);
         builder.append(LOCAL_HOST);
@@ -37,8 +34,7 @@ public class HttpModule
         return builder.toString();
     }
 
-    public String runSnapshotBackupURL(String repositoryName, String snapshotName)
-    {
+    public String runSnapshotBackupURL(String repositoryName, String snapshotName) {
         StringBuilder builder = new StringBuilder();
         builder.append(HTTP_TAG);
         builder.append(LOCAL_HOST);

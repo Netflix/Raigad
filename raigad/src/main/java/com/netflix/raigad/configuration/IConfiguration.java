@@ -21,9 +21,8 @@ import java.util.List;
 
 
 @ImplementedBy(RaigadConfiguration.class)
-public interface IConfiguration
-{
-	
+public interface IConfiguration {
+
     public void initialize();
 
     /**
@@ -44,42 +43,42 @@ public interface IConfiguration
      * @return Path to Elasticsearch stop sript
      */
     public String getElasticsearchStopScript();
-   
+
     public int getTransportTcpPort();
-    
+
     public int getHttpPort();
 
     public int getNumOfShards();
-    
+
     public int getNumOfReplicas();
 
     public int getTotalShardsPerNode();
 
     public String getRefreshInterval();
-    
+
     public boolean isMasterQuorumEnabled();
-    
+
     public int getMinimumMasterNodes();
-    
+
     public String getPingTimeout();
-    
+
     public boolean isPingMulticastEnabled();
-    
+
     public String getFdPingInterval();
-    
-    public String getFdPingTimeout();   
+
+    public String getFdPingTimeout();
 
     /**
      * @return Location of the local data dir
      */
-	public String getDataFileLocation();
+    public String getDataFileLocation();
 
     /**
      * @return Location of the local log dir
      */
-	public String getLogFileLocation();
+    public String getLogFileLocation();
 
-	public boolean doesElasticsearchStartManually();
+    public boolean doesElasticsearchStartManually();
 
     /**
      * @return Cluster name
@@ -118,23 +117,22 @@ public interface IConfiguration
     public String getDC();
 
     /**
-     * @param dc
-     *            Set the current data center
+     * @param dc Set the current data center
      */
     public void setDC(String dc);
 
- 
+
     /**
      * Amazon specific setting to query ASG Membership
      */
     public String getASGName();
-    
+
     /**
      * Get the security group associated with nodes in this cluster
      */
     public String getACLGroupName();
 
-   
+
     /**
      * @return Get host Public IP
      */
@@ -144,12 +142,12 @@ public interface IConfiguration
      * @return Get host Local IP
      */
     public String getHostLocalIP();
-   
+
     /**
      * @return Bootstrap cluster name (depends on another cass cluster)
      */
     public String getBootClusterName();
-    
+
     /**
      * @return Elasticsearch Process Name
      */
@@ -161,15 +159,15 @@ public interface IConfiguration
     public String getElasticsearchDiscoveryType();
 
 
-	public boolean isMultiDC();
+    public boolean isMultiDC();
 
     /**
      * @return Elasticsearch Index Refresh Interval
      */
-	public String getIndexRefreshInterval();
+    public String getIndexRefreshInterval();
 
     public String getClusterRoutingAttributes();
-    
+
     public boolean isAsgBasedDedicatedDeployment();
 
     public boolean isCustomShardAllocationPolicyEnabled();

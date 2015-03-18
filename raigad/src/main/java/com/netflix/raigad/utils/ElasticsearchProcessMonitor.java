@@ -33,62 +33,52 @@ import com.netflix.raigad.scheduler.TaskTimer;
  * This task checks if the Elasticsearch process is running.
  */
 @Singleton
-public class ElasticsearchProcessMonitor extends Task{
+public class ElasticsearchProcessMonitor extends Task {
 
-	public static final String JOBNAME = "ES_MONITOR_THREAD";
+    public static final String JOBNAME = "ES_MONITOR_THREAD";
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
     private static final AtomicBoolean isElasticsearchStarted = new AtomicBoolean(false);
 
     @Inject
     protected ElasticsearchProcessMonitor(IConfiguration config) {
-		super(config);
-	}
+        super(config);
+    }
 
-	@Override
-	public void execute() throws Exception {
+    @Override
+    public void execute() throws Exception {
 
-        try
-        {
-        		//This returns pid for the Elasticsearch process
-        		Process p = Runtime.getRuntime().exec("pgrep -f " + config.getElasticsearchProcessName());
-        		BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        try {
+            //This returns pid for the Elasticsearch process
+            Process p = Runtime.getRuntime().exec("pgrep -f " + config.getElasticsearchProcessName());
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line = input.readLine();
-        		if (line != null&& !isElasticsearchStarted())
-        		{
-        			isElasticsearchStarted.set(true);
-        		}
-        		else if(line  == null&& isElasticsearchStarted())
-        		{
-        			isElasticsearchStarted.set(false);
-        		}
-        }
-        catch(Exception e)
-        {
-        	logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
+            if (line != null && !isElasticsearchStarted()) {
+                isElasticsearchStarted.set(true);
+            } else if (line == null && isElasticsearchStarted()) {
+                isElasticsearchStarted.set(false);
+            }
+        } catch (Exception e) {
+            logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
             isElasticsearchStarted.set(false);
         }
-		
-	}
 
-    public static TaskTimer getTimer()
-    {
+    }
+
+    public static TaskTimer getTimer() {
         return new SimpleTimer(JOBNAME, 10L * 1000);
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return JOBNAME;
     }
 
-    public static Boolean isElasticsearchStarted()
-    {
+    public static Boolean isElasticsearchStarted() {
         return isElasticsearchStarted.get();
     }
 
     //Added for testing only
-    public static void setElasticsearchStarted()
-    {
-		isElasticsearchStarted.set(true);
-	}
+    public static void setElasticsearchStarted() {
+        isElasticsearchStarted.set(true);
+    }
 }

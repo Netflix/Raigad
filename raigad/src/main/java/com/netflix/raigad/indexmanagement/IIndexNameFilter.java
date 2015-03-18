@@ -21,6 +21,8 @@ package com.netflix.raigad.indexmanagement;
 public interface IIndexNameFilter {
 
     public boolean filter(String name);
+
     public String getNamePart(String name);
+
     public String getId();
 }

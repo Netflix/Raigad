@@ -26,8 +26,7 @@ import java.util.List;
  * nodes in RAC etc. Also perform ACL updates used in multi-regional clusters
  */
 @ImplementedBy(AWSMembership.class)
-public interface IMembership
-{
+public interface IMembership {
     /**
      * Get a list of Instances in the current RAC
      */
@@ -45,7 +44,7 @@ public interface IMembership
 
     /**
      * Add security group ACLs
-     * 
+     *
      * @param listIPs
      * @param from
      * @param to
@@ -54,7 +53,7 @@ public interface IMembership
 
     /**
      * Remove security group ACLs
-     * 
+     *
      * @param listIPs
      * @param from
      * @param to
@@ -68,7 +67,7 @@ public interface IMembership
 
     /**
      * Expand the membership size by 1.
-     * 
+     *
      * @param count
      */
     public void expandRacMembership(int count);

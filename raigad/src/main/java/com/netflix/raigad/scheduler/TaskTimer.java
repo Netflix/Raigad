@@ -22,7 +22,6 @@ import java.text.ParseException;
 /**
  * Interface to represent time/interval 
  */
-public interface TaskTimer
-{
+public interface TaskTimer {
     public Trigger getTrigger() throws ParseException;
 }

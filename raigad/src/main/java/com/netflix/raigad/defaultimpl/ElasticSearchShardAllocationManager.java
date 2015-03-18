@@ -52,7 +52,7 @@ public class ElasticSearchShardAllocationManager {
     protected ElasticSearchShardAllocationManager(IConfiguration config) {
         Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", config.getAppName()).build();
         TransportClient localClient = new TransportClient(settings);
-        localClient.addTransportAddress(new InetSocketTransportAddress(config.getHostIP(),config.getTransportTcpPort()));
+        localClient.addTransportAddress(new InetSocketTransportAddress(config.getHostIP(), config.getTransportTcpPort()));
         init(localClient);
     }
 
@@ -66,13 +66,12 @@ public class ElasticSearchShardAllocationManager {
 
         private final TransportClient localClient;
 
-        ShardAllocator(TransportClient client){
-           this.localClient = client;
+        ShardAllocator(TransportClient client) {
+            this.localClient = client;
         }
 
         public void run() {
-            try
-            {
+            try {
                 logger.info("Running ElasticSearchShardAllocationManager task ...");
                 // If Elasticsearch is started then only start the shard allocation
                 if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
@@ -85,10 +84,9 @@ public class ElasticSearchShardAllocationManager {
             /*
                 Following check means Shards are getting rebalanced
              */
-                if (healthStatus != ClusterHealthStatus.GREEN)
-                {
+                if (healthStatus != ClusterHealthStatus.GREEN) {
                     //Following block should execute only once
-                    if(!isShardAllocationEnabled.get()) {
+                    if (!isShardAllocationEnabled.get()) {
                         String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Raigad/REST/v1/esadmin/shard_allocation_enable/transient");
                         logger.info("Response from REST call = [" + response + "]. Successfully Enabled cluster.routing.allocation.enable property.");
                         isShardAllocationEnabled.set(true);
@@ -99,15 +97,13 @@ public class ElasticSearchShardAllocationManager {
 
                 String response = SystemUtils.runHttpGetCommand("http://127.0.0.1:8080/Raigad/REST/v1/esadmin/shard_allocation_disable/transient");
 
-                logger.info("Response from REST call = ["+ response +"]. Successfully disabled cluster.routing.allocation.enable property.");
+                logger.info("Response from REST call = [" + response + "]. Successfully disabled cluster.routing.allocation.enable property.");
                 //Closing TransportClient
                 localClient.close();
                 //Job is done, hence Cancel the Running Scheduled Job
                 logger.info("Stopping the current running thread because cluster.routing.allocation.enable property is already disabled");
                 scheduledFuture.cancel(false);
-            }
-            catch(Exception e)
-            {
+            } catch (Exception e) {
                 logger.warn("Exception thrown while checking whether it's safe to turn off cluster.routing.allocation.enable property or not", e);
             }
         }

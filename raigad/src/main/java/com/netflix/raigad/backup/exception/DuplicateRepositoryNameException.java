@@ -19,23 +19,19 @@ public class DuplicateRepositoryNameException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public DuplicateRepositoryNameException(String msg, Throwable th)
-    {
+    public DuplicateRepositoryNameException(String msg, Throwable th) {
         super(msg, th);
     }
 
-    public DuplicateRepositoryNameException(String msg)
-    {
+    public DuplicateRepositoryNameException(String msg) {
         super(msg);
     }
 
-    public DuplicateRepositoryNameException(Exception ex)
-    {
+    public DuplicateRepositoryNameException(Exception ex) {
         super(ex);
     }
 
-    public DuplicateRepositoryNameException(Throwable th)
-    {
+    public DuplicateRepositoryNameException(Throwable th) {
         super(th);
     }
 }

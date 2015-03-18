@@ -19,23 +19,19 @@ public class RestoreBackupException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public RestoreBackupException(String msg, Throwable th)
-    {
+    public RestoreBackupException(String msg, Throwable th) {
         super(msg, th);
     }
 
-    public RestoreBackupException(String msg)
-    {
+    public RestoreBackupException(String msg) {
         super(msg);
     }
 
-    public RestoreBackupException(Exception ex)
-    {
+    public RestoreBackupException(Exception ex) {
         super(ex);
     }
 
-    public RestoreBackupException(Throwable th)
-    {
+    public RestoreBackupException(Throwable th) {
         super(th);
     }
 }

@@ -47,10 +47,9 @@ import java.util.*;
  *
  */
 @Singleton
-public class UpdateTribeSecuritySettings extends Task
-{
-	private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
-	public static final String JOBNAME = "Update_TRIBESG";
+public class UpdateTribeSecuritySettings extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
+    public static final String JOBNAME = "Update_TRIBESG";
     public static boolean firstTimeUpdated = false;
     private static final String COMMA_SEPARATOR = ",";
     private static final String PARAM_SEPARATOR = "=";
@@ -64,7 +63,7 @@ public class UpdateTribeSecuritySettings extends Task
      * es_tribesource1 : 9001
      * es_tribesource2 : 9002
      */
-    private final Map<String,Integer> clusterPortMap = new HashMap<String,Integer>();
+    private final Map<String, Integer> clusterPortMap = new HashMap<String, Integer>();
     /**
      * cachedAclClusterMap
      * 50.60.70.80/32 : es_tribe
@@ -77,12 +76,11 @@ public class UpdateTribeSecuritySettings extends Task
      * 70.80.90.01/32 : es_tribesource2
      * 70.80.90.02/32 : es_tribesource2
      */
-    private final Map<String,String> cachedAclClusterMap = new HashMap<String,String>();
+    private final Map<String, String> cachedAclClusterMap = new HashMap<String, String>();
 
 
     @Inject
-    public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
-    {
+    public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory) {
         super(config);
         this.membership = membership;
         this.factory = factory;
@@ -93,30 +91,26 @@ public class UpdateTribeSecuritySettings extends Task
      * Other nodes run only on startup.
      */
     @Override
-    public void execute()
-    {
+    public void execute() {
         //Initialize Cluster-Port map from Config properties
         initializeClusterPortMap();
 
         List<String> acls = Lists.newArrayList();
-        for(String clusterName:clusterPortMap.keySet())
-        {
-           acls.addAll(membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName)));
+        for (String clusterName : clusterPortMap.keySet()) {
+            acls.addAll(membership.listACL(clusterPortMap.get(clusterName), clusterPortMap.get(clusterName)));
         }
 
         List<RaigadInstance> instances = getInstanceList();
 
-        Map<String,String> addAclClusterMap = new HashMap<String, String>();
+        Map<String, String> addAclClusterMap = new HashMap<String, String>();
         //iterate to add ...
-        for (RaigadInstance instance : getInstanceList())
-        {
+        for (RaigadInstance instance : getInstanceList()) {
             String range = instance.getHostIP() + "/32";
-            if(!acls.contains(range))
-                addAclClusterMap.put(range,instance.getApp());
+            if (!acls.contains(range))
+                addAclClusterMap.put(range, instance.getApp());
         }
 
-        if (addAclClusterMap.keySet().size() > 0)
-        {
+        if (addAclClusterMap.keySet().size() > 0) {
             /**
              * clusterInstancesMap
              * es_tribe : 50.60.70.80
@@ -126,50 +120,45 @@ public class UpdateTribeSecuritySettings extends Task
              * es_tribesource2 : 70.80.90.00
              * es_tribesource2 : 70.80.90.01
              */
-            Map<String,List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
+            Map<String, List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
 
-            for(String clusterName : clusterInstancesMap.keySet())
+            for (String clusterName : clusterInstancesMap.keySet())
                 membership.addACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
 
             firstTimeUpdated = true;
             cachedAclClusterMap.putAll(addAclClusterMap);
         }
 
-        Map<String,String> currentIpClusterMap = new HashMap<String, String>();
+        Map<String, String> currentIpClusterMap = new HashMap<String, String>();
         //just iterate to generate ranges ...
-        for (RaigadInstance instance : instances)
-        {
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
-            currentIpClusterMap.put(range,instance.getApp());
+            currentIpClusterMap.put(range, instance.getApp());
         }
 
         //iterate to remove ...
-        Map<String,String> removeAclClusterMap = new HashMap<String, String>();
-        for(String acl:acls)
-        {
-            if(!currentIpClusterMap.containsKey(acl))
+        Map<String, String> removeAclClusterMap = new HashMap<String, String>();
+        for (String acl : acls) {
+            if (!currentIpClusterMap.containsKey(acl))
                 removeAclClusterMap.put(acl, cachedAclClusterMap.get(acl));
         }
 
-        if (removeAclClusterMap.keySet().size() > 0)
-        {
-            Map<String,List<String>> clusterInstancesMap = generateClusterToAclListMap(removeAclClusterMap);
+        if (removeAclClusterMap.keySet().size() > 0) {
+            Map<String, List<String>> clusterInstancesMap = generateClusterToAclListMap(removeAclClusterMap);
 
-            for(String clusterName : clusterInstancesMap.keySet())
+            for (String clusterName : clusterInstancesMap.keySet())
                 membership.removeACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
 
             firstTimeUpdated = true;
             //Clear already removed acl entries from cached map
-            for(String acl:removeAclClusterMap.keySet())
+            for (String acl : removeAclClusterMap.keySet())
                 cachedAclClusterMap.remove(acl);
         }
     }
 
-    private void initializeClusterPortMap()
-    {
+    private void initializeClusterPortMap() {
         //Add Existing cluster-port
-        if(!clusterPortMap.containsKey(config.getAppName()))
-        {
+        if (!clusterPortMap.containsKey(config.getAppName())) {
             clusterPortMap.put(config.getAppName(), config.getTransportTcpPort());
             logger.info("Adding Cluster = <{}> with Port = <{}>", config.getAppName(), config.getTransportTcpPort());
         }
@@ -177,68 +166,56 @@ public class UpdateTribeSecuritySettings extends Task
         String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
         assert (clusterParams != null) : "Clusters parameters can't be null";
 
-        String[] clusters = StringUtils.split(clusterParams.trim(),COMMA_SEPARATOR);
+        String[] clusters = StringUtils.split(clusterParams.trim(), COMMA_SEPARATOR);
         assert (clusters.length != 0) : "One or more clusters needed";
 
         //Common Settings
-        for(int i=0; i< clusters.length;i++)
-        {
+        for (int i = 0; i < clusters.length; i++) {
             String[] clusterPort = clusters[i].trim().split(PARAM_SEPARATOR);
             assert (clusterPort.length != 2) : "Cluster Name or Transport Port is missing in configuration";
 
-            if(!clusterPortMap.containsKey(clusterPort[0].trim()))
-            {
+            if (!clusterPortMap.containsKey(clusterPort[0].trim())) {
                 clusterPortMap.put(clusterPort[0].trim(), Integer.parseInt(clusterPort[1].trim()));
                 logger.info("Adding Cluster = <{}> with Port = <{}>", clusterPort[0], clusterPort[1]);
             }
         }
     }
 
-    private Map<String,List<String>> generateClusterToAclListMap(Map<String,String> addAclClusterMap )
-    {
-        Map<String,List<String>> clusterAclsMap = new HashMap<String,List<String>>();
+    private Map<String, List<String>> generateClusterToAclListMap(Map<String, String> addAclClusterMap) {
+        Map<String, List<String>> clusterAclsMap = new HashMap<String, List<String>>();
 
-        for(String acl:addAclClusterMap.keySet())
-        {
-            if (clusterAclsMap.containsKey(addAclClusterMap.get(acl)))
-            {
+        for (String acl : addAclClusterMap.keySet()) {
+            if (clusterAclsMap.containsKey(addAclClusterMap.get(acl))) {
                 clusterAclsMap.get(addAclClusterMap.get(acl)).add(acl);
-            }
-            else
-            {
+            } else {
                 List<String> aclList = Lists.newArrayList();
                 aclList.add(acl);
-                clusterAclsMap.put(addAclClusterMap.get(acl),aclList);
+                clusterAclsMap.put(addAclClusterMap.get(acl), aclList);
             }
         }
 
         return clusterAclsMap;
     }
 
-    private List<RaigadInstance> getInstanceList()
-    {
+    private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
 
-        for(String clusterName:clusterPortMap.keySet())
-        {
+        for (String clusterName : clusterPortMap.keySet()) {
             _instances.addAll(factory.getAllIds(clusterName));
         }
-        if(config.isDebugEnabled())
-        {
-            for(RaigadInstance instance:_instances)
+        if (config.isDebugEnabled()) {
+            for (RaigadInstance instance : _instances)
                 logger.debug(instance.toString());
         }
         return _instances;
     }
 
-    public static TaskTimer getTimer(InstanceManager instanceManager)
-    {
+    public static TaskTimer getTimer(InstanceManager instanceManager) {
         return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return JOBNAME;
     }
 }

@@ -17,109 +17,106 @@ package com.netflix.raigad.identity;
 
 import java.io.Serializable;
 
-public class RaigadInstance implements Serializable
-{
-	private static final long serialVersionUID = 5606412386974488659L;
-	private String hostname;
-	private long updatetime;
+public class RaigadInstance implements Serializable {
+    private static final long serialVersionUID = 5606412386974488659L;
+    private String hostname;
+    private long updatetime;
     private boolean outOfService;
 
-	private String Id;
-	private String app;
-	private String instanceId;
-	private String availabilityZone;
-	private String publicip;
-	private String dc;
-	private String asgName;
+    private String Id;
+    private String app;
+    private String instanceId;
+    private String availabilityZone;
+    private String publicip;
+    private String dc;
+    private String asgName;
 
-	public String getId() {
-		return Id;
-	}
+    public String getId() {
+        return Id;
+    }
 
-	public void setId(String id) {
-		this.Id = id;
-	}
+    public void setId(String id) {
+        this.Id = id;
+    }
 
-	public String getApp() {
-		return app;
-	}
+    public String getApp() {
+        return app;
+    }
 
-	public void setApp(String app) {
-		this.app = app;
-	}
+    public void setApp(String app) {
+        this.app = app;
+    }
 
-	public String getInstanceId() {
-		return instanceId;
-	}
+    public String getInstanceId() {
+        return instanceId;
+    }
 
-	public void setInstanceId(String instanceId) {
-		this.instanceId = instanceId;
-	}
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
 
-	public String getAvailabilityZone() {
-		return availabilityZone;
-	}
+    public String getAvailabilityZone() {
+        return availabilityZone;
+    }
 
-	public void setAvailabilityZone(String availabilityZone) {
-		this.availabilityZone = availabilityZone;
-	}
+    public void setAvailabilityZone(String availabilityZone) {
+        this.availabilityZone = availabilityZone;
+    }
 
-	public String getHostName() {
-		return hostname;
-	}
+    public String getHostName() {
+        return hostname;
+    }
 
-	public String getHostIP() {
-		return publicip;
-	}
+    public String getHostIP() {
+        return publicip;
+    }
 
-	public void setHostName(String hostname) {
-		this.hostname = hostname;
-	}
+    public void setHostName(String hostname) {
+        this.hostname = hostname;
+    }
 
-	public void setHostIP(String publicip) {
-		this.publicip = publicip;
-	}
+    public void setHostIP(String publicip) {
+        this.publicip = publicip;
+    }
 
-	@Override
-	public String toString() {
-		return String
-				.format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, ASG : %s, UpdateTime : %s",
-						getHostName(), getInstanceId(), getApp(),
-						getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
-	}
+    @Override
+    public String toString() {
+        return String
+                .format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, ASG : %s, UpdateTime : %s",
+                        getHostName(), getInstanceId(), getApp(),
+                        getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
+    }
 
-	public String getDC() {
-		return dc;
-	}
+    public String getDC() {
+        return dc;
+    }
 
-	public void setDC(String dc) {
-		this.dc = dc;
-	}
+    public void setDC(String dc) {
+        this.dc = dc;
+    }
 
-	public String getAsg() {
-		return asgName;
-	}
+    public String getAsg() {
+        return asgName;
+    }
 
-	public void setAsg(String asgName) {
-		this.asgName = asgName;
-	}
+    public void setAsg(String asgName) {
+        this.asgName = asgName;
+    }
 
 
-	public long getUpdatetime() {
-		return updatetime;
-	}
+    public long getUpdatetime() {
+        return updatetime;
+    }
 
-	public void setUpdatetime(long updatetime) {
-		this.updatetime = updatetime;
-	}
-	
-    public boolean isOutOfService()
-    {
+    public void setUpdatetime(long updatetime) {
+        this.updatetime = updatetime;
+    }
+
+    public boolean isOutOfService() {
         return outOfService;
     }
 
-    public void setOutOfService(boolean outOfService)
-    {
+    public void setOutOfService(boolean outOfService) {
         this.outOfService = outOfService;
     }
 

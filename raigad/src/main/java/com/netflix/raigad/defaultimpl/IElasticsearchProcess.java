@@ -24,8 +24,7 @@ import java.io.IOException;
  *
  */
 @ImplementedBy(ElasticSearchProcessManager.class)
-public interface IElasticsearchProcess
-{
+public interface IElasticsearchProcess {
     void start(boolean join_ring) throws IOException;
 
     void stop() throws IOException;

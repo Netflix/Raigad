@@ -50,7 +50,7 @@ public class IndexUtils {
         return currentDate;
     }
 
-    public static int getDateFromIndexName(IndexMetadata indexMetadata,String indexName) throws UnsupportedAutoIndexException{
+    public static int getDateFromIndexName(IndexMetadata indexMetadata, String indexName) throws UnsupportedAutoIndexException {
 
         int indexDate;
 
@@ -71,7 +71,7 @@ public class IndexUtils {
         return indexDate;
     }
 
-    public static int getFutureRetentionDate(IndexMetadata indexMetadata) throws UnsupportedAutoIndexException{
+    public static int getFutureRetentionDate(IndexMetadata indexMetadata) throws UnsupportedAutoIndexException {
 
         DateTime dt = new DateTime();
         int currentDate;

@@ -39,8 +39,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Singleton
-public class RestoreBackupManager extends Task
-{
+public class RestoreBackupManager extends Task {
     private static final Logger logger = LoggerFactory.getLogger(RestoreBackupManager.class);
     public static String JOBNAME = "RestoreBackupManager";
     private final AbstractRepository repository;
@@ -51,19 +50,17 @@ public class RestoreBackupManager extends Task
 
 
     @Inject
-    public RestoreBackupManager(IConfiguration config,  @Named("s3")AbstractRepository repository, HttpModule httpModule) {
+    public RestoreBackupManager(IConfiguration config, @Named("s3") AbstractRepository repository, HttpModule httpModule) {
         super(config);
         this.repository = repository;
         this.httpModule = httpModule;
     }
 
     @Override
-    public void execute()
-    {
+    public void execute() {
         try {
             //Confirm if Current Node is a Master Node
-            if (EsUtils.amIMasterNode(config,httpModule))
-            {
+            if (EsUtils.amIMasterNode(config, httpModule)) {
                 // If Elasticsearch is started then only start Snapshot Backup
                 if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
                     String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Restore Operation";
@@ -76,9 +73,7 @@ public class RestoreBackupManager extends Task
                         config.getRestoreRepositoryType(),
                         config.getRestoreSnapshotName(),
                         config.getCommaSeparatedIndicesToRestore());
-            }
-            else
-            {
+            } else {
                 logger.info("Current node is not a Master Node yet, hence not running a Restore");
             }
         } catch (Exception e) {
@@ -86,101 +81,89 @@ public class RestoreBackupManager extends Task
         }
     }
 
-    public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices) throws Exception
-    {
+    public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices) throws Exception {
         Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
         // Get Repository Name : This will serve as BasePath Suffix
         String sourceRepoName = StringUtils.isBlank(sourceRepositoryName) ? config.getRestoreRepositoryName() : sourceRepositoryName;
-        if(StringUtils.isBlank(sourceRepoName))
+        if (StringUtils.isBlank(sourceRepoName))
             throw new RestoreBackupException("Repository Name is Null or Empty");
 
         //Attach suffix to the repository name so that it does not conflict with Snapshot Repository name
         String restoreRepositoryName = sourceRepoName + SUFFIX_SEPARATOR_TAG + config.getRestoreSourceClusterName();
 
         String repoType = StringUtils.isBlank(repositoryType) ? config.getRestoreRepositoryType().toLowerCase() : repositoryType;
-        if(StringUtils.isBlank(repoType))
-        {
+        if (StringUtils.isBlank(repoType)) {
             logger.info("RepositoryType is empty, hence Defaulting to <s3> type");
             repoType = AbstractRepository.RepositoryType.s3.name();
         }
 
-        if(!repository.doesRepositoryExists(restoreRepositoryName, AbstractRepository.RepositoryType.valueOf(repoType.toLowerCase())))
-        {
+        if (!repository.doesRepositoryExists(restoreRepositoryName, AbstractRepository.RepositoryType.valueOf(repoType.toLowerCase()))) {
             //If repository does not exist, create new one
-            repository.createRestoreRepository(restoreRepositoryName,sourceRepoName);
+            repository.createRestoreRepository(restoreRepositoryName, sourceRepoName);
         }
 
         // Get Snapshot Name
         String snapshotN = StringUtils.isBlank(snapshotName) ? config.getRestoreSnapshotName() : snapshotName;
-        if(StringUtils.isBlank(snapshotN))
-        {
+        if (StringUtils.isBlank(snapshotN)) {
             //Pick the last Snapshot from the available Snapshots
-            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient,restoreRepositoryName);
-            if(snapshots.isEmpty())
-                throw new RestoreBackupException("No available snapshots in <"+restoreRepositoryName+"> repository.");
+            List<String> snapshots = EsUtils.getAvailableSnapshots(esTransportClient, restoreRepositoryName);
+            if (snapshots.isEmpty())
+                throw new RestoreBackupException("No available snapshots in <" + restoreRepositoryName + "> repository.");
 
             //Sorting Snapshot names in Reverse Order
-            Collections.sort(snapshots,Collections.reverseOrder());
+            Collections.sort(snapshots, Collections.reverseOrder());
 
             //Use the Last available snapshot
             snapshotN = snapshots.get(0);
         }
-        logger.info("Snapshot Name : <"+snapshotN+">");
+        logger.info("Snapshot Name : <" + snapshotN + ">");
         // Get Names of Indices
-        String commaSeparatedIndices =  StringUtils.isBlank(indices) ? config.getCommaSeparatedIndicesToRestore() : indices;
-        if(StringUtils.isBlank(commaSeparatedIndices) || commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG))
-        {
+        String commaSeparatedIndices = StringUtils.isBlank(indices) ? config.getCommaSeparatedIndicesToRestore() : indices;
+        if (StringUtils.isBlank(commaSeparatedIndices) || commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG)) {
             commaSeparatedIndices = null;
             logger.info("Restoring all Indices.");
         }
-        logger.info("Indices param : <"+commaSeparatedIndices+">");
+        logger.info("Indices param : <" + commaSeparatedIndices + ">");
 
         RestoreSnapshotResponse restoreSnapshotResponse = getRestoreSnapshotResponse(esTransportClient,
-                commaSeparatedIndices,restoreRepositoryName,snapshotN);
+                commaSeparatedIndices, restoreRepositoryName, snapshotN);
 
-        logger.info("Restore Status = "+restoreSnapshotResponse.status().toString());
+        logger.info("Restore Status = " + restoreSnapshotResponse.status().toString());
 
-        if(restoreSnapshotResponse.status() == RestStatus.OK)
-        {
+        if (restoreSnapshotResponse.status() == RestStatus.OK) {
             printRestoreDetails(restoreSnapshotResponse);
-        }
-        else if (restoreSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
+        } else if (restoreSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR)
             logger.info("Restore Completely Failed");
 
     }
 
     //TODO: Map to Java Class and Create JSON
-    public void printRestoreDetails(RestoreSnapshotResponse restoreSnapshotResponse)
-    {
+    public void printRestoreDetails(RestoreSnapshotResponse restoreSnapshotResponse) {
         StringBuilder builder = new StringBuilder();
         builder.append("Restore Details:");
-        builder.append("\n\t Name = "+restoreSnapshotResponse.getRestoreInfo().name());
+        builder.append("\n\t Name = " + restoreSnapshotResponse.getRestoreInfo().name());
         builder.append("\n\t Indices : ");
-        for(String index:restoreSnapshotResponse.getRestoreInfo().indices())
-        {
-            builder.append("\n\t\t Index = "+index);
+        for (String index : restoreSnapshotResponse.getRestoreInfo().indices()) {
+            builder.append("\n\t\t Index = " + index);
         }
-        builder.append("\n\t Total Shards = "+restoreSnapshotResponse.getRestoreInfo().totalShards());
-        builder.append("\n\t Successful Shards = "+restoreSnapshotResponse.getRestoreInfo().successfulShards());
-        builder.append("\n\t Total Failed Shards = "+restoreSnapshotResponse.getRestoreInfo().failedShards());
+        builder.append("\n\t Total Shards = " + restoreSnapshotResponse.getRestoreInfo().totalShards());
+        builder.append("\n\t Successful Shards = " + restoreSnapshotResponse.getRestoreInfo().successfulShards());
+        builder.append("\n\t Total Failed Shards = " + restoreSnapshotResponse.getRestoreInfo().failedShards());
 
         logger.info(builder.toString());
     }
 
-    public static TaskTimer getTimer(IConfiguration config)
-    {
+    public static TaskTimer getTimer(IConfiguration config) {
         return new SimpleTimer(JOBNAME);
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return JOBNAME;
     }
 
-    public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices,String restoreRepositoryName,String snapshotN)
-    {
+    public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices, String restoreRepositoryName, String snapshotN) {
         RestoreSnapshotResponse restoreSnapshotResponse = null;
 
         if (commaSeparatedIndices != null) {
@@ -190,7 +173,7 @@ public class RestoreBackupManager extends Task
                     .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
                     .execute()
                     .actionGet();
-        }else{
+        } else {
             // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
             restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)

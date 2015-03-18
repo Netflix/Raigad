@@ -21,8 +21,8 @@ import com.google.inject.ImplementedBy;
  * An abstraction to {@link Thread#sleep(long)} so we can mock it in tests.
  */
 @ImplementedBy(ThreadSleeper.class)
-public interface Sleeper
-{
+public interface Sleeper {
     void sleep(long waitTimeMs) throws InterruptedException;
+
     void sleepQuietly(long waitTimeMs);
 }

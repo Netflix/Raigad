@@ -32,8 +32,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/v1/esbackup")
 @Produces(MediaType.APPLICATION_JSON)
-public class ElasticsearchBackup
-{
+public class ElasticsearchBackup {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchBackup.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
     private static final String REST_REPOSITORY_NAME = "repository_name";
@@ -47,8 +46,7 @@ public class ElasticsearchBackup
     private static final String SHARD_REALLOCATION_PROPERTY = "cluster.routing.allocation.enable";
 
     @Inject
-    public ElasticsearchBackup(IConfiguration config, IElasticsearchProcess esProcess,SnapshotBackupManager snapshotBackupManager,RestoreBackupManager restoreBackupManager)
-    {
+    public ElasticsearchBackup(IConfiguration config, IElasticsearchProcess esProcess, SnapshotBackupManager snapshotBackupManager, RestoreBackupManager restoreBackupManager) {
         this.config = config;
         this.esProcess = esProcess;
         this.snapshotBackupManager = snapshotBackupManager;
@@ -58,9 +56,8 @@ public class ElasticsearchBackup
     @GET
     @Path("/do_snapshot")
     public Response snapshot()
-            throws Exception
-    {
-    	logger.info("Running Snapshot through REST call ...");
+            throws Exception {
+        logger.info("Running Snapshot through REST call ...");
         snapshotBackupManager.runSnapshotBackup();
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
@@ -69,12 +66,11 @@ public class ElasticsearchBackup
     @Path("/do_restore")
     public Response restore(@QueryParam(REST_REPOSITORY_NAME) String repoName,
                             @QueryParam(REST_REPOSITORY_TYPE) String repoType,
-                           @QueryParam(REST_SNAPSHOT_NAME) String snapName,
-                           @QueryParam(REST_INDICES_NAME) String indicesName)
-            throws Exception
-    {
-		logger.info("Running Restore through REST call ...");
-        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName);
+                            @QueryParam(REST_SNAPSHOT_NAME) String snapName,
+                            @QueryParam(REST_INDICES_NAME) String indicesName)
+            throws Exception {
+        logger.info("Running Restore through REST call ...");
+        restoreBackupManager.runRestore(repoName, repoType, snapName, indicesName);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 

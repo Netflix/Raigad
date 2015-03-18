@@ -19,23 +19,19 @@ public class CreateRepositoryException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    public CreateRepositoryException(String msg, Throwable th)
-    {
+    public CreateRepositoryException(String msg, Throwable th) {
         super(msg, th);
     }
 
-    public CreateRepositoryException(String msg)
-    {
+    public CreateRepositoryException(String msg) {
         super(msg);
     }
 
-    public CreateRepositoryException(Exception ex)
-    {
+    public CreateRepositoryException(Exception ex) {
         super(ex);
     }
 
-    public CreateRepositoryException(Throwable th)
-    {
+    public CreateRepositoryException(Throwable th) {
         super(th);
     }
 }

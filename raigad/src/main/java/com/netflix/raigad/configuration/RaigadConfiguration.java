@@ -33,8 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 @Singleton
-public class RaigadConfiguration implements IConfiguration
-{
+public class RaigadConfiguration implements IConfiguration {
     public static final String MY_WEBAPP_NAME = "Raigad";
 
     private static final String CONFIG_CLUSTER_NAME = MY_WEBAPP_NAME + ".es.clustername";
@@ -210,7 +209,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final int DEFAULT_KIBANA_PORT = 8001;
 
 
-    private final IConfigSource config; 
+    private final IConfigSource config;
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
     private final ICredential provider;
 
@@ -221,8 +220,8 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty LOG_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, getDefaultLogLocation());
     private final DynamicStringProperty YAML_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_YAML_LOCATION, getDefaultYamlLocation());
     private final DynamicStringProperty ES_HOME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, getDefaultEsHome());
-    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL,getDefaultFdPingInterval());
-    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT,getDefaultFdPingTimeout());
+    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL, getDefaultFdPingInterval());
+    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT, getDefaultFdPingTimeout());
     private final DynamicIntProperty ES_HTTP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, getDefaultHttpPort());
     private final DynamicIntProperty ES_TRANSPORT_TCP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, getDefaultTransportTcpPort());
     private final DynamicIntProperty MINIMUM_MASTER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, getDefaultMinMasterNodes());
@@ -247,7 +246,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty INDEX_METADATA = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, getDefaultIndexMetadata());
     private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, isDefaultIsIndexAutocreationEnabled());
     private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, getDefaultAutocreateIndexTimeout());
-    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,getDefaultAutocreateIndexInitialStartDelaySeconds());
+    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, getDefaultAutocreateIndexInitialStartDelaySeconds());
     private final DynamicIntProperty AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, getDefaultAutocreateIndexPeriodicScheduledHour());
     private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, getDefaultEsProcessName());
     private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, getDefaultBackupLocation());
@@ -289,15 +288,13 @@ public class RaigadConfiguration implements IConfiguration
 
 
     @Inject
-    public RaigadConfiguration(ICredential provider, IConfigSource config)
-    {
+    public RaigadConfiguration(ICredential provider, IConfigSource config) {
         this.provider = provider;
         this.config = config;
     }
 
     @Override
-    public void initialize()
-    {
+    public void initialize() {
         setupEnvVars();
         this.config.initialize(ASG_NAME, REGION);
         setDefaultRACList(REGION);
@@ -305,8 +302,7 @@ public class RaigadConfiguration implements IConfiguration
         SystemUtils.createDirs(getDataFileLocation());
     }
 
-    private void setupEnvVars()
-    {
+    private void setupEnvVars() {
         // Search in java opt properties
         REGION = StringUtils.isBlank(REGION) ? System.getProperty("EC2_REGION") : REGION;
         // Infer from zone
@@ -322,10 +318,9 @@ public class RaigadConfiguration implements IConfiguration
      * Query amazon to get ASG name. Currently not available as part of instance
      * info api.
      */
-    private String populateASGName(String region, String instanceId)
-    {
+    private String populateASGName(String region, String instanceId) {
         GetASGName getASGName = new GetASGName(region, instanceId);
-        
+
         try {
             return getASGName.call();
         } catch (Exception e) {
@@ -333,15 +328,14 @@ public class RaigadConfiguration implements IConfiguration
             return null;
         }
     }
-    
-    private class GetASGName extends RetryableCallable<String>
-    {
+
+    private class GetASGName extends RetryableCallable<String> {
         private static final int NUMBER_OF_RETRIES = 15;
         private static final long WAIT_TIME = 30000;
         private final String region;
         private final String instanceId;
         private final AmazonEC2 client;
-        
+
         public GetASGName(String region, String instanceId) {
             super(NUMBER_OF_RETRIES, WAIT_TIME);
             this.region = region;
@@ -349,24 +343,21 @@ public class RaigadConfiguration implements IConfiguration
             client = new AmazonEC2Client(provider.getAwsCredentialProvider());
             client.setEndpoint("ec2." + region + ".amazonaws.com");
         }
-        
+
         @Override
         public String retriableCall() throws IllegalStateException {
             DescribeInstancesRequest desc = new DescribeInstancesRequest().withInstanceIds(instanceId);
             DescribeInstancesResult res = client.describeInstances(desc);
-    
-            for (Reservation resr : res.getReservations())
-            {
-                for (Instance ins : resr.getInstances())
-                {
-                    for (com.amazonaws.services.ec2.model.Tag tag : ins.getTags())
-                    {
+
+            for (Reservation resr : res.getReservations()) {
+                for (Instance ins : resr.getInstances()) {
+                    for (com.amazonaws.services.ec2.model.Tag tag : ins.getTags()) {
                         if (tag.getKey().equals("aws:autoscaling:groupName"))
                             return tag.getValue();
                     }
                 }
             }
-            
+
             logger.warn("Couldn't determine ASG name");
             throw new IllegalStateException("Couldn't determine ASG name");
         }
@@ -375,57 +366,51 @@ public class RaigadConfiguration implements IConfiguration
     /**
      * Get the fist 3 available zones in the region
      */
-    public void setDefaultRACList(String region){
+    public void setDefaultRACList(String region) {
         AmazonEC2 client = new AmazonEC2Client(provider.getAwsCredentialProvider());
         client.setEndpoint("ec2." + region + ".amazonaws.com");
         DescribeAvailabilityZonesResult res = client.describeAvailabilityZones();
         List<String> zone = Lists.newArrayList();
-        for(AvailabilityZone reg : res.getAvailabilityZones()){
-            if( reg.getState().equals("available") )
+        for (AvailabilityZone reg : res.getAvailabilityZones()) {
+            if (reg.getState().equals("available"))
                 zone.add(reg.getZoneName());
-            if( zone.size() == 3)
+            if (zone.size() == 3)
                 break;
         }
 //        DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
-      DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
+        DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
     }
 
-    private void populateProps()
-    {
+    private void populateProps() {
         config.set(CONFIG_ASG_NAME, ASG_NAME);
         config.set(CONFIG_REGION_NAME, REGION);
     }
 
     @Override
-    public List<String> getRacs()
-    {
+    public List<String> getRacs() {
         return config.getList(CONFIG_AVAILABILITY_ZONES, DEFAULT_AVAILABILITY_ZONES);
     }
-   
+
 
     @Override
-    public String getDC()
-    {
+    public String getDC() {
         return config.get(CONFIG_REGION_NAME, "");
     }
 
     @Override
-    public void setDC(String region)
-    {
+    public void setDC(String region) {
         config.set(CONFIG_REGION_NAME, region);
     }
 
-    
+
     @Override
-    public String getASGName()
-    {
+    public String getASGName() {
         return config.get(CONFIG_ASG_NAME, ASG_NAME);
     }
 
     @Override
-    public String getACLGroupName()
-    {
-    	return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
+    public String getACLGroupName() {
+        return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
     }
 
     @Override
@@ -444,8 +429,7 @@ public class RaigadConfiguration implements IConfiguration
     }
 
     @Override
-    public String getYamlLocation()
-    {
+    public String getYamlLocation() {
         return YAML_LOCATION.get();
     }
 
@@ -592,8 +576,7 @@ public class RaigadConfiguration implements IConfiguration
     /**
      * @return Elasticsearch Index Refresh Interval
      */
-    public String getIndexRefreshInterval()
-    {
+    public String getIndexRefreshInterval() {
         return INDEX_REFRESH_INTERVAL.get();
     }
 
@@ -663,7 +646,7 @@ public class RaigadConfiguration implements IConfiguration
         return BACKUP_HOUR.get();
     }
 
-    public boolean isSnapshotBackupEnabled(){
+    public boolean isSnapshotBackupEnabled() {
         return IS_SNAPSHOT_BACKUP_ENABLED.get();
     }
 
@@ -832,302 +815,287 @@ public class RaigadConfiguration implements IConfiguration
         return KIBANA_PORT.get();
     }
 
-    public String getDefaultCredentialProvider()
-    {
-       return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
+    public String getDefaultCredentialProvider() {
+        return config.get(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);
     }
 
-    public String getDefaultEsStartScript()
-    {
-        return config.get(CONFIG_ES_START_SCRIPT,DEFAULT_ES_START_SCRIPT);
+    public String getDefaultEsStartScript() {
+        return config.get(CONFIG_ES_START_SCRIPT, DEFAULT_ES_START_SCRIPT);
     }
 
-    public String getDefaultEsStopScript()
-    {
-        return config.get(CONFIG_ES_STOP_SCRIPT,DEFAULT_ES_STOP_SCRIPT);
+    public String getDefaultEsStopScript() {
+        return config.get(CONFIG_ES_STOP_SCRIPT, DEFAULT_ES_STOP_SCRIPT);
     }
 
-    public String getDefaultDataLocation()
-    {
-        return config.get(CONFIG_DATA_LOCATION,DEFAULT_DATA_LOCATION);
+    public String getDefaultDataLocation() {
+        return config.get(CONFIG_DATA_LOCATION, DEFAULT_DATA_LOCATION);
     }
 
-    public String getDefaultLogLocation()
-    {
-        return config.get(CONFIG_LOG_LOCATION,DEFAULT_LOG_LOCATION);
+    public String getDefaultLogLocation() {
+        return config.get(CONFIG_LOG_LOCATION, DEFAULT_LOG_LOCATION);
     }
 
-    public String getDefaultYamlLocation()
-    {
-        return config.get(CONFIG_YAML_LOCATION,DEFAULT_YAML_LOCATION);
+    public String getDefaultYamlLocation() {
+        return config.get(CONFIG_YAML_LOCATION, DEFAULT_YAML_LOCATION);
     }
 
-    public String getDefaultEsHome()
-    {
-        return config.get(CONFIG_ES_HOME,DEFAULT_ES_HOME);
+    public String getDefaultEsHome() {
+        return config.get(CONFIG_ES_HOME, DEFAULT_ES_HOME);
     }
 
-    public String getDefaultFdPingInterval()
-    {
-        return config.get(CONFIG_FD_PING_INTERVAL,DEFAULT_FD_PING_INTERVAL);
+    public String getDefaultFdPingInterval() {
+        return config.get(CONFIG_FD_PING_INTERVAL, DEFAULT_FD_PING_INTERVAL);
     }
 
-    public String getDefaultFdPingTimeout()
-    {
-        return config.get(CONFIG_FD_PING_TIMEOUT,DEFAULT_FD_PING_TIMEOUT);
+    public String getDefaultFdPingTimeout() {
+        return config.get(CONFIG_FD_PING_TIMEOUT, DEFAULT_FD_PING_TIMEOUT);
     }
 
-    public int getDefaultHttpPort()
-    {
-        return config.get(CONFIG_HTTP_PORT,DEFAULT_HTTP_PORT);
+    public int getDefaultHttpPort() {
+        return config.get(CONFIG_HTTP_PORT, DEFAULT_HTTP_PORT);
     }
 
-    public int getDefaultTransportTcpPort()
-    {
-        return config.get(CONFIG_TRANSPORT_TCP_PORT,DEFAULT_TRANSPORT_TCP_PORT);
+    public int getDefaultTransportTcpPort() {
+        return config.get(CONFIG_TRANSPORT_TCP_PORT, DEFAULT_TRANSPORT_TCP_PORT);
     }
 
-    public int getDefaultMinMasterNodes()
-    {
-        return config.get(CONFIG_MIN_MASTER_NODES,DEFAULT_MIN_MASTER_NODES);
+    public int getDefaultMinMasterNodes() {
+        return config.get(CONFIG_MIN_MASTER_NODES, DEFAULT_MIN_MASTER_NODES);
     }
 
-    public int getDefaultNumReplicas()
-    {
-        return config.get(CONFIG_NUM_REPLICAS,DEFAULT_NUM_REPLICAS);
+    public int getDefaultNumReplicas() {
+        return config.get(CONFIG_NUM_REPLICAS, DEFAULT_NUM_REPLICAS);
     }
 
-    public int getDefaultNumShards()
-    {
-        return config.get(CONFIG_NUM_SHARDS,DEFAULT_NUM_SHARDS);
+    public int getDefaultNumShards() {
+        return config.get(CONFIG_NUM_SHARDS, DEFAULT_NUM_SHARDS);
     }
 
-    public String getDefaultPingTimeout()
-    {
-        return config.get(CONFIG_PING_TIMEOUT,DEFAULT_PING_TIMEOUT);
+    public String getDefaultPingTimeout() {
+        return config.get(CONFIG_PING_TIMEOUT, DEFAULT_PING_TIMEOUT);
     }
 
     public String getDefaultIndexRefreshInterval() {
-        return config.get(CONFIG_INDEX_REFRESH_INTERVAL,DEFAULT_INDEX_REFRESH_INTERVAL);
+        return config.get(CONFIG_INDEX_REFRESH_INTERVAL, DEFAULT_INDEX_REFRESH_INTERVAL);
     }
 
     public int getDefaultKibanaPort() {
-        return config.get(CONFIG_KIBANA_PORT,DEFAULT_KIBANA_PORT);
+        return config.get(CONFIG_KIBANA_PORT, DEFAULT_KIBANA_PORT);
     }
 
     public boolean isDefaultIsMasterQuorumEnabled() {
-        return config.get(CONFIG_IS_MASTER_QUORUM_ENABLED,DEFAULT_IS_MASTER_QUORUM_ENABLED);
+        return config.get(CONFIG_IS_MASTER_QUORUM_ENABLED, DEFAULT_IS_MASTER_QUORUM_ENABLED);
     }
 
     public boolean isDefaultIsPingMulticastEnabled() {
-        return config.get(CONFIG_IS_PING_MULTICAST_ENABLED,DEFAULT_IS_PING_MULTICAST_ENABLED);
+        return config.get(CONFIG_IS_PING_MULTICAST_ENABLED, DEFAULT_IS_PING_MULTICAST_ENABLED);
     }
 
     public String getDefaultConfigBootclusterName() {
-        return config.get(CONFIG_BOOTCLUSTER_NAME,DEFAULT_CONFIG_BOOTCLUSTER_NAME);
+        return config.get(CONFIG_BOOTCLUSTER_NAME, DEFAULT_CONFIG_BOOTCLUSTER_NAME);
     }
 
     public String getDefaultEsDiscoveryType() {
-        return config.get(CONFIG_ES_DISCOVERY_TYPE,DEFAULT_ES_DISCOVERY_TYPE);
+        return config.get(CONFIG_ES_DISCOVERY_TYPE, DEFAULT_ES_DISCOVERY_TYPE);
     }
 
     public boolean isDefaultIsMultiDcEnabled() {
-        return config.get(CONFIG_IS_MULTI_DC_ENABLED,DEFAULT_IS_MULTI_DC_ENABLED);
+        return config.get(CONFIG_IS_MULTI_DC_ENABLED, DEFAULT_IS_MULTI_DC_ENABLED);
     }
 
     public boolean isDefaultIsAsgBasedDeploymentEnabled() {
-        return config.get(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED,DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
+        return config.get(CONFIG_IS_ASG_BASED_DEPLOYMENT_ENABLED, DEFAULT_IS_ASG_BASED_DEPLOYMENT_ENABLED);
     }
 
     public String getDefaultEsClusterRoutingAttributes() {
-        return config.get(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES,DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
+        return config.get(CONFIG_ES_CLUSTER_ROUTING_ATTRIBUTES, DEFAULT_ES_CLUSTER_ROUTING_ATTRIBUTES);
     }
 
     public String getDefaultEsProcessName() {
-        return config.get(CONFIG_ES_PROCESS_NAME,DEFAULT_ES_PROCESS_NAME);
+        return config.get(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
     }
 
     public boolean isDefaultIsShardAllocationPolicyEnabled() {
-        return config.get(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED,DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
+        return config.get(CONFIG_IS_SHARD_ALLOCATION_POLICY_ENABLED, DEFAULT_IS_SHARD_ALLOCATION_POLICY_ENABLED);
     }
 
     public String getDefaultEsShardAllocationAttribute() {
-        return config.get(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE,DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
+        return config.get(CONFIG_ES_SHARD_ALLOCATION_ATTRIBUTE, DEFAULT_ES_SHARD_ALLOCATION_ATTRIBUTE);
     }
 
     public String getDefaultConfigExtraParams() {
-        return config.get(CONFIG_EXTRA_PARAMS,DEFAULT_CONFIG_EXTRA_PARAMS);
+        return config.get(CONFIG_EXTRA_PARAMS, DEFAULT_CONFIG_EXTRA_PARAMS);
     }
 
     public boolean isDefaultIsDebugEnabled() {
-        return config.get(CONFIG_IS_DEBUG_ENABLED,DEFAULT_IS_DEBUG_ENABLED);
+        return config.get(CONFIG_IS_DEBUG_ENABLED, DEFAULT_IS_DEBUG_ENABLED);
     }
 
     public boolean isDefaultIsShardsPerNodeEnabled() {
-        return config.get(CONFIG_IS_SHARDS_PER_NODE_ENABLED,DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
+        return config.get(CONFIG_IS_SHARDS_PER_NODE_ENABLED, DEFAULT_IS_SHARDS_PER_NODE_ENABLED);
     }
 
     public int getDefaultShardsPerNode() {
-        return config.get(CONFIG_SHARDS_PER_NODE,DEFAULT_SHARDS_PER_NODE);
+        return config.get(CONFIG_SHARDS_PER_NODE, DEFAULT_SHARDS_PER_NODE);
     }
 
     public boolean isDefaultIsIndexAutocreationEnabled() {
-        return config.get(CONFIG_IS_INDEX_AUTOCREATION_ENABLED,DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
+        return config.get(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
     }
 
     public int getDefaultAutocreateIndexTimeout() {
-        return config.get(CONFIG_AUTOCREATE_INDEX_TIMEOUT,DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
+        return config.get(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
     }
 
     public int getDefaultAutocreateIndexInitialStartDelaySeconds() {
-        return config.get(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
+        return config.get(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
     }
 
     public int getDefaultAutocreateIndexPeriodicScheduledHour() {
-        return config.get(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR,DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
+        return config.get(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
     }
 
     public String getDefaultIndexMetadata() {
-        return config.get(CONFIG_INDEX_METADATA,DEFAULT_INDEX_METADATA);
+        return config.get(CONFIG_INDEX_METADATA, DEFAULT_INDEX_METADATA);
     }
 
     public String getDefaultBackupLocation() {
-        return config.get(CONFIG_BACKUP_LOCATION,DEFAULT_BACKUP_LOCATION);
+        return config.get(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
     }
 
     public int getDefaultBackupHour() {
-        return config.get(CONFIG_BACKUP_HOUR,DEFAULT_BACKUP_HOUR);
+        return config.get(CONFIG_BACKUP_HOUR, DEFAULT_BACKUP_HOUR);
     }
 
     public String getDefaultBackupCommaSeparatedIndices() {
-        return config.get(CONFIG_BACKUP_COMMA_SEPARATED_INDICES,DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
+        return config.get(CONFIG_BACKUP_COMMA_SEPARATED_INDICES, DEFAULT_BACKUP_COMMA_SEPARATED_INDICES);
     }
 
     public boolean isDefaultBackupPartialIndices() {
-        return config.get(CONFIG_BACKUP_PARTIAL_INDICES,DEFAULT_BACKUP_PARTIAL_INDICES);
+        return config.get(CONFIG_BACKUP_PARTIAL_INDICES, DEFAULT_BACKUP_PARTIAL_INDICES);
     }
 
     public boolean isDefaultBackupIncludeGlobalState() {
-        return config.get(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE,DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
+        return config.get(CONFIG_BACKUP_INCLUDE_GLOBAL_STATE, DEFAULT_BACKUP_INCLUDE_GLOBAL_STATE);
     }
 
     public boolean isDefaultBackupWaitForCompletion() {
-        return config.get(CONFIG_BACKUP_WAIT_FOR_COMPLETION,DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
+        return config.get(CONFIG_BACKUP_WAIT_FOR_COMPLETION, DEFAULT_BACKUP_WAIT_FOR_COMPLETION);
     }
 
     public boolean isDefaultBackupIncludeIndexName() {
-        return config.get(CONFIG_BACKUP_INCLUDE_INDEX_NAME,DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
+        return config.get(CONFIG_BACKUP_INCLUDE_INDEX_NAME, DEFAULT_BACKUP_INCLUDE_INDEX_NAME);
     }
 
     public boolean isDefaultIsRestoreEnabled() {
-        return config.get(CONFIG_IS_RESTORE_ENABLED,DEFAULT_IS_RESTORE_ENABLED);
+        return config.get(CONFIG_IS_RESTORE_ENABLED, DEFAULT_IS_RESTORE_ENABLED);
     }
 
     public String getDefaultRestoreRepositoryName() {
-        return config.get(CONFIG_RESTORE_REPOSITORY_NAME,DEFAULT_RESTORE_REPOSITORY_NAME);
+        return config.get(CONFIG_RESTORE_REPOSITORY_NAME, DEFAULT_RESTORE_REPOSITORY_NAME);
     }
 
     public String getDefaultRestoreRepositoryType() {
-        return config.get(CONFIG_RESTORE_REPOSITORY_TYPE,DEFAULT_RESTORE_REPOSITORY_TYPE);
+        return config.get(CONFIG_RESTORE_REPOSITORY_TYPE, DEFAULT_RESTORE_REPOSITORY_TYPE);
     }
 
     public String getDefaultRestoreSnapshotName() {
-        return config.get(CONFIG_RESTORE_SNAPSHOT_NAME,DEFAULT_RESTORE_SNAPSHOT_NAME);
+        return config.get(CONFIG_RESTORE_SNAPSHOT_NAME, DEFAULT_RESTORE_SNAPSHOT_NAME);
     }
 
     public String getDefaultRestoreCommaSeparatedIndices() {
-        return config.get(CONFIG_RESTORE_COMMA_SEPARATED_INDICES,DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
+        return config.get(CONFIG_RESTORE_COMMA_SEPARATED_INDICES, DEFAULT_RESTORE_COMMA_SEPARATED_INDICES);
     }
 
     public int getDefaultRestoreTaskInitialStartDelaySeconds() {
-        return config.get(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS,DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
+        return config.get(CONFIG_RESTORE_TASK_INITIAL_START_DELAY_SECONDS, DEFAULT_RESTORE_TASK_INITIAL_START_DELAY_SECONDS);
     }
 
     public String getDefaultRestoreSourceClusterName() {
-        return config.get(CONFIG_RESTORE_SOURCE_CLUSTER_NAME,DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
+        return config.get(CONFIG_RESTORE_SOURCE_CLUSTER_NAME, DEFAULT_RESTORE_SOURCE_CLUSTER_NAME);
     }
 
     public String getDefaultRestoreSourceRepoRegion() {
-        return config.get(CONFIG_RESTORE_SOURCE_REPO_REGION,DEFAULT_RESTORE_SOURCE_REPO_REGION);
+        return config.get(CONFIG_RESTORE_SOURCE_REPO_REGION, DEFAULT_RESTORE_SOURCE_REPO_REGION);
     }
 
     public String getDefaultRestoreLocation() {
-        return config.get(CONFIG_RESTORE_LOCATION,DEFAULT_RESTORE_LOCATION);
+        return config.get(CONFIG_RESTORE_LOCATION, DEFAULT_RESTORE_LOCATION);
     }
 
     public boolean isDefaultBackupIsSnapshotEnabled() {
-        return config.get(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED,DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
+        return config.get(CONFIG_BACKUP_IS_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_SNAPSHOT_ENABLED);
     }
 
     public boolean isDefaultBackupIsHourlySnapshotEnabled() {
-        return config.get(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED,DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
+        return config.get(CONFIG_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED, DEFAULT_BACKUP_IS_HOURLY_SNAPSHOT_ENABLED);
     }
 
     public long getDefaultBackupCronTimerSeconds() {
-        return config.get(CONFIG_BACKUP_CRON_TIMER_SECONDS,DEFAULT_BACKUP_CRON_TIMER_SECONDS);
+        return config.get(CONFIG_BACKUP_CRON_TIMER_SECONDS, DEFAULT_BACKUP_CRON_TIMER_SECONDS);
     }
 
     public boolean isDefaultAmITribeNode() {
-        return config.get(CONFIG_AM_I_TRIBE_NODE,DEFAULT_AM_I_TRIBE_NODE);
+        return config.get(CONFIG_AM_I_TRIBE_NODE, DEFAULT_AM_I_TRIBE_NODE);
     }
 
     public boolean isDefaultAmIWriteEnabledTribeNode() {
-        return config.get(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE,DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
+        return config.get(CONFIG_AM_I_WRITE_ENABLED_TRIBE_NODE, DEFAULT_AM_I_WRITE_ENABLED_TRIBE_NODE);
     }
 
     public boolean isDefaultAmIMetadataEnabledTribeNode() {
-        return config.get(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE,DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
+        return config.get(CONFIG_AM_I_METADATA_ENABLED_TRIBE_NODE, DEFAULT_AM_I_METADATA_ENABLED_TRIBE_NODE);
     }
 
     public String getDefaultTribeCommaSeparatedSourceClusters() {
-        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS,DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
+        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_SOURCE_CLUSTERS);
     }
 
     public boolean isDefaultAmISourceClusterForTribeNode() {
-        return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE,DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
+        return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE);
     }
 
     public String getDefaultTribeCommaSeparatedTribeClusters() {
-        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS,DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
+        return config.get(CONFIG_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS, DEFAULT_TRIBE_COMMA_SEPARATED_TRIBE_CLUSTERS);
     }
 
     public boolean isDefaultIsNodemismatchWithDiscoveryEnabled() {
-        return config.get(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED,DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
+        return config.get(CONFIG_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED, DEFAULT_IS_NODEMISMATCH_WITH_DISCOVERY_ENABLED);
     }
 
     public int getDefaultDesiredNumNodesInCluster() {
-        return config.get(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER,DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
+        return config.get(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
     }
 
     public boolean isDefaultIsEurekaHealthCheckEnabled() {
-        return config.get(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED,DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
+        return config.get(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
     }
 
     public boolean isDefaultIsLocalModeEnabled() {
-        return config.get(CONFIG_IS_LOCAL_MODE_ENABLED,DEFAULT_IS_LOCAL_MODE_ENABLED);
+        return config.get(CONFIG_IS_LOCAL_MODE_ENABLED, DEFAULT_IS_LOCAL_MODE_ENABLED);
     }
 
     public String getDefaultCassandraKeyspaceName() {
-        return config.get(CONFIG_CASSANDRA_KEYSPACE_NAME,DEFAULT_CASSANDRA_KEYSPACE_NAME);
+        return config.get(CONFIG_CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME);
     }
 
     public int getDefaultCassandraThriftPort() {
-        return config.get(CONFIG_CASSANDRA_THRIFT_PORT,DEFAULT_CASSANDRA_THRIFT_PORT);
+        return config.get(CONFIG_CASSANDRA_THRIFT_PORT, DEFAULT_CASSANDRA_THRIFT_PORT);
     }
 
     public boolean isDefaultIsEurekaHostSupplierEnabled() {
-        return config.get(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED,DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
+        return config.get(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
     }
 
     public String getDefaultCommaSeparatedCassandraHostnames() {
-        return config.get(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES,DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
+        return config.get(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
     }
 
     public boolean isDefaultIsSecurityGroupInMultiDc() {
-        return config.get(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC,DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
+        return config.get(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
     }
 
     public boolean isDefaultIsKibanaSetupRequired() {
-        return config.get(CONFIG_IS_KIBANA_SETUP_REQUIRED,DEFAULT_IS_KIBANA_SETUP_REQUIRED);
+        return config.get(CONFIG_IS_KIBANA_SETUP_REQUIRED, DEFAULT_IS_KIBANA_SETUP_REQUIRED);
     }
 }

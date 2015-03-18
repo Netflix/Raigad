@@ -19,9 +19,10 @@ package com.netflix.raigad.scheduler;
  * MBean to monitor Task executions.
  * 
  */
-public interface TaskMBean
-{
+public interface TaskMBean {
     public int getErrorCount();
+
     public int getExecutionCount();
+
     public String getName();
 }

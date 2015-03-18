@@ -46,12 +46,12 @@ public class IndexMetadata {
 
         this.indexName = indexName;
 
-        if(retentionType == null)
-           retentionType = "DAILY";
+        if (retentionType == null)
+            retentionType = "DAILY";
 
         this.retentionType = RETENTION_TYPE.valueOf(retentionType.toUpperCase());
 
-        switch(this.retentionType) {
+        switch (this.retentionType) {
             case DAILY:
                 this.indexNameFilter = new DailyIndexNameFilter();
                 break;

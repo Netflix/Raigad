@@ -18,17 +18,14 @@ package com.netflix.raigad.aws;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.InstanceProfileCredentialsProvider;
 
-public class IAMCredential implements ICredential
-{
+public class IAMCredential implements ICredential {
     private final InstanceProfileCredentialsProvider iamCredProvider;
 
-    public IAMCredential()
-    {
+    public IAMCredential() {
         this.iamCredProvider = new InstanceProfileCredentialsProvider();
     }
 
-	public AWSCredentialsProvider getAwsCredentialProvider() 
-	{
-		return iamCredProvider;
-	}
+    public AWSCredentialsProvider getAwsCredentialProvider() {
+        return iamCredProvider;
+    }
 }

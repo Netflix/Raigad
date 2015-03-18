@@ -30,42 +30,42 @@ import java.util.List;
 
 
 public class CustomUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
-	private final TransportService transportService;
-	private final Version version;
-  
-  @Inject
-  public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
-    super(settings);
-    this.transportService = transportService;
-    this.version = version;
-  }
+    private final TransportService transportService;
+    private final Version version;
 
-  @Override
-  public List<DiscoveryNode> buildDynamicNodes() {
-		List<DiscoveryNode> discoNodes = Lists.newArrayList();
-		try {
-		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes",logger);
-		List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
-			for (RaigadInstance instance : instances) {
-				try {
-					TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
-					// we only limit to 1 addresses, makes no sense to ping 100 ports
-					for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
-						logger.debug(
-								"adding {}, address {}, transport_address {}",
-								instance.getId(), instance.getHostIP(),addresses[i]);
-						discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version.minimumCompatibilityVersion()));
-					}
-				} catch (Exception e) {
-					logger.warn("failed to add {}, address {}", e,instance.getId(), instance.getHostIP());
-				}
-			}
-		} catch (Exception e) {
-			logger.error("Caught an exception while trying to add buildDynamicNodes", e);
-			throw new RuntimeException(e);
-		}
-    logger.info("using dynamic discovery nodes {}", discoNodes);
+    @Inject
+    public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
+        super(settings);
+        this.transportService = transportService;
+        this.version = version;
+    }
 
-    return discoNodes;
-  }
+    @Override
+    public List<DiscoveryNode> buildDynamicNodes() {
+        List<DiscoveryNode> discoNodes = Lists.newArrayList();
+        try {
+            String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes", logger);
+            List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
+            for (RaigadInstance instance : instances) {
+                try {
+                    TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
+                    // we only limit to 1 addresses, makes no sense to ping 100 ports
+                    for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
+                        logger.debug(
+                                "adding {}, address {}, transport_address {}",
+                                instance.getId(), instance.getHostIP(), addresses[i]);
+                        discoNodes.add(new DiscoveryNode(instance.getId(), addresses[i], version.minimumCompatibilityVersion()));
+                    }
+                } catch (Exception e) {
+                    logger.warn("failed to add {}, address {}", e, instance.getId(), instance.getHostIP());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Caught an exception while trying to add buildDynamicNodes", e);
+            throw new RuntimeException(e);
+        }
+        logger.info("using dynamic discovery nodes {}", discoNodes);
+
+        return discoNodes;
+    }
 }

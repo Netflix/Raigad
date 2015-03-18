@@ -79,8 +79,7 @@ public class ElasticSearchIndexManager extends Task {
     public void execute() {
         try {
             //Confirm if Current Node is a Master Node
-            if (EsUtils.amIMasterNode(config, httpModule))
-            {
+            if (EsUtils.amIMasterNode(config, httpModule)) {
                 // If Elasticsearch is started then only start Snapshot Backup
                 if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
                     String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Index Management Operation";
@@ -97,21 +96,17 @@ public class ElasticSearchIndexManager extends Task {
 
                 //Run Index Management
                 runIndexManagement();
-            }
-            else
-            {
+            } else {
                 //TODO:Update config property
                 if (config.isDebugEnabled())
                     logger.debug("Current node is not a Master Node yet, hence sleeping for " + config.getAutoCreateIndexPeriodicScheduledHour() + " Seconds");
             }
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             logger.warn("Exception thrown while doing Index Maintenance", e);
         }
     }
 
-    public void runIndexManagement() throws Exception
-    {
+    public void runIndexManagement() throws Exception {
         logger.info("Starting Index Maintenance ...");
         List<IndexMetadata> infoList;
         try {
@@ -129,10 +124,10 @@ public class ElasticSearchIndexManager extends Task {
 
             try {
                 if (esTransportClient != null) {
-                    checkIndexRetention(indexMetadata,esTransportClient);
+                    checkIndexRetention(indexMetadata, esTransportClient);
 
                     if (indexMetadata.isPreCreate()) {
-                        preCreateIndex(indexMetadata,esTransportClient);
+                        preCreateIndex(indexMetadata, esTransportClient);
                     }
                 }
             } catch (Exception e) {
@@ -148,57 +143,57 @@ public class ElasticSearchIndexManager extends Task {
         return JOBNAME;
     }
 
-    public static TaskTimer getTimer(IConfiguration config)
-    {
+    public static TaskTimer getTimer(IConfiguration config) {
         int hour = config.getAutoCreateIndexPeriodicScheduledHour();
-        return new CronTimer(hour, 1, 0,JOBNAME);
+        return new CronTimer(hour, 1, 0, JOBNAME);
     }
 
     /**
      * Convert the JSON String of parameters to IndexMetadata objects
+     *
      * @param infoStr : JSON String with Parameters
      * @return list of IndexMetadata objects
      * @throws IOException
      */
     public static List<IndexMetadata> buildInfo(String infoStr) throws IOException {
         ObjectMapper jsonMapper = new DefaultIndexMapper();
-        TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {};
+        TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {
+        };
         return jsonMapper.readValue(infoStr, typeRef);
     }
 
     /**
      * Courtesy Jae Bae
      */
-    public void checkIndexRetention(IndexMetadata indexMetadata,Client esTransportClient) throws UnsupportedAutoIndexException {
+    public void checkIndexRetention(IndexMetadata indexMetadata, Client esTransportClient) throws UnsupportedAutoIndexException {
         //Calculate the Past Retention date
         int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
-        if(config.isDebugEnabled())
+        if (config.isDebugEnabled())
             logger.debug("Past Date = " + pastRetentionCutoffDateDate);
         //Find all the indices
         IndicesStatusResponse getIndicesResponse = getIndicesStatusResponse(esTransportClient);
         Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
         if (!indexStatusMap.isEmpty()) {
             for (String indexName : indexStatusMap.keySet()) {
-                if(config.isDebugEnabled())
+                if (config.isDebugEnabled())
                     logger.debug("Index Name = <" + indexName + ">");
                 if (indexMetadata.getIndexNameFilter().filter(indexName) &&
                         indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
                     //Extract date from Index Name
                     int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
-                    if(config.isDebugEnabled())
+                    if (config.isDebugEnabled())
                         logger.debug("Date extracted from Index <" + indexName + "> = <" + indexDate + ">");
                     //Delete old indices
                     if (indexDate <= pastRetentionCutoffDateDate) {
-                        if(config.isDebugEnabled())
+                        if (config.isDebugEnabled())
                             logger.debug("Date extracted from index <" + indexDate + "> is past the retention date <" + pastRetentionCutoffDateDate + ", hence deleting index now.");
                         deleteIndices(esTransportClient, indexName, config.getAutoCreateIndexTimeout());
                     }
                 }
             }
-        }
-        else{
-            if(config.isDebugEnabled())
+        } else {
+            if (config.isDebugEnabled())
                 logger.debug("Indexes Map is empty ... No Indices found");
         }
     }
@@ -219,13 +214,13 @@ public class ElasticSearchIndexManager extends Task {
     /**
      * Courtesy Jae Bae
      */
-    public void preCreateIndex(IndexMetadata indexMetadata,Client esTransportClient) throws UnsupportedAutoIndexException {
+    public void preCreateIndex(IndexMetadata indexMetadata, Client esTransportClient) throws UnsupportedAutoIndexException {
         logger.info("Running PreCreate Index task");
         IndicesStatusResponse getIndicesResponse = getIndicesStatusResponse(esTransportClient);
         Map<String, IndexStatus> indexStatusMap = getIndicesResponse.getIndices();
         if (!indexStatusMap.isEmpty()) {
             for (String indexNameWithDateSuffix : indexStatusMap.keySet()) {
-                if(config.isDebugEnabled())
+                if (config.isDebugEnabled())
                     logger.debug("Index Name = <" + indexNameWithDateSuffix + ">");
                 if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                         indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
@@ -253,7 +248,7 @@ public class ElasticSearchIndexManager extends Task {
 
                         }
 
-                        if(config.isDebugEnabled())
+                        if (config.isDebugEnabled())
                             logger.debug("Added Date = " + addedDate);
                         if (!esTransportClient.admin().indices().prepareExists(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                             esTransportClient.admin().indices().prepareCreate(indexMetadata.getIndexName() + addedDate).execute().actionGet(config.getAutoCreateIndexTimeout());
@@ -265,19 +260,19 @@ public class ElasticSearchIndexManager extends Task {
                     }
                 }
             }
-        }else{
+        } else {
             logger.info("No existing indices, hence can not pre-create any indices");
         }
     }
 
     /**
      * Following method is isolated so that it helps in Unit Testing for Mocking
+     *
      * @param esTransportClient
      * @return
      */
-    public IndicesStatusResponse getIndicesStatusResponse(Client esTransportClient)
-    {
-       return esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
+    public IndicesStatusResponse getIndicesStatusResponse(Client esTransportClient) {
+        return esTransportClient.admin().indices().prepareStatus().execute().actionGet(config.getAutoCreateIndexTimeout());
     }
 
 }

@@ -35,7 +35,7 @@ public class YearlyIndexNameFilter implements IIndexNameFilter {
 
         Pattern pattern = Pattern.compile(YEARLY_PATTERN);
         Matcher matcher = pattern.matcher(name);
-        if(!matcher.matches())
+        if (!matcher.matches())
             return false;
 
         String date = name.substring(name.length() - 4, name.length());

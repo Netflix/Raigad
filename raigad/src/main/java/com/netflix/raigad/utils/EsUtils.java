@@ -24,8 +24,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EsUtils 
-{
+public class EsUtils {
     private static final Logger logger = LoggerFactory.getLogger(EsUtils.class);
     private static final String HOST_NAME = "host_name";
     private static final String ID = "id";
@@ -48,64 +47,58 @@ public class EsUtils
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
 
 
-
     @SuppressWarnings("unchecked")
-	public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances)
-    {
-    		JSONObject esJsonInstances = new JSONObject();
-    		
-    		for(int i=0;i<instances.size();i++)
-    		{
-    	   		JSONArray esJsonInstance = new JSONArray();
-    	   		
-    	   	 	JSONObject jsInstance = new JSONObject();
-    			jsInstance.put(HOST_NAME, instances.get(i).getHostName());
-    			jsInstance.put(ID, instances.get(i).getId());
-    			jsInstance.put(APP_NAME, instances.get(i).getApp());
-    			jsInstance.put(INSTANCE_ID, instances.get(i).getInstanceId());
-    			jsInstance.put(AVAILABILITY_ZONE, instances.get(i).getAvailabilityZone());
-    			jsInstance.put(PUBLIC_IP, instances.get(i).getHostIP());
-    			jsInstance.put(DC, instances.get(i).getDC());
-    			jsInstance.put(UPDATE_TIME, instances.get(i).getUpdatetime());
-    			esJsonInstance.add(jsInstance);
-    			esJsonInstances.put("instance-"+i,jsInstance);
-    		}    	
-    		
-    		JSONObject allInstances = new JSONObject();
-    		allInstances.put("instances", esJsonInstances);
-    		return allInstances;
-    }
-    
-	public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances)
-    {
-		List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
-		
-		JSONObject topLevelInstance = (JSONObject) instances.get("instances");
-		
-		for(int i=0;;i++)
-		{
-			if(topLevelInstance.get("instance-"+i) == null)
-				break;
-			JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-"+i);
-			//Build RaigadInstance
-			RaigadInstance escInstance = new RaigadInstance();
-			escInstance.setApp((String) eachInstance.get(APP_NAME));
-			escInstance.setAvailabilityZone((String) eachInstance.get(AVAILABILITY_ZONE));
-			escInstance.setDC((String) eachInstance.get(DC));
-			escInstance.setHostIP((String) eachInstance.get(PUBLIC_IP));
-			escInstance.setHostName((String) eachInstance.get(HOST_NAME));
-			escInstance.setId((String) eachInstance.get(ID));
-			escInstance.setInstanceId((String) eachInstance.get(INSTANCE_ID));
-			escInstance.setUpdatetime((Long) eachInstance.get(UPDATE_TIME));
-			//Add to the list
-			raigadInstances.add(escInstance);
-		}
-  		
-    		return raigadInstances;
+    public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances) {
+        JSONObject esJsonInstances = new JSONObject();
+
+        for (int i = 0; i < instances.size(); i++) {
+            JSONArray esJsonInstance = new JSONArray();
+
+            JSONObject jsInstance = new JSONObject();
+            jsInstance.put(HOST_NAME, instances.get(i).getHostName());
+            jsInstance.put(ID, instances.get(i).getId());
+            jsInstance.put(APP_NAME, instances.get(i).getApp());
+            jsInstance.put(INSTANCE_ID, instances.get(i).getInstanceId());
+            jsInstance.put(AVAILABILITY_ZONE, instances.get(i).getAvailabilityZone());
+            jsInstance.put(PUBLIC_IP, instances.get(i).getHostIP());
+            jsInstance.put(DC, instances.get(i).getDC());
+            jsInstance.put(UPDATE_TIME, instances.get(i).getUpdatetime());
+            esJsonInstance.add(jsInstance);
+            esJsonInstances.put("instance-" + i, jsInstance);
+        }
+
+        JSONObject allInstances = new JSONObject();
+        allInstances.put("instances", esJsonInstances);
+        return allInstances;
     }
 
-    public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception
-    {
+    public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances) {
+        List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
+
+        JSONObject topLevelInstance = (JSONObject) instances.get("instances");
+
+        for (int i = 0; ; i++) {
+            if (topLevelInstance.get("instance-" + i) == null)
+                break;
+            JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-" + i);
+            //Build RaigadInstance
+            RaigadInstance escInstance = new RaigadInstance();
+            escInstance.setApp((String) eachInstance.get(APP_NAME));
+            escInstance.setAvailabilityZone((String) eachInstance.get(AVAILABILITY_ZONE));
+            escInstance.setDC((String) eachInstance.get(DC));
+            escInstance.setHostIP((String) eachInstance.get(PUBLIC_IP));
+            escInstance.setHostName((String) eachInstance.get(HOST_NAME));
+            escInstance.setId((String) eachInstance.get(ID));
+            escInstance.setInstanceId((String) eachInstance.get(INSTANCE_ID));
+            escInstance.setUpdatetime((Long) eachInstance.get(UPDATE_TIME));
+            //Add to the list
+            raigadInstances.add(escInstance);
+        }
+
+        return raigadInstances;
+    }
+
+    public static boolean amIMasterNode(IConfiguration config, HttpModule httpModule) throws Exception {
         boolean iAmTheMaster = false;
         final DefaultMasterNodeInfoMapper defaultMasterNodeInfoMapper = new DefaultMasterNodeInfoMapper();
         String URL = httpModule.findMasterNodeURL();
@@ -119,13 +112,14 @@ public class EsUtils
             return iAmTheMaster;
         }
         //Map MasterNodeInfo response to DO
-        TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
-        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response,typeRef);
+        TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {
+        };
+        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
 
-        if (masterNodeInformationDOList.size() == 0 )
+        if (masterNodeInformationDOList.size() == 0)
             throw new NoMasterNodeException("No Master Node found. Something went wrong !!");
 
-        if (masterNodeInformationDOList.size() > 1 )
+        if (masterNodeInformationDOList.size() > 1)
             throw new MultipleMasterNodesException("Multiple Master Nodes found. Something went wrong !!");
 
         //Get MasterNode Ip
@@ -145,16 +139,14 @@ public class EsUtils
         return iAmTheMaster;
     }
 
-    public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName)
-    {
+    public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName) {
         logger.info("Searching for available snapshots");
         List<String> snapshots = Lists.newArrayList();
         GetSnapshotsResponse getSnapshotsResponse = transportClient.admin().cluster()
                 .prepareGetSnapshots(repositoryName)
                 .get();
 
-        for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots())
-        {
+        for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots()) {
             snapshots.add(snapshotInfo.name());
         }
 
@@ -163,17 +155,16 @@ public class EsUtils
 
     /**
      * Repository Name is Today's Date in yyyyMMdd format eg. 20140630
+     *
      * @return Repository Name
      */
-    public static String getS3RepositoryName()
-    {
+    public static String getS3RepositoryName() {
         DateTime dt = new DateTime();
         DateTime dtGmt = dt.withZone(currentZone);
-        return formatDate(dtGmt,S3_REPO_DATE_FORMAT);
+        return formatDate(dtGmt, S3_REPO_DATE_FORMAT);
     }
 
-    public static String formatDate(DateTime dateTime, String dateFormat)
-    {
+    public static String formatDate(DateTime dateTime, String dateFormat) {
         DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
         return dateTime.toString(fmt);
     }

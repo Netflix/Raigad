@@ -24,14 +24,11 @@ import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class DataFetcher
-{
+public class DataFetcher {
 
-    public static String fetchData(String url,ESLogger logger)
-    {
+    public static String fetchData(String url, ESLogger logger) {
         DataInputStream responseStream = null;
-        try
-        {
+        try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(10000);
@@ -49,20 +46,13 @@ public class DataFetcher
             logger.info(String.format("Calling URL API: %s returns: %s", url, return_));
             conn.disconnect();
             return return_;
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
-        }
-        finally
-        {
-            try
-            {
-                if(responseStream != null)
+        } finally {
+            try {
+                if (responseStream != null)
                     responseStream.close();
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 logger.warn("Failed to close response stream from priam", e);
             }
         }

@@ -22,8 +22,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.module.SimpleModule;
 
-public class DefaultMasterNodeInfoMapper extends ObjectMapper
-{
+public class DefaultMasterNodeInfoMapper extends ObjectMapper {
     public DefaultMasterNodeInfoMapper() {
         this(null);
     }

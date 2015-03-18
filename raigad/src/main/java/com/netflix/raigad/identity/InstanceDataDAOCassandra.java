@@ -46,8 +46,7 @@ import java.util.*;
  *
  */
 @Singleton
-public class InstanceDataDAOCassandra
-{
+public class InstanceDataDAOCassandra {
     private static final Logger logger = LoggerFactory.getLogger(InstanceDataDAOCassandra.class);
     private static final String CN_CLUSTER = "cluster";
     private static final String CN_AZ = "availabilityZone";
@@ -75,27 +74,26 @@ public class InstanceDataDAOCassandra
 
 
     @Inject
-    public InstanceDataDAOCassandra(IConfiguration config,EurekaHostsSupplier eurekaHostsSupplier) throws ConnectionException
-    {
+    public InstanceDataDAOCassandra(IConfiguration config, EurekaHostsSupplier eurekaHostsSupplier) throws ConnectionException {
         this.config = config;
 
         BOOT_CLUSTER = config.getBootClusterName();
 
-        if(BOOT_CLUSTER == null || BOOT_CLUSTER.isEmpty())
+        if (BOOT_CLUSTER == null || BOOT_CLUSTER.isEmpty())
             throw new RuntimeException("BootCluster can not be blank. Please use getBootClusterName() property.");
 
         KS_NAME = config.getCassandraKeyspaceName();
 
-        if(KS_NAME == null || KS_NAME.isEmpty())
+        if (KS_NAME == null || KS_NAME.isEmpty())
             throw new RuntimeException("Cassandra Keyspace can not be blank. Please use getCassandraKeyspaceName() property.");
 
         thriftPortForAstyanax = config.getCassandraThriftPortForAstyanax();
-        if(thriftPortForAstyanax <= 0)
+        if (thriftPortForAstyanax <= 0)
             throw new RuntimeException("Thrift Port for Astyanax can not be blank. Please use getCassandraThriftPortForAstyanax() property.");
 
         this.eurekaHostsSupplier = eurekaHostsSupplier;
 
-        if(config.isEurekaHostSupplierEnabled())
+        if (config.isEurekaHostSupplierEnabled())
             ctx = initWithThriftDriverWithEurekaHostsSupplier();
         else
             ctx = initWithThriftDriverWithExternalHostsSupplier();
@@ -104,8 +102,7 @@ public class InstanceDataDAOCassandra
         bootKeyspace = ctx.getClient();
     }
 
-    public void createInstanceEntry(RaigadInstance instance) throws Exception
-    {
+    public void createInstanceEntry(RaigadInstance instance) throws Exception {
         logger.info("***Creating New Instance Entry");
         String key = getRowKey(instance);
         // If the key exists throw exception
@@ -130,8 +127,7 @@ public class InstanceDataDAOCassandra
         m.execute();
     }
 
-    public RaigadInstance getInstance(String cluster, String region, String instanceId)
-    {
+    public RaigadInstance getInstance(String cluster, String region, String instanceId) {
         List<RaigadInstance> list = getAllInstances(cluster);
         for (RaigadInstance ins : list) {
             if (ins.getInstanceId().equals(instanceId) && ins.getDC().equals(region))
@@ -140,17 +136,15 @@ public class InstanceDataDAOCassandra
         return null;
     }
 
-    public List<RaigadInstance> getAllInstances(String cluster)
-    {
+    public List<RaigadInstance> getAllInstances(String cluster) {
         List<RaigadInstance> list = new ArrayList<RaigadInstance>();
         try {
 
             String selectClause = "";
-            if(config.isMultiDC())
-            {
-                selectClause  = String.format("SELECT * FROM %s WHERE %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster);
-            }else {
-                selectClause  = String.format("SELECT * FROM %s WHERE %s = '%s' AND %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster, CN_LOCATION, config.getDC());
+            if (config.isMultiDC()) {
+                selectClause = String.format("SELECT * FROM %s WHERE %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster);
+            } else {
+                selectClause = String.format("SELECT * FROM %s WHERE %s = '%s' AND %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster, CN_LOCATION, config.getDC());
             }
 
             if (config.isDebugEnabled()) {
@@ -166,8 +160,7 @@ public class InstanceDataDAOCassandra
             for (Row<String, String> row : result.getResult().getRows()) {
                 list.add(transform(row.getColumns()));
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Caught an Unknown Exception during reading msgs ... -> " + e.getMessage());
             throw new RuntimeException(e);
         }
@@ -181,8 +174,7 @@ public class InstanceDataDAOCassandra
         return list;
     }
 
-    public void deleteInstanceEntry(RaigadInstance instance) throws Exception
-    {
+    public void deleteInstanceEntry(RaigadInstance instance) throws Exception {
         logger.info("***Deleting Dead Instance Entry");
         // Acquire the lock first
         getLock(instance);
@@ -231,8 +223,7 @@ public class InstanceDataDAOCassandra
      * out. - Once there are no contenders, grab the lock if it is not already
      * taken.
      */
-    private void getLock(RaigadInstance instance) throws Exception
-    {
+    private void getLock(RaigadInstance instance) throws Exception {
         String choosingkey = getChoosingKey(instance);
         MutationBatch m = bootKeyspace.prepareMutationBatch();
         ColumnListMutation<String> clm = m.withRow(CF_LOCKS, choosingkey);
@@ -261,14 +252,12 @@ public class InstanceDataDAOCassandra
         if (result.getResult().size() == 1 && result.getResult().getColumnByIndex(0).getName().equals(instance.getInstanceId())) {
             logger.info("Got lock " + lockKey);
             return;
-        }
-        else
+        } else
             throw new Exception(String.format("Cannot insert lock %s", lockKey));
 
     }
 
-    public String findKey(String cluster, String instanceId, String dc)
-    {
+    public String findKey(String cluster, String instanceId, String dc) {
         try {
             final String selectClause = String.format(
                     "SELECT * FROM %s WHERE %s = '%s' and %s = '%s' and %s = '%s'  ", CF_NAME_INSTANCES,
@@ -288,8 +277,7 @@ public class InstanceDataDAOCassandra
             Row<String, String> row = result.getResult().getRows().getRowByIndex(0);
             return row.getKey();
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Caught an Unknown Exception during find a row matching cluster[" + cluster +
                     "], id[" + instanceId + "], and region[" + dc + "]  ... -> "
                     + e.getMessage());
@@ -297,8 +285,7 @@ public class InstanceDataDAOCassandra
         }
     }
 
-    private RaigadInstance transform(ColumnList<String> columns)
-    {
+    private RaigadInstance transform(ColumnList<String> columns) {
         RaigadInstance ins = new RaigadInstance();
         Map<String, String> cmap = new HashMap<String, String>();
         for (Column<String> column : columns) {
@@ -306,7 +293,7 @@ public class InstanceDataDAOCassandra
             if (column.getName().equals(CN_CLUSTER))
                 ins.setUpdatetime(column.getTimestamp());
         }
-        ins.setId(cmap.get(CN_LOCATION) +"."+ cmap.get(CN_INSTANCEID));
+        ins.setId(cmap.get(CN_LOCATION) + "." + cmap.get(CN_INSTANCEID));
         ins.setApp(cmap.get(CN_CLUSTER));
         ins.setAvailabilityZone(cmap.get(CN_AZ));
         ins.setHostName(cmap.get(CN_HOSTNAME));
@@ -317,31 +304,28 @@ public class InstanceDataDAOCassandra
         return ins;
     }
 
-    private String getChoosingKey(RaigadInstance instance)
-    {
+    private String getChoosingKey(RaigadInstance instance) {
         return instance.getApp() + "_" + instance.getDC() + "_" + instance.getInstanceId() + "-choosing";
     }
 
-    private String getLockingKey(RaigadInstance instance)
-    {
+    private String getLockingKey(RaigadInstance instance) {
         return instance.getApp() + "_" + instance.getDC() + "_" + instance.getInstanceId() + "-lock";
     }
 
-    private String getRowKey(RaigadInstance instance)
-    {
+    private String getRowKey(RaigadInstance instance) {
         return instance.getApp() + "_" + instance.getDC() + "_" + instance.getInstanceId();
     }
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithEurekaHostsSupplier() {
 
-        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}",BOOT_CLUSTER,KS_NAME);
+        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}", BOOT_CLUSTER, KS_NAME);
         return new AstyanaxContext.Builder()
                 .forCluster(BOOT_CLUSTER)
                 .forKeyspace(KS_NAME)
                 .withAstyanaxConfiguration(
                         new AstyanaxConfigurationImpl()
                                 .setDiscoveryType(
-                                        NodeDiscoveryType.DISCOVERY_SERVICE) )
+                                        NodeDiscoveryType.DISCOVERY_SERVICE))
                 .withConnectionPoolConfiguration(
                         new ConnectionPoolConfigurationImpl(
                                 "MyConnectionPool")
@@ -355,7 +339,7 @@ public class InstanceDataDAOCassandra
 
     private AstyanaxContext<Keyspace> initWithThriftDriverWithExternalHostsSupplier() {
 
-        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}",BOOT_CLUSTER,KS_NAME);
+        logger.info("BOOT_CLUSTER = {}, KS_NAME = {}", BOOT_CLUSTER, KS_NAME);
         return new AstyanaxContext.Builder()
                 .forCluster(BOOT_CLUSTER)
                 .forKeyspace(KS_NAME)
@@ -387,12 +371,11 @@ public class InstanceDataDAOCassandra
 
                 List<String> cassHostnames = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedCassandraHostNames(), ",")));
 
-                if(cassHostnames.size() == 0)
+                if (cassHostnames.size() == 0)
                     throw new RuntimeException("Cassandra Host Names can not be blank. At least one host is needed. Please use getCommaSeparatedCassandraHostNames() property.");
 
-                for(String cassHost : cassHostnames)
-                {
-                    logger.info("Adding Cassandra Host = {}",cassHost);
+                for (String cassHost : cassHostnames) {
+                    logger.info("Adding Cassandra Host = {}", cassHost);
                     hosts.add(new Host(cassHost, thriftPortForAstyanax));
                 }
 
