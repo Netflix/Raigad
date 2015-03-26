@@ -187,7 +187,7 @@ public class RestoreBackupManager extends Task
             //This is a blocking call. It'll wait until Restore is finished.
             restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)
-                    .setIndices(commaSeparatedIndices)   //"test-idx-*", "-test-idx-2"
+                    .setIndices(commaSeparatedIndices.split(","))   //"test-idx-*", "-test-idx-2"
                     .execute()
                     .actionGet();
         }else{
