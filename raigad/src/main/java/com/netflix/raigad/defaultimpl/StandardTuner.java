@@ -87,6 +87,10 @@ public class StandardTuner implements IElasticsearchTuner
             map.put("node.master", false);
             map.put("node.data", false);
 
+            if (config.isMultiDC()) {
+                map.put("network.publish_host", config.getHostIP());
+            }
+
             if(config.amIWriteEnabledTribeNode())
                 map.put("tribe.blocks.write", false);
             else
@@ -114,7 +118,11 @@ public class StandardTuner implements IElasticsearchTuner
             if (config.isMultiDC()) {
                 map.put("node.rack_id", config.getDC());
                 map.put("network.publish_host", config.getHostIP());
-            } else {
+            } else if (config.amISourceClusterForTribeNodeInMultiDC()) {
+                map.put("node.rack_id", config.getRac());
+                map.put("network.publish_host", config.getHostIP());
+            }
+            else {
                 map.put("node.rack_id", config.getRac());
             }
 

@@ -160,7 +160,9 @@ public interface IConfiguration
      */
     public String getElasticsearchDiscoveryType();
 
-
+    /**
+     * @return Whether it's a Multi-Region Setup
+     */
 	public boolean isMultiDC();
 
     /**
@@ -277,5 +279,10 @@ public interface IConfiguration
     public boolean isKibanaSetupRequired();
 
     public int getKibanaPort();
+
+    /**
+     * @return Whether current cluster is Single Region cluster but is a Source Cluster in Multi-Region Tribe Node Setup
+     */
+    public boolean amISourceClusterForTribeNodeInMultiDC();
 
 }
