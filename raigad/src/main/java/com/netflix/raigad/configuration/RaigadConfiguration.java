@@ -110,6 +110,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED = MY_WEBAPP_NAME + ".eureka.host.supplier.enabled";
     private static final String CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = MY_WEBAPP_NAME + ".comma.separated.cassandra.hostnames";
     private static final String CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC = MY_WEBAPP_NAME + ".security.group.in.multi.dc.enabled";
+    private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
 
 
     // Amazon specific
@@ -204,6 +205,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final boolean DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED = true;
     private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "";
     private static final boolean DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC = false;
+    private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
 
     private final IConfigSource config; 
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
@@ -279,6 +281,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, isDefaultIsEurekaHostSupplierEnabled());
     private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, getDefaultCommaSeparatedCassandraHostnames());
     private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, isDefaultIsSecurityGroupInMultiDc());
+    private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, isDefaultAmISourceClusterForTribeNodeInMultiDC());
 
 
     @Inject
@@ -815,6 +818,11 @@ public class RaigadConfiguration implements IConfiguration
         return IS_SECURITY_GROUP_IN_MULTI_DC.get();
     }
 
+    @Override
+    public boolean amISourceClusterForTribeNodeInMultiDC() {
+        return AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC.get();
+    }
+
     public String getDefaultCredentialProvider()
     {
        return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
@@ -1104,6 +1112,10 @@ public class RaigadConfiguration implements IConfiguration
 
     public boolean isDefaultIsSecurityGroupInMultiDc() {
         return config.get(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC,DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC);
+    }
+
+    public boolean isDefaultAmISourceClusterForTribeNodeInMultiDC() {
+        return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC,DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
     }
 
 }
