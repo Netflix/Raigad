@@ -40,8 +40,6 @@ public class ElasticsearchAdmin
 {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchAdmin.class);
     private static final String REST_SUCCESS = "[\"ok\"]";
-    private static final String REST_REPOSITORY_NAME = "name";
-    private static final String REST_REPOSITORY_TYPE = "type";
     private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
     private final ElasticSearchIndexManager esIndexManager;
