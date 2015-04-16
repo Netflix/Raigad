@@ -455,4 +455,8 @@ public class FakeConfiguration implements IConfiguration {
         return 0;
     }
 
+    public boolean amISourceClusterForTribeNodeInMultiDC() {
+        return false;
+    }
+
 }
