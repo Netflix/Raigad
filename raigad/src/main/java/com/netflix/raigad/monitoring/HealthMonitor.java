@@ -20,6 +20,7 @@ import com.google.inject.Singleton;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.DiscoveryManager;
 import com.netflix.raigad.configuration.IConfiguration;
+import com.netflix.raigad.dataobjects.NodeHealthChecker;
 import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
@@ -35,7 +36,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -47,15 +47,17 @@ public class HealthMonitor extends Task
     private final InstanceManager instanceManager;
     private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
     private final DiscoveryClient discoveryClient;
+    private final NodeHealthChecker nodeHealthChecker;
 
     @Inject
-    public HealthMonitor(IConfiguration config,InstanceManager instanceManager)
+    public HealthMonitor(IConfiguration config,InstanceManager instanceManager, NodeHealthChecker nodeHealthChecker)
     {
         super(config);
         this.instanceManager = instanceManager;
         healthReporter = new Elasticsearch_HealthReporter();
         discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
         Monitors.registerObject(healthReporter);
+        this.nodeHealthChecker = nodeHealthChecker;
     }
 
     @Override
@@ -111,6 +113,7 @@ public class HealthMonitor extends Task
             logger.warn("failed to load Cluster Health Status", e);
         }
 
+        healthBean.esuponinstance = nodeHealthChecker.isEsUpOnInstance();
         healthReporter.healthBean.set(healthBean);
     }
 
@@ -146,6 +149,12 @@ public class HealthMonitor extends Task
         {
             return healthBean.get().eurekanodematch;
         }
+
+        @Monitor(name ="es_esuponinstance", type=DataSourceType.GAUGE)
+        public int geEsUpOnInstance()
+        {
+            return healthBean.get().esuponinstance;
+        }
     }
 
     private static class HealthBean
@@ -154,6 +163,7 @@ public class HealthMonitor extends Task
         private int greenoryellowstatus = -1;
         private int nodematch = -1;
         private int eurekanodematch = -1;
+        private int esuponinstance = -1;
     }
 
     public static TaskTimer getTimer(String name)
@@ -172,5 +182,6 @@ public class HealthMonitor extends Task
         healthBean.greenoryellowstatus = -1;
         healthBean.nodematch = -1;
         healthBean.eurekanodematch = -1;
+        healthBean.esuponinstance = -1;
     }
 }
