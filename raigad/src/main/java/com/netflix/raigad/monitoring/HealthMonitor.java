@@ -35,7 +35,6 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.common.unit.TimeValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -111,6 +110,7 @@ public class HealthMonitor extends Task
             logger.warn("failed to load Cluster Health Status", e);
         }
 
+        healthBean.esuponinstance = ElasticsearchProcessMonitor.isElasticsearchStarted() ? 1 : 0;
         healthReporter.healthBean.set(healthBean);
     }
 
@@ -146,6 +146,12 @@ public class HealthMonitor extends Task
         {
             return healthBean.get().eurekanodematch;
         }
+
+        @Monitor(name ="es_esuponinstance", type=DataSourceType.GAUGE)
+        public int geEsUpOnInstance()
+        {
+            return healthBean.get().esuponinstance;
+        }
     }
 
     private static class HealthBean
@@ -154,6 +160,7 @@ public class HealthMonitor extends Task
         private int greenoryellowstatus = -1;
         private int nodematch = -1;
         private int eurekanodematch = -1;
+        private int esuponinstance = -1;
     }
 
     public static TaskTimer getTimer(String name)
@@ -172,5 +179,6 @@ public class HealthMonitor extends Task
         healthBean.greenoryellowstatus = -1;
         healthBean.nodematch = -1;
         healthBean.eurekanodematch = -1;
+        healthBean.esuponinstance = -1;
     }
 }
