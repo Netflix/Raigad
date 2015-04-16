@@ -445,4 +445,9 @@ public class FakeConfiguration implements IConfiguration {
         return false;
     }
 
+    @Override
+    public boolean amISourceClusterForTribeNodeInMultiDC() {
+        return false;
+    }
+
 }
