@@ -81,16 +81,10 @@ public class HealthMonitor extends Task
                 resetHealthStats(healthBean);
                 return;
             }
-            //Check if status = GREEN, YELLOW or RED
-            if ("GREEN".equalsIgnoreCase(clusterHealthStatus.name())) {
-                healthBean.greenorredstatus = 0;
-                healthBean.greenoryellowstatus = 0;
-            } else if ("YELLOW".equalsIgnoreCase(clusterHealthStatus.name())) {
+            if ("YELLOW".equalsIgnoreCase(clusterHealthStatus.name())) {
                 healthBean.greenoryellowstatus = 1;
-                healthBean.greenorredstatus = 0;
             } else if ("RED".equalsIgnoreCase(clusterHealthStatus.name())) {
                 healthBean.greenorredstatus = 1;
-                healthBean.greenoryellowstatus = 0;
             }
 
             if (config.isNodeMismatchWithDiscoveryEnabled())
@@ -149,11 +143,11 @@ public class HealthMonitor extends Task
 
     private static class HealthBean
     {
-        private int greenorredstatus = -1;
-        private int greenoryellowstatus = -1;
-        private int nodematch = -1;
-        private int eurekanodematch = -1;
-        private int esuponinstance = -1;
+        private int greenorredstatus = 0;
+        private int greenoryellowstatus = 0;
+        private int nodematch = 0;
+        private int eurekanodematch = 0;
+        private int esuponinstance = 0;
     }
 
     public static TaskTimer getTimer(String name)
@@ -168,10 +162,10 @@ public class HealthMonitor extends Task
     }
 
     private void resetHealthStats(HealthBean healthBean){
-        healthBean.greenorredstatus = -1;
-        healthBean.greenoryellowstatus = -1;
-        healthBean.nodematch = -1;
-        healthBean.eurekanodematch = -1;
-        healthBean.esuponinstance = -1;
+        healthBean.greenorredstatus = 0;
+        healthBean.greenoryellowstatus = 0;
+        healthBean.nodematch = 0;
+        healthBean.eurekanodematch = 0;
+        healthBean.esuponinstance = 0;
     }
 }
