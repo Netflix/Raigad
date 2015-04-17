@@ -20,6 +20,7 @@ import com.google.inject.Singleton;
 import com.netflix.discovery.DiscoveryClient;
 import com.netflix.discovery.DiscoveryManager;
 import com.netflix.raigad.configuration.IConfiguration;
+import com.netflix.raigad.dataobjects.NodeHealthChecker;
 import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
@@ -46,15 +47,17 @@ public class HealthMonitor extends Task
     private final InstanceManager instanceManager;
     private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
     private final DiscoveryClient discoveryClient;
+    private final NodeHealthChecker nodeHealthChecker;
 
     @Inject
-    public HealthMonitor(IConfiguration config,InstanceManager instanceManager)
+    public HealthMonitor(IConfiguration config,InstanceManager instanceManager, NodeHealthChecker nodeHealthChecker)
     {
         super(config);
         this.instanceManager = instanceManager;
         healthReporter = new Elasticsearch_HealthReporter();
         discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
         Monitors.registerObject(healthReporter);
+        this.nodeHealthChecker = nodeHealthChecker;
     }
 
     @Override
@@ -110,7 +113,7 @@ public class HealthMonitor extends Task
             logger.warn("failed to load Cluster Health Status", e);
         }
 
-        healthBean.esuponinstance = ElasticsearchProcessMonitor.isElasticsearchStarted() ? 1 : 0;
+        healthBean.esuponinstance = nodeHealthChecker.isEsUpOnInstance();
         healthReporter.healthBean.set(healthBean);
     }
 
