@@ -61,47 +61,50 @@ public class HealthMonitor extends Task
     public void execute() throws Exception {
 
         HealthBean healthBean = new HealthBean();
-        if (config.getASGName().toLowerCase().contains("master")) {
-            try {
-                Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
-
-                ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
-
-                ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(MASTER_NODE_TIMEOUT);
-
-                if (clusterHealthStatus == null) {
-                    logger.info("ClusterHealthStatus is null,hence returning (No Health).");
-                    resetHealthStats(healthBean);
-                    return;
-                }
-                //Check if status = GREEN, YELLOW or RED
-                if (clusterHealthStatus.name().equalsIgnoreCase("GREEN")) {
-                    healthBean.greenorredstatus = 0;
-                    healthBean.greenoryellowstatus = 0;
-                } else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
-                    healthBean.greenoryellowstatus = 1;
-                    healthBean.greenorredstatus = 0;
-                } else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
-                    healthBean.greenorredstatus = 1;
-                    healthBean.greenoryellowstatus = 0;
-                }
-
-                if (config.isNodeMismatchWithDiscoveryEnabled())
-                    //Check if there is Node Mismatch between Discovery and ES
-                    healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
-                else
-                    healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
-
-                if (config.isEurekaHealthCheckEnabled())
-                    healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
-            } catch (Exception e) {
-                resetHealthStats(healthBean);
-                logger.warn("failed to load Cluster Health Status", e);
-            }
+        if (instanceManager.isMaster()) {
+            reportClusterMetrics(healthBean);
         }
-
         healthBean.esuponinstance = ElasticsearchProcessMonitor.isElasticsearchStarted() ? 1 : 0;
         healthReporter.healthBean.set(healthBean);
+    }
+
+    private void reportClusterMetrics(HealthBean healthBean) {
+        try {
+            Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
+
+            ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
+
+            ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(MASTER_NODE_TIMEOUT);
+
+            if (clusterHealthStatus == null) {
+                logger.info("ClusterHealthStatus is null, hence returning (No Health).");
+                resetHealthStats(healthBean);
+                return;
+            }
+            //Check if status = GREEN, YELLOW or RED
+            if ("GREEN".equalsIgnoreCase(clusterHealthStatus.name())) {
+                healthBean.greenorredstatus = 0;
+                healthBean.greenoryellowstatus = 0;
+            } else if ("YELLOW".equalsIgnoreCase(clusterHealthStatus.name())) {
+                healthBean.greenoryellowstatus = 1;
+                healthBean.greenorredstatus = 0;
+            } else if ("RED".equalsIgnoreCase(clusterHealthStatus.name())) {
+                healthBean.greenorredstatus = 1;
+                healthBean.greenoryellowstatus = 0;
+            }
+
+            if (config.isNodeMismatchWithDiscoveryEnabled())
+                //Check if there is Node Mismatch between Discovery and ES
+                healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
+            else
+                healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
+
+            if (config.isEurekaHealthCheckEnabled())
+                healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
+        } catch (Exception e) {
+            resetHealthStats(healthBean);
+            logger.warn("failed to load Cluster Health Status", e);
+        }
     }
 
     public class Elasticsearch_HealthReporter
