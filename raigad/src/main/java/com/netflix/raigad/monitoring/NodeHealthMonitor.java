@@ -58,10 +58,10 @@ public class NodeHealthMonitor extends Task {
 
         HealthBean healthBean = new HealthBean();
         try {
-            healthBean.esprocessdown = 0;
+            healthBean.esprocessrunning = 0;
             if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
                 logger.info("Elasticsearch process is up & running");
-                healthBean.esprocessdown = 1;
+                healthBean.esprocessrunning = 1;
             }
         } catch (Exception e) {
             resetHealthStats(healthBean);
@@ -80,12 +80,12 @@ public class NodeHealthMonitor extends Task {
 
         @Monitor(name = "es_isesprocessdown", type = DataSourceType.GAUGE)
         public int getIsEsProcessDown() {
-            return healthBean.get().esprocessdown;
+            return healthBean.get().esprocessrunning;
         }
     }
 
     private static class HealthBean {
-        private int esprocessdown = -1;
+        private int esprocessrunning = -1;
     }
 
     @Override
@@ -99,7 +99,7 @@ public class NodeHealthMonitor extends Task {
     }
 
     private void resetHealthStats(HealthBean healthBean) {
-        healthBean.esprocessdown = -1;
+        healthBean.esprocessrunning = -1;
     }
 }
 
