@@ -35,7 +35,7 @@ public class NodeHealthCheck {
     private static final String REST_SUCCESS = "[\"ok\"]";
 
     @GET
-    @Path("/")
+    @Path("/isesprocessrunning")
     public Response checkHealth()
     {
         logger.info("Got REST call to check Node-health...");
