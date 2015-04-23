@@ -285,4 +285,6 @@ public interface IConfiguration
      */
     public boolean amISourceClusterForTribeNodeInMultiDC();
 
+    public boolean reportMetricsFromMasterOnly();
+
 }

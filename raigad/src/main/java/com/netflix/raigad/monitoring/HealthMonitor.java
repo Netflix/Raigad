@@ -26,6 +26,8 @@ import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
 import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
+import com.netflix.raigad.utils.EsUtils;
+import com.netflix.raigad.utils.HttpModule;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
@@ -47,12 +49,14 @@ public class HealthMonitor extends Task
     private final InstanceManager instanceManager;
     private static TimeValue MASTER_NODE_TIMEOUT = TimeValue.timeValueSeconds(60);
     private final DiscoveryClient discoveryClient;
+    private final HttpModule httpModule;
 
     @Inject
-    public HealthMonitor(IConfiguration config,InstanceManager instanceManager)
+    public HealthMonitor(IConfiguration config,InstanceManager instanceManager, HttpModule httpModule)
     {
         super(config);
         this.instanceManager = instanceManager;
+        this.httpModule = httpModule;
         healthReporter = new Elasticsearch_HealthReporter();
         discoveryClient = DiscoveryManager.getInstance().getDiscoveryClient();
         Monitors.registerObject(healthReporter);
@@ -65,6 +69,12 @@ public class HealthMonitor extends Task
         if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
             String exceptionMsg = "Elasticsearch is not yet started, check back again later";
             logger.info(exceptionMsg);
+            return;
+        }
+
+        // In case we configured only the Master-node to report metrics
+        // and this node is not a master - bail out
+        if (config.reportMetricsFromMasterOnly() && EsUtils.amIMasterNode(config, httpModule)) {
             return;
         }
 
