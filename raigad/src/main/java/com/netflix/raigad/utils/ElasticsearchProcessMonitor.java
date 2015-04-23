@@ -37,7 +37,7 @@ public class ElasticsearchProcessMonitor extends Task{
 
 	public static final String JOBNAME = "ES_MONITOR_THREAD";
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
-    private static final AtomicBoolean isElasticsearchRunning = new AtomicBoolean(false);
+    private static final AtomicBoolean isElasticsearchRunningNow = new AtomicBoolean(false);
     private static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
 
     @Inject
@@ -56,20 +56,20 @@ public class ElasticsearchProcessMonitor extends Task{
             String line = input.readLine();
         		if (line != null && !isElasticsearchRunning())
         		{
-        			isElasticsearchRunning.set(true);
+        			isElasticsearchRunningNow.set(true);
                     if (! wasElasticsearchStarted.get()) {
                         wasElasticsearchStarted.set(true);
                     }
         		}
         		else if(line  == null && isElasticsearchRunning())
         		{
-        			isElasticsearchRunning.set(false);
+        			isElasticsearchRunningNow.set(false);
         		}
         }
         catch(Exception e)
         {
         	logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
-            isElasticsearchRunning.set(false);
+            isElasticsearchRunningNow.set(false);
         }
 		
 	}
@@ -87,7 +87,7 @@ public class ElasticsearchProcessMonitor extends Task{
 
     public static Boolean isElasticsearchRunning()
     {
-        return isElasticsearchRunning.get();
+        return isElasticsearchRunningNow.get();
     }
 
     public static Boolean getWasElasticsearchStarted() {
@@ -97,6 +97,6 @@ public class ElasticsearchProcessMonitor extends Task{
     //Added for testing only
     public static void setElasticsearchStarted()
     {
-		isElasticsearchRunning.set(true);
+		isElasticsearchRunningNow.set(true);
 	}
 }
