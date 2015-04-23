@@ -154,6 +154,7 @@ public class RaigadServer
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
         scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+        scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"),ES_HEALTH_MONITOR_DELAY);
 
     }
 

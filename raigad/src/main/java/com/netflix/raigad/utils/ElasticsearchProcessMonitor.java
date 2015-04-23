@@ -37,7 +37,8 @@ public class ElasticsearchProcessMonitor extends Task{
 
 	public static final String JOBNAME = "ES_MONITOR_THREAD";
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
-    private static final AtomicBoolean isElasticsearchStarted = new AtomicBoolean(false);
+    private static final AtomicBoolean isElasticsearchRunning = new AtomicBoolean(false);
+    private static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
 
     @Inject
     protected ElasticsearchProcessMonitor(IConfiguration config) {
@@ -53,19 +54,22 @@ public class ElasticsearchProcessMonitor extends Task{
         		Process p = Runtime.getRuntime().exec("pgrep -f " + config.getElasticsearchProcessName());
         		BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line = input.readLine();
-        		if (line != null&& !isElasticsearchStarted())
+        		if (line != null && !isElasticsearchRunning())
         		{
-        			isElasticsearchStarted.set(true);
+        			isElasticsearchRunning.set(true);
+                    if (! wasElasticsearchStarted.get()) {
+                        wasElasticsearchStarted.set(true);
+                    }
         		}
-        		else if(line  == null&& isElasticsearchStarted())
+        		else if(line  == null && isElasticsearchRunning())
         		{
-        			isElasticsearchStarted.set(false);
+        			isElasticsearchRunning.set(false);
         		}
         }
         catch(Exception e)
         {
         	logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
-            isElasticsearchStarted.set(false);
+            isElasticsearchRunning.set(false);
         }
 		
 	}
@@ -81,14 +85,18 @@ public class ElasticsearchProcessMonitor extends Task{
         return JOBNAME;
     }
 
-    public static Boolean isElasticsearchStarted()
+    public static Boolean isElasticsearchRunning()
     {
-        return isElasticsearchStarted.get();
+        return isElasticsearchRunning.get();
+    }
+
+    public static Boolean getWasElasticsearchStarted() {
+        return wasElasticsearchStarted.get();
     }
 
     //Added for testing only
     public static void setElasticsearchStarted()
     {
-		isElasticsearchStarted.set(true);
+		isElasticsearchRunning.set(true);
 	}
 }

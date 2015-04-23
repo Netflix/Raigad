@@ -99,7 +99,7 @@ public class ESTransportClient
     		ESTransportClient ESTransportClient = null;
     		
 		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+		if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
 			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
 			//TODO: Change logger to debug
 			logger.info(exceptionMsg);

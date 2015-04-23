@@ -65,7 +65,7 @@ public class RestoreBackupManager extends Task
             if (EsUtils.amIMasterNode(config,httpModule))
             {
                 // If Elasticsearch is started then only start Snapshot Backup
-                if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+                if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
                     String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Restore Operation";
                     logger.info(exceptionMsg);
                     return;
