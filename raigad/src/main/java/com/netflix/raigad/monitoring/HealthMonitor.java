@@ -74,7 +74,7 @@ public class HealthMonitor extends Task
 
         // In case we configured only the Master-node to report metrics
         // and this node is not a master - bail out
-        if (config.reportMetricsFromMasterOnly() && EsUtils.amIMasterNode(config, httpModule)) {
+        if (config.reportMetricsFromMasterOnly() && !EsUtils.amIMasterNode(config, httpModule)) {
             return;
         }
 
