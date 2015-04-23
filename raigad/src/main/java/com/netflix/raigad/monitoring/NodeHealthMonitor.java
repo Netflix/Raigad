@@ -60,6 +60,7 @@ public class NodeHealthMonitor extends Task {
         try {
             healthBean.esprocessdown = 0;
             if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
+                logger.info("Elasticsearch process is up & running");
                 healthBean.esprocessdown = 1;
             }
         } catch (Exception e) {
