@@ -113,6 +113,8 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_IS_KIBANA_SETUP_REQUIRED = MY_WEBAPP_NAME + ".kibana.setup.required";
     private static final String CONFIG_KIBANA_PORT = MY_WEBAPP_NAME + ".kibana.port";
     private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
+    private static final String CONFIG_REPORT_METRICS_FROM_MASTER_ONLY = MY_WEBAPP_NAME + ".report.metrics.from.master.only";
+
 
 
     // Amazon specific
@@ -210,6 +212,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final boolean DEFAULT_IS_KIBANA_SETUP_REQUIRED = false;
     private static final int DEFAULT_KIBANA_PORT = 8001;
     private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
+    private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
 
     private final IConfigSource config; 
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
@@ -288,6 +291,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicBooleanProperty IS_KIBANA_SETUP_REQUIRED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_KIBANA_SETUP_REQUIRED, isDefaultIsKibanaSetupRequired());
     private final DynamicIntProperty KIBANA_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_KIBANA_PORT, getDefaultKibanaPort());
     private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, isDefaultAmISourceClusterForTribeNodeInMultiDC());
+    private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, getDefaultReportMetricsFromMasterOnly());
 
 
     @Inject
@@ -839,6 +843,11 @@ public class RaigadConfiguration implements IConfiguration
         return AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC.get();
     }
 
+    @Override
+    public boolean reportMetricsFromMasterOnly() {
+        return REPORT_METRICS_FROM_MASTER_ONLY.get();
+    }
+
     public String getDefaultCredentialProvider()
     {
        return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
@@ -1140,5 +1149,9 @@ public class RaigadConfiguration implements IConfiguration
 
     public boolean isDefaultAmISourceClusterForTribeNodeInMultiDC() {
         return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC,DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
+    }
+
+    public boolean getDefaultReportMetricsFromMasterOnly() {
+        return config.get(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY,DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
     }
 }

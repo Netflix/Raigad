@@ -52,6 +52,7 @@ public class RaigadServer
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
     private static final int ES_HEALTH_MONITOR_DELAY = 600;
+    private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
     private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
 
 
@@ -131,12 +132,17 @@ public class RaigadServer
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
                 scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+            }
+            else if (!config.reportMetricsFromMasterOnly()) {
+                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
         }
         else
         {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
             scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
         }
 
         /*
@@ -153,7 +159,7 @@ public class RaigadServer
         scheduler.addTask(HttpStatsMonitor.METRIC_NAME, HttpStatsMonitor.class, HttpStatsMonitor.getTimer("HttpStatsMonitor"));
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
-        scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+        scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"),ES_NODE_HEALTH_MONITOR_DELAY);
 
     }
 

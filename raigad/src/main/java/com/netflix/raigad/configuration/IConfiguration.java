@@ -41,7 +41,7 @@ public interface IConfiguration
     public String getElasticsearchStartupScript();
 
     /**
-     * @return Path to Elasticsearch stop sript
+     * @return Path to Elasticsearch stop script
      */
     public String getElasticsearchStopScript();
    
@@ -284,5 +284,7 @@ public interface IConfiguration
      * @return Whether current cluster is Single Region cluster but is a Source Cluster in Multi-Region Tribe Node Setup
      */
     public boolean amISourceClusterForTribeNodeInMultiDC();
+
+    public boolean reportMetricsFromMasterOnly();
 
 }
