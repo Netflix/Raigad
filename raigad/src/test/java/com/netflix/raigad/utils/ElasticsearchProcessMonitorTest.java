@@ -38,6 +38,7 @@ public class ElasticsearchProcessMonitorTest {
         System.out.println(response.toJSONString());
         Long status = ElasticsearchProcessMonitor.analyzeResponse(response);
         assert status == 200L;
+        System.out.println("testAnalyzeResponseOK() passed successfully");
     }
 
     @Test
@@ -46,6 +47,7 @@ public class ElasticsearchProcessMonitorTest {
         System.out.println(response.toJSONString());
         Long status = ElasticsearchProcessMonitor.analyzeResponse(response);
         assert status == 500L;
+        System.out.println("testAnalyzeResponseKO() passed successfully");
     }
 
     @Test
@@ -58,12 +60,13 @@ public class ElasticsearchProcessMonitorTest {
         isESRunning = ElasticsearchProcessMonitor.isElasticsearchRunning();
         assertTrue(isESRunning);
         System.out.println("Elasticsearch is running");
+        System.out.println("testSetElasticsearchStarted() passed successfully");
     }
 
 //    @Test
 //    public void testUpdateStateHolders() {
 //        System.out.println("espMonitor:" + espMonitor);
-//        boolean isESRunning = ElasticsearchProcessMonitor.isElasticsearchRunning();
+//        boolean isESRunning = espMonitor.isElasticsearchRunning();
 //        assertFalse(isESRunning);
 //
 //        boolean wasESRunning = espMonitor.getWasElasticsearchStarted();
