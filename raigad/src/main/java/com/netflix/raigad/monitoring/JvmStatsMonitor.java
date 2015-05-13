@@ -56,12 +56,12 @@ public class JvmStatsMonitor extends Task
     @Override
     public void execute() throws Exception {
 
-        // If Elasticsearch is started then only start the monitoring
-        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
-            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-            logger.info(exceptionMsg);
-            return;
-        }
+		// If Elasticsearch is started then only start the monitoring
+		if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
+			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+			logger.info(exceptionMsg);
+			return;
+		}
 
         JvmStatsBean jvmStatsBean = new JvmStatsBean();
         try

@@ -111,7 +111,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = MY_WEBAPP_NAME + ".comma.separated.cassandra.hostnames";
     private static final String CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC = MY_WEBAPP_NAME + ".security.group.in.multi.dc.enabled";
     private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
-
+    private static final String CONFIG_REPORT_METRICS_FROM_MASTER_ONLY = MY_WEBAPP_NAME + ".report.metrics.from.master.only";
 
     // Amazon specific
     private static final String CONFIG_ASG_NAME = MY_WEBAPP_NAME + ".az.asgname";
@@ -206,6 +206,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES = "";
     private static final boolean DEFAULT_IS_SECURITY_GROUP_IN_MULTI_DC = false;
     private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
+    private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
 
     private final IConfigSource config; 
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
@@ -282,6 +283,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, getDefaultCommaSeparatedCassandraHostnames());
     private final DynamicBooleanProperty IS_SECURITY_GROUP_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_SECURITY_GROUP_IN_MULTI_DC, isDefaultIsSecurityGroupInMultiDc());
     private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, isDefaultAmISourceClusterForTribeNodeInMultiDC());
+    private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, getDefaultReportMetricsFromMasterOnly());
 
 
     @Inject
@@ -823,6 +825,11 @@ public class RaigadConfiguration implements IConfiguration
         return AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC.get();
     }
 
+    @Override
+    public boolean reportMetricsFromMasterOnly() {
+        return REPORT_METRICS_FROM_MASTER_ONLY.get();
+    }
+
     public String getDefaultCredentialProvider()
     {
        return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
@@ -1118,4 +1125,7 @@ public class RaigadConfiguration implements IConfiguration
         return config.get(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC,DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
     }
 
+    public boolean getDefaultReportMetricsFromMasterOnly() {
+        return config.get(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY,DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
+    }
 }

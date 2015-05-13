@@ -41,7 +41,7 @@ public interface IConfiguration
     public String getElasticsearchStartupScript();
 
     /**
-     * @return Path to Elasticsearch stop sript
+     * @return Path to Elasticsearch stop script
      */
     public String getElasticsearchStopScript();
    
@@ -281,4 +281,5 @@ public interface IConfiguration
      */
     public boolean amISourceClusterForTribeNodeInMultiDC();
 
+    public boolean reportMetricsFromMasterOnly();
 }

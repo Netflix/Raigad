@@ -450,4 +450,8 @@ public class FakeConfiguration implements IConfiguration {
         return false;
     }
 
+    @Override
+    public boolean reportMetricsFromMasterOnly() {
+        return false;
+    }
 }

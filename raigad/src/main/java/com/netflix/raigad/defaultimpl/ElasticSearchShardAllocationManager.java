@@ -75,7 +75,7 @@ public class ElasticSearchShardAllocationManager {
             {
                 logger.info("Running ElasticSearchShardAllocationManager task ...");
                 // If Elasticsearch is started then only start the shard allocation
-                if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+                if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
                     String exceptionMsg = "Elasticsearch is not yet started, check back again later";
                     logger.info(exceptionMsg);
                     return;

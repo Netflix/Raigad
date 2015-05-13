@@ -92,7 +92,7 @@ public class NodeIndicesStatsMonitor extends Task
     public void execute() throws Exception {
 
         // If Elasticsearch is started then only start the monitoring
-        if (!ElasticsearchProcessMonitor.isElasticsearchStarted()) {
+        if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
             String exceptionMsg = "Elasticsearch is not yet started, check back again later";
             logger.info(exceptionMsg);
             return;

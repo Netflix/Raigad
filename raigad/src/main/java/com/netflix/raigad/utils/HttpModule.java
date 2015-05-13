@@ -53,5 +53,15 @@ public class HttpModule
         return builder.toString();
     }
 
+    public String localhostURL()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append(HTTP_TAG);
+        builder.append(LOCAL_HOST);
+        builder.append(URL_PORT_SEPARATOR);
+        builder.append(config.getHttpPort());
+        return builder.toString();
+    }
+
 }
 
