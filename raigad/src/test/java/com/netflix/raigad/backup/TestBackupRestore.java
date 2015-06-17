@@ -160,7 +160,7 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         client0.admin().indices().prepareClose("test-idx-1", "test-idx-3").get();
 
         logger.info("--> restore all indices from the snapshot");
-        restoreBackupManager.runRestore(repositoryName,"fs",snapshotBackupManager.getSnapshotName("_all", false),null);
+        restoreBackupManager.runRestore(repositoryName,"fs",snapshotBackupManager.getSnapshotName("_all", false),null,null,null);
 
         ensureGreen();
         assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(100L));
