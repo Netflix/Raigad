@@ -28,6 +28,7 @@ import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
 import com.netflix.raigad.utils.EsUtils;
 import com.netflix.raigad.utils.HttpModule;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotRequestBuilder;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.rest.RestStatus;
@@ -48,6 +49,7 @@ public class RestoreBackupManager extends Task
     private static final AtomicBoolean isRestoreRunning = new AtomicBoolean(false);
     private static final String ALL_INDICES_TAG = "_all";
     private static final String SUFFIX_SEPARATOR_TAG = "-";
+    private static final String COMMA_SEPARATOR = ",";
 
 
     @Inject
@@ -72,10 +74,11 @@ public class RestoreBackupManager extends Task
                 }
 
                 logger.info("Current node is the Master Node. Running Restore now ...");
+                //TODO: Add Config properties for Rename Pattern and Rename Replacement
                 runRestore(config.getRestoreRepositoryName(),
                         config.getRestoreRepositoryType(),
                         config.getRestoreSnapshotName(),
-                        config.getCommaSeparatedIndicesToRestore());
+                        config.getCommaSeparatedIndicesToRestore(),null,null);
             }
             else
             {
@@ -86,7 +89,7 @@ public class RestoreBackupManager extends Task
         }
     }
 
-    public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices) throws Exception
+    public void runRestore(String sourceRepositoryName, String repositoryType, String snapshotName, String indices, String renamePattern, String renameReplacement) throws Exception
     {
         Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
@@ -137,7 +140,7 @@ public class RestoreBackupManager extends Task
         logger.info("Indices param : <"+commaSeparatedIndices+">");
 
         RestoreSnapshotResponse restoreSnapshotResponse = getRestoreSnapshotResponse(esTransportClient,
-                commaSeparatedIndices,restoreRepositoryName,snapshotN);
+                commaSeparatedIndices,restoreRepositoryName,snapshotN,renamePattern,renameReplacement);
 
         logger.info("Restore Status = "+restoreSnapshotResponse.status().toString());
 
@@ -179,25 +182,28 @@ public class RestoreBackupManager extends Task
         return JOBNAME;
     }
 
-    public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices,String restoreRepositoryName,String snapshotN)
+    public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices,
+                                                              String restoreRepositoryName,String snapshotN,
+                                                              String renamePattern,String renameReplacement)
     {
-        RestoreSnapshotResponse restoreSnapshotResponse = null;
+        RestoreSnapshotRequestBuilder restoreSnapshotRequestBuilder;
 
-        if (commaSeparatedIndices != null) {
+        if (commaSeparatedIndices != null && commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG)) {
             //This is a blocking call. It'll wait until Restore is finished.
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
+            restoreSnapshotRequestBuilder = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)
-                    .setIndices(commaSeparatedIndices.split(","))   //"test-idx-*", "-test-idx-2"
-                    .execute()
-                    .actionGet();
+                    .setIndices(commaSeparatedIndices.split(COMMA_SEPARATOR));   //"test-idx-*", "-test-idx-2"
         }else{
             // Not Setting Indices explicitly -- Seems to be a bug in Elasticsearch
-            restoreSnapshotResponse = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
-                    .setWaitForCompletion(true)
-                    .execute()
-                    .actionGet();
+            restoreSnapshotRequestBuilder = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
+                    .setWaitForCompletion(true);
         }
 
-        return restoreSnapshotResponse;
+        if ((renamePattern != null && renameReplacement != null) && (!renamePattern.isEmpty() || !renameReplacement.isEmpty())) {
+            logger.info("Rename Pattern = {}, Rename Replacement = {}",renamePattern,renameReplacement);
+            restoreSnapshotRequestBuilder.setRenamePattern(renamePattern).setRenameReplacement(renameReplacement);
+        }
+
+        return restoreSnapshotRequestBuilder.execute().actionGet();
     }
 }
