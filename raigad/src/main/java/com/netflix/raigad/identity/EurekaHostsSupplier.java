@@ -67,7 +67,7 @@ public class EurekaHostsSupplier implements HostSupplier {
                     throw new RuntimeException("EurekaHostsSupplier needs a non-null DiscoveryClient");
                 }
 
-                LOG.info("Raigad fetching instance list for app: " + clusterName);
+                LOG.debug("Raigad fetching instance list for app: " + clusterName);
 
                 Application app = discoveryClient.getApplication(clusterName.toUpperCase());
                 List<Host> hosts = new ArrayList<Host>();
@@ -117,7 +117,7 @@ public class EurekaHostsSupplier implements HostSupplier {
                             }
                         }));
 
-                LOG.info("Raigad found hosts from eureka - num hosts: " + hosts.size());
+                LOG.debug("Raigad found hosts from eureka - num hosts: " + hosts.size());
 
                 return hosts;
             }

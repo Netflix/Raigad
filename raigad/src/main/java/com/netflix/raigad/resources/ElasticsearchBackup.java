@@ -40,6 +40,8 @@ public class ElasticsearchBackup
     private static final String REST_REPOSITORY_TYPE = "repository_type";
     private static final String REST_SNAPSHOT_NAME = "snapshot";
     private static final String REST_INDICES_NAME = "indices";
+    private static final String REST_RESTORE_RENAME_PATTERN = "rename_pattern";
+    private static final String REST_RESTORE_RENAME_REPLACEMENT = "rename_replacement";
     private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
     private final SnapshotBackupManager snapshotBackupManager;
@@ -74,7 +76,22 @@ public class ElasticsearchBackup
             throws Exception
     {
 		logger.info("Running Restore through REST call ...");
-        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName);
+        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName,null,null);
+        return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("/do_restore_with_rename")
+    public Response restoreWithRename(@QueryParam(REST_REPOSITORY_NAME) String repoName,
+                            @QueryParam(REST_REPOSITORY_TYPE) String repoType,
+                            @QueryParam(REST_SNAPSHOT_NAME) String snapName,
+                            @QueryParam(REST_INDICES_NAME) String indicesName,
+                            @QueryParam(REST_RESTORE_RENAME_PATTERN) String renamePattern,
+                            @QueryParam(REST_RESTORE_RENAME_REPLACEMENT) String renameReplacement)
+            throws Exception
+    {
+        logger.info("Running Restore with rename through REST call ...");
+        restoreBackupManager.runRestore(repoName,repoType,snapName,indicesName,renamePattern,renameReplacement);
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 
