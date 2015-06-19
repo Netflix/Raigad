@@ -146,10 +146,8 @@ public class InstanceDataDAOCassandra
         try {
 
             String selectClause = "";
-            if(config.isMultiDC())
+            if(config.isMultiDC() || config.amISourceClusterForTribeNodeInMultiDC())
             {
-                selectClause  = String.format("SELECT * FROM %s WHERE %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster);
-            }else if (config.amISourceClusterForTribeNodeInMultiDC()) {
                 selectClause  = String.format("SELECT * FROM %s WHERE %s = '%s' ", CF_NAME_INSTANCES, CN_CLUSTER, cluster);
             }
             else {
