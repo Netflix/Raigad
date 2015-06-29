@@ -1,9 +1,10 @@
 package com.netflix.raigad.resources;
 
 import com.google.common.collect.ImmutableList;
+import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
-import com.netflix.raigad.identity.InstanceManager;
+import com.netflix.raigad.utils.TribeUtils;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.NonStrictExpectations;
@@ -25,10 +26,11 @@ public class TestElasticsearchConfig
     RaigadServer raigadServer;
 
     private ElasticsearchConfig resource;
+    private TribeUtils tribeUtils;
 
     @Before
     public void setUp() {
-        resource = new ElasticsearchConfig(raigadServer);
+        resource = new ElasticsearchConfig(raigadServer,tribeUtils);
     }
 
     @Test
