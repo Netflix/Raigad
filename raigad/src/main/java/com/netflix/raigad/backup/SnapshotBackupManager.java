@@ -106,7 +106,7 @@ public class SnapshotBackupManager extends Task
 
         // StartBackup
         String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
-        logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> \nRunning Snapshot now ... ");
+        logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> Indices : <"+config.getCommaSeparatedIndicesToBackup()+"> \nRunning Snapshot now ... ");
 
         Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 

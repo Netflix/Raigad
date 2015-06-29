@@ -155,6 +155,26 @@ public class InstanceManager {
         return _instances;
     }
 
+    public List<RaigadInstance> getAllInstancesPerCluster(String clusterName)
+    {
+        return getInstanceListPerCluster(clusterName);
+    }
+
+    private List<RaigadInstance> getInstanceListPerCluster(String clusterName)
+    {
+        List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
+
+        _instances.addAll(instanceFactory.getAllIds(clusterName.trim().toLowerCase()));
+
+        if(config.isDebugEnabled())
+        {
+            for(RaigadInstance instance:_instances)
+                logger.debug(instance.toString());
+        }
+
+        return _instances;
+    }
+
     public boolean isMaster()
     {
         //For Non-dedicated deployments, Return True (Every Node can be a master)

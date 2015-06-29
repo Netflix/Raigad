@@ -32,40 +32,65 @@ import java.util.List;
 public class CustomUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
 	private final TransportService transportService;
 	private final Version version;
+    private final Settings settings;
   
   @Inject
   public CustomUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
     super(settings);
     this.transportService = transportService;
     this.version = version;
+      this.settings = settings;
   }
 
   @Override
   public List<DiscoveryNode> buildDynamicNodes() {
-		List<DiscoveryNode> discoNodes = Lists.newArrayList();
-		try {
-		String strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes",logger);
-		List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
-			for (RaigadInstance instance : instances) {
-				try {
-					TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
-					// we only limit to 1 addresses, makes no sense to ping 100 ports
-					for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
-						logger.debug(
-								"adding {}, address {}, transport_address {}",
-								instance.getId(), instance.getHostIP(),addresses[i]);
-						discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version.minimumCompatibilityVersion()));
-					}
-				} catch (Exception e) {
-					logger.warn("failed to add {}, address {}", e,instance.getId(), instance.getHostIP());
-				}
-			}
-		} catch (Exception e) {
-			logger.error("Caught an exception while trying to add buildDynamicNodes", e);
-			throw new RuntimeException(e);
-		}
+
+      List<DiscoveryNode> discoNodes = Lists.newArrayList();
+      try {
+          //Extract tribe id from Name field of Settings and query accordingly
+          String strNodes;
+          if (isCurrentNodeTribe(settings)) {
+              String nodeName = settings.get("name");
+              //TODO: Check for Null Node Name ??
+              String tribeId = nodeName.substring(nodeName.indexOf("/") + 1);
+              logger.debug("Tribe Node Name = {}, Tribe Id = {}",nodeName,tribeId);
+              strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_tribe_nodes/" + tribeId, logger);
+          }else
+              strNodes = DataFetcher.fetchData("http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes",logger);
+
+          List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
+          for (RaigadInstance instance : instances) {
+              try {
+                  TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP());
+                  // we only limit to 1 addresses, makes no sense to ping 100 ports
+                  for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_PORTS_COUNT); i++) {
+                      logger.debug(
+                              "adding {}, address {}, transport_address {}",
+                              instance.getId(), instance.getHostIP(),addresses[i]);
+                      discoNodes.add(new DiscoveryNode(instance.getId(),addresses[i], version.minimumCompatibilityVersion()));
+                  }
+              } catch (Exception e) {
+                  logger.warn("failed to add {}, address {}", e,instance.getId(), instance.getHostIP());
+              }
+          }
+      } catch (Exception e) {
+          logger.error("Caught an exception while trying to add buildDynamicNodes", e);
+          throw new RuntimeException(e);
+      }
     logger.info("using dynamic discovery nodes {}", discoNodes);
 
     return discoNodes;
+  }
+
+  private boolean isCurrentNodeTribe(Settings settings)
+  {
+      boolean currentNodeTribe = false;
+
+      if(settings!=null && settings.get("name") != null && !settings.get("name").isEmpty()) {
+          String tribeName = settings.get("name");
+          if (tribeName.contains("/t"))
+              currentNodeTribe = true;
+      }
+      return currentNodeTribe;
   }
 }
