@@ -188,7 +188,7 @@ public class RestoreBackupManager extends Task
     {
         RestoreSnapshotRequestBuilder restoreSnapshotRequestBuilder;
 
-        if (commaSeparatedIndices != null && commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG)) {
+        if (commaSeparatedIndices != null && !commaSeparatedIndices.equalsIgnoreCase(ALL_INDICES_TAG)) {
             //This is a blocking call. It'll wait until Restore is finished.
             restoreSnapshotRequestBuilder = esTransportClient.admin().cluster().prepareRestoreSnapshot(restoreRepositoryName, snapshotN)
                     .setWaitForCompletion(true)

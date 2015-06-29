@@ -19,12 +19,14 @@ import com.google.inject.Inject;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.EsUtils;
+import com.netflix.raigad.utils.TribeUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -40,10 +42,12 @@ public class ElasticsearchConfig
 {
 	private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
 	private final RaigadServer raigadServer;
+    private final TribeUtils tribeUtils;
 
 	@Inject
-	public ElasticsearchConfig(RaigadServer raigadServer) {
+	public ElasticsearchConfig(RaigadServer raigadServer,TribeUtils tribeUtils) {
 		this.raigadServer = raigadServer;
+        this.tribeUtils = tribeUtils;
 	}
 
 	@GET
@@ -67,5 +71,33 @@ public class ElasticsearchConfig
 		}
 		return Response.status(500).build();
 	}
+
+    @GET
+    @Path("/get_tribe_nodes/{id}")
+    public Response getTribeNodes(@PathParam("id") String id)
+    {
+        try
+        {
+            logger.info("Fetching nodes via get_tribe_nodes for tribeId = {} ...",id);
+            //Find source cluster Name from Tribe Id by reading yml file
+            String tribeSourceClusterName = tribeUtils.getTribeClusterNameFromId(id);
+
+            if(tribeSourceClusterName==null || tribeSourceClusterName.isEmpty())
+                throw new RuntimeException("Tribe Source Cluster Name is null or empty, check if the field exists in elasticsearch.yml");
+
+            final List<RaigadInstance> instances = raigadServer
+                    .getInstanceManager().getAllInstancesPerCluster(tribeSourceClusterName);
+            if (instances != null && !instances.isEmpty()) {
+                JSONObject esCarJson = EsUtils
+                        .transformRaigadInstanceToJson(instances);
+                return Response.ok(esCarJson.toString())
+                        .build();
+            }
+        } catch (Exception e) {
+            logger.error("Error while executing get_nodes", e);
+            return Response.serverError().build();
+        }
+        return Response.status(500).build();
+    }
 
 }
