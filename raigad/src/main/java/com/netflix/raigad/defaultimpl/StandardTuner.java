@@ -100,6 +100,8 @@ public class StandardTuner implements IElasticsearchTuner
                 map.put("tribe.blocks.metadata", false);
             else
                 map.put("tribe.blocks.metadata", true);
+
+            map.put("tribe.on_conflict", "prefer_"+config.getTribePreferredClusterIdOnConflict());
         }
         else {
             map.put("discovery.type", config.getElasticsearchDiscoveryType());
