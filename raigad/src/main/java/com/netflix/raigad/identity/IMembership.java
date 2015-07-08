@@ -20,6 +20,7 @@ import com.netflix.raigad.aws.AWSMembership;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface to manage membership meta information such as size of RAC, list of
@@ -72,4 +73,12 @@ public interface IMembership
      * @param count
      */
     public void expandRacMembership(int count);
+
+    /**
+     * Return From-To ports for given ACL
+     * @param acl
+     * @return ACL to Ports Map (From-To)
+     * eg. 1.2.3.4 -> 5001,5002
+     */
+    public Map<String,List<Integer>> getACLPortMap(String acl);
 }

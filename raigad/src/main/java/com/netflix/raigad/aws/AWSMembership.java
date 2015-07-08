@@ -30,10 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to query amazon ASG for its members to provide - Number of valid nodes
@@ -178,6 +175,43 @@ public class AWSMembership implements IMembership
                 }
             }
             return ipPermissions;
+        }
+        finally
+        {
+            if (client != null)
+                client.shutdown();
+        }
+    }
+
+    public Map<String,List<Integer>> getACLPortMap(String acl)
+    {
+        AmazonEC2 client = null;
+        Map<String,List<Integer>> aclPortMap = new HashMap<String,List<Integer>>();
+        try
+        {
+            client = getEc2Client();
+            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
+            DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
+            for (SecurityGroup group : result.getSecurityGroups())
+            {
+                for (IpPermission perm : group.getIpPermissions())
+                {
+                    for(String ipRange : perm.getIpRanges())
+                    {
+                        //If given ACL matches from the list of ipRanges
+                        //then look for From and To Ports
+                        if(acl.equalsIgnoreCase(ipRange))
+                        {
+                            List<Integer> fromToList = new ArrayList<Integer>();
+                            fromToList.add(perm.getFromPort());
+                            fromToList.add(perm.getToPort());
+                            logger.info("ACL = {}, From = {}, To = {}",acl,perm.getFromPort(),perm.getToPort());
+                            aclPortMap.put(acl,fromToList);
+                        }
+                    }
+                }
+            }
+            return aclPortMap;
         }
         finally
         {
