@@ -65,20 +65,6 @@ public class UpdateTribeSecuritySettings extends Task
      * es_tribesource2 : 9002
      */
     private final Map<String,Integer> clusterPortMap = new HashMap<String,Integer>();
-    /**
-     * cachedAclClusterMap
-     * 50.60.70.80/32 : es_tribe
-     * 50.60.70.81/32 : es_tribe
-     * 50.60.70.82/32 : es_tribe
-     * 60.70.80.90/32 : es_tribesource1
-     * 60.70.80.91/32 : es_tribesource1
-     * 60.70.80.92/32 : es_tribesource1
-     * 70.80.90.00/32 : es_tribesource2
-     * 70.80.90.01/32 : es_tribesource2
-     * 70.80.90.02/32 : es_tribesource2
-     */
-    private final Map<String,String> cachedAclClusterMap = new HashMap<String,String>();
-
 
     @Inject
     public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
@@ -101,7 +87,8 @@ public class UpdateTribeSecuritySettings extends Task
         List<String> acls = Lists.newArrayList();
         for(String clusterName:clusterPortMap.keySet())
         {
-           acls.addAll(membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName)));
+           List<String> aclList = membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName));
+           acls.addAll(aclList);
         }
 
         List<RaigadInstance> instances = getInstanceList();
@@ -119,12 +106,9 @@ public class UpdateTribeSecuritySettings extends Task
         {
             /**
              * clusterInstancesMap
-             * es_tribe : 50.60.70.80
-             * es_tribe : 50.60.70.81
-             * es_tribesource1 : 60.70.80.90
-             * es_tribesource1 : 60.70.80.91
-             * es_tribesource2 : 70.80.90.00
-             * es_tribesource2 : 70.80.90.01
+             * es_tribe : 50.60.70.80,50.60.70.81
+             * es_tribesource1 : 60.70.80.90,60.70.80.91
+             * es_tribesource2 : 70.80.90.00,70.80.90.01
              */
             Map<String,List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
 
@@ -132,7 +116,6 @@ public class UpdateTribeSecuritySettings extends Task
                 membership.addACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
 
             firstTimeUpdated = true;
-            cachedAclClusterMap.putAll(addAclClusterMap);
         }
 
         Map<String,String> currentIpClusterMap = new HashMap<String, String>();
@@ -144,24 +127,23 @@ public class UpdateTribeSecuritySettings extends Task
         }
 
         //iterate to remove ...
-        Map<String,String> removeAclClusterMap = new HashMap<String, String>();
+        List<String> removeAclList = new ArrayList<String>();
         for(String acl:acls)
         {
             if(!currentIpClusterMap.containsKey(acl))
-                removeAclClusterMap.put(acl, cachedAclClusterMap.get(acl));
+                removeAclList.add(acl);
         }
 
-        if (removeAclClusterMap.keySet().size() > 0)
+        if(removeAclList.size() > 0)
         {
-            Map<String,List<String>> clusterInstancesMap = generateClusterToAclListMap(removeAclClusterMap);
-
-            for(String clusterName : clusterInstancesMap.keySet())
-                membership.removeACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
-
+            for(String acl:removeAclList)
+            {
+                Map<String,List<Integer>> aclPortMap = membership.getACLPortMap(acl);
+                int from = aclPortMap.get(acl).get(0);
+                int to = aclPortMap.get(acl).get(1);
+                membership.removeACL(Collections.singletonList(acl),from,to);
+            }
             firstTimeUpdated = true;
-            //Clear already removed acl entries from cached map
-            for(String acl:removeAclClusterMap.keySet())
-                cachedAclClusterMap.remove(acl);
         }
     }
 

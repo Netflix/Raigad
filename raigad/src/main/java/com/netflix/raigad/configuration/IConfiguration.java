@@ -287,4 +287,9 @@ public interface IConfiguration
 
     public boolean reportMetricsFromMasterOnly();
 
+    /**
+     * To prefer the index from a specific tribe
+     * @return tribe id
+     */
+    public String getTribePreferredClusterIdOnConflict();
 }

@@ -464,4 +464,9 @@ public class FakeConfiguration implements IConfiguration {
         return false;
     }
 
+    @Override
+    public String getTribePreferredClusterIdOnConflict() {
+        return null;
+    }
+
 }

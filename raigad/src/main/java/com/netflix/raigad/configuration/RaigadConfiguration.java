@@ -114,6 +114,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_KIBANA_PORT = MY_WEBAPP_NAME + ".kibana.port";
     private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
     private static final String CONFIG_REPORT_METRICS_FROM_MASTER_ONLY = MY_WEBAPP_NAME + ".report.metrics.from.master.only";
+    private static final String CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = MY_WEBAPP_NAME + ".tribe.preferred.cluster.id.on.conflict";
 
 
 
@@ -213,6 +214,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final int DEFAULT_KIBANA_PORT = 8001;
     private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
     private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
+    private static final String DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = "t0";
 
     private final IConfigSource config; 
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
@@ -292,7 +294,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicIntProperty KIBANA_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_KIBANA_PORT, getDefaultKibanaPort());
     private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, isDefaultAmISourceClusterForTribeNodeInMultiDC());
     private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, getDefaultReportMetricsFromMasterOnly());
-
+    private final DynamicStringProperty TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT, getDefaultTribePreferredClusterIdOnConflict());
 
     @Inject
     public RaigadConfiguration(ICredential provider, IConfigSource config)
@@ -848,6 +850,11 @@ public class RaigadConfiguration implements IConfiguration
         return REPORT_METRICS_FROM_MASTER_ONLY.get();
     }
 
+    @Override
+    public String getTribePreferredClusterIdOnConflict() {
+        return TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT.get();
+    }
+
     public String getDefaultCredentialProvider()
     {
        return config.get(CONFIG_CREDENTIAL_PROVIDER,DEFAULT_CREDENTIAL_PROVIDER);
@@ -1154,4 +1161,10 @@ public class RaigadConfiguration implements IConfiguration
     public boolean getDefaultReportMetricsFromMasterOnly() {
         return config.get(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY,DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
     }
+
+    public String getDefaultTribePreferredClusterIdOnConflict() {
+        return config.get(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT,DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT);
+    }
+
+
 }
