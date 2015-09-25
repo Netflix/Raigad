@@ -469,4 +469,9 @@ public class FakeConfiguration implements IConfiguration {
         return null;
     }
 
+    @Override
+    public String getEsNodeName() {
+        return null;
+    }
+
 }

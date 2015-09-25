@@ -128,6 +128,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
     private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
     private static final String INSTANCE_TYPE = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-type").trim();
+    private static final String ES_NODE_NAME = RAC + "." + INSTANCE_ID;
 
     private static String ASG_NAME = System.getenv("ASG_NAME");
     private static String REGION = System.getenv("EC2_REGION");
@@ -851,6 +852,11 @@ public class RaigadConfiguration implements IConfiguration
     @Override
     public String getTribePreferredClusterIdOnConflict() {
         return TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT.get();
+    }
+
+    @Override
+    public String getEsNodeName() {
+        return ES_NODE_NAME;
     }
 
 }
