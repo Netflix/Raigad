@@ -52,7 +52,7 @@ public class ESTransportClient
      * 
      * This will work only if Elasticsearch runs.
      */
-    public ESTransportClient(String host, int port, String clusterName) throws IOException, InterruptedException
+    public ESTransportClient(String host, int port, String clusterName, String nodeName) throws IOException, InterruptedException
     {
         Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName)
                 .put("client.transport.sniff", true)
@@ -60,13 +60,13 @@ public class ESTransportClient
         client = new TransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(host,port));
 
-        ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats("_local").all();
+        ndStatsRequestBuilder = client.admin().cluster().prepareNodesStats(nodeName).all();
     }
 
     @Inject
     public ESTransportClient(IConfiguration config) throws IOException, InterruptedException
     {
-        this("localhost", config.getTransportTcpPort(), config.getAppName());
+        this("localhost", config.getTransportTcpPort(), config.getAppName(), config.getEsNodeName());
     }
 
     /**
@@ -112,7 +112,7 @@ public class ESTransportClient
 							@Override
 							public ESTransportClient retriableCall() throws Exception
 							{
-								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(),config.getAppName());
+								ESTransportClient esTransportClientLocal = new ESTransportClient("localhost", config.getTransportTcpPort(),config.getAppName(),config.getEsNodeName());
 						   		return esTransportClientLocal;
 							}
 						}.call();

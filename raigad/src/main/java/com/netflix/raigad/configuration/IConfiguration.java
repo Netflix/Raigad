@@ -292,4 +292,6 @@ public interface IConfiguration
      * @return tribe id
      */
     public String getTribePreferredClusterIdOnConflict();
+
+    public String getEsNodeName();
 }

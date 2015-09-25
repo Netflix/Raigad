@@ -52,7 +52,7 @@ public class StandardTuner implements IElasticsearchTuner
         File yamlFile = new File(yamlLocation);
         Map map = (Map) yaml.load(new FileInputStream(yamlFile));
         map.put("cluster.name", config.getAppName());
-        map.put("node.name", config.getRac() + "." + config.getInstanceId());
+        map.put("node.name", config.getEsNodeName());
         map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
