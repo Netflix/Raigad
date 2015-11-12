@@ -294,4 +294,25 @@ public interface IConfiguration
     public String getTribePreferredClusterIdOnConflict();
 
     public String getEsNodeName();
+
+    /**
+     * Parameters associated with VPC
+     */
+
+    /**
+     * VPCMigration mode deals with moving instances from EC2 classic to VPC
+     */
+    public boolean isVPCMigrationModeEnabled();
+
+    /**
+     * Check if instance is deployed in VPC
+     * @return true or false
+     */
+    public boolean isDeployedInVPC();
+
+    /**
+     * Get the security group associated with nodes in this cluster in VPC
+     */
+    public String getACLGroupNameForVPC();
+
 }

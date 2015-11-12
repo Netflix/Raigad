@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.aws.UpdateSecuritySettings;
 import com.netflix.raigad.aws.UpdateTribeSecuritySettings;
+import com.netflix.raigad.aws.UpdateVPCSecuritySettings;
 import com.netflix.raigad.backup.RestoreBackupManager;
 import com.netflix.raigad.backup.SnapshotBackupManager;
 import com.netflix.raigad.configuration.IConfiguration;
@@ -93,12 +94,32 @@ public class RaigadServer
                 scheduler.addTask(UpdateTribeSecuritySettings.JOBNAME, UpdateTribeSecuritySettings.class, UpdateTribeSecuritySettings.getTimer(instanceManager));
             } else {
                 if(config.isSecutrityGroupInMultiDC()) {
-                    // update security settings
-                    scheduler.runTaskNow(UpdateSecuritySettings.class);
-                    // sleep for 60 sec for the SG update to happen.
-                    if (UpdateSecuritySettings.firstTimeUpdated)
-                        sleeper.sleep(60 * 1000);
-                    scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+
+                    if(config.isDeployedInVPC())
+                    {
+                        if(config.isVPCMigrationModeEnabled())
+                        {
+                            // update security settings
+                            scheduler.runTaskNow(UpdateSecuritySettings.class);
+                            // sleep for 60 sec for the SG update to happen.
+                            if (UpdateSecuritySettings.firstTimeUpdated)
+                                sleeper.sleep(60 * 1000);
+                            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+                        }
+                        // update security settings
+                        scheduler.runTaskNow(UpdateVPCSecuritySettings.class);
+                        // sleep for 60 sec for the SG update to happen.
+                        if (UpdateVPCSecuritySettings.firstTimeUpdated)
+                            sleeper.sleep(60 * 1000);
+                        scheduler.addTask(UpdateVPCSecuritySettings.JOBNAME, UpdateVPCSecuritySettings.class, UpdateVPCSecuritySettings.getTimer(instanceManager));
+                    } else {
+                        // update security settings
+                        scheduler.runTaskNow(UpdateSecuritySettings.class);
+                        // sleep for 60 sec for the SG update to happen.
+                        if (UpdateSecuritySettings.firstTimeUpdated)
+                            sleeper.sleep(60 * 1000);
+                        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+                    }
                 }
             }
         }
