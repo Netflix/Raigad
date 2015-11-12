@@ -474,4 +474,19 @@ public class FakeConfiguration implements IConfiguration {
         return null;
     }
 
+    @Override
+    public boolean isVPCMigrationModeEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isDeployedInVPC() {
+        return false;
+    }
+
+    @Override
+    public String getACLGroupNameForVPC() {
+        return null;
+    }
+
 }

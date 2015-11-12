@@ -115,15 +115,37 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
     private static final String CONFIG_REPORT_METRICS_FROM_MASTER_ONLY = MY_WEBAPP_NAME + ".report.metrics.from.master.only";
     private static final String CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = MY_WEBAPP_NAME + ".tribe.preferred.cluster.id.on.conflict";
+    private static final String CONFIG_IS_VPC_MIGRATION_MODE_ENABLED = MY_WEBAPP_NAME + ".vpc.migration.mode.enabled";
 
     // Amazon specific
     private static final String CONFIG_ASG_NAME = MY_WEBAPP_NAME + ".az.asgname";
     private static final String CONFIG_REGION_NAME = MY_WEBAPP_NAME + ".az.region";
     private static final String CONFIG_ACL_GROUP_NAME = MY_WEBAPP_NAME + ".acl.groupname";
+    private static final String CONFIG_ACL_GROUP_NAME_FOR_VPC = MY_WEBAPP_NAME + ".acl.groupname.vpc";
+
+    private static Boolean IS_DEPLOYED_IN_VPC = false;
+    private static final String MAC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/mac");
+    private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/"+MAC_ID+"/vpc-id").trim();
+
+    private static String PUBLIC_HOSTNAME, PUBLIC_IP;
+
+    {
+        if (VPC_ID.equals(SystemUtils.NOT_FOUND_STR)) {
+            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+        } else {
+            IS_DEPLOYED_IN_VPC = true;
+            // Following is a HACK : Need to come up with a better solution
+            // If Deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP
+            // Hence, Storing LOCAL_HOSTNAME and LOCAL_IP instead
+            PUBLIC_HOSTNAME =  SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+        }
+    }
 
     private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+//    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+//    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
     private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
     private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
@@ -214,8 +236,10 @@ public class RaigadConfiguration implements IConfiguration
     private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
     private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
     private static final String DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = "t0";
+    private static final boolean DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED = false;
+    private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster-vpc";
 
-    private final IConfigSource config; 
+    private final IConfigSource config;
     private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
     private final ICredential provider;
 
@@ -284,7 +308,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicIntProperty DESIRED_NUM_NODES_IN_CLUSTER = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_DESIRED_NUM_NODES_IN_CLUSTER, DEFAULT_DESIRED_NUM_NODES_IN_CLUSTER);
     private final DynamicBooleanProperty IS_EUREKA_HEALTH_CHECK_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HEALTH_CHECK_ENABLED, DEFAULT_IS_EUREKA_HEALTH_CHECK_ENABLED);
     private final DynamicBooleanProperty IS_LOCAL_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_LOCAL_MODE_ENABLED, DEFAULT_IS_LOCAL_MODE_ENABLED);
-    private final DynamicStringProperty CASSANDRA_KEYSPACE_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME,DEFAULT_CASSANDRA_KEYSPACE_NAME);
+    private final DynamicStringProperty CASSANDRA_KEYSPACE_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CASSANDRA_KEYSPACE_NAME, DEFAULT_CASSANDRA_KEYSPACE_NAME);
     private final DynamicIntProperty CASSANDRA_THRIFT_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_CASSANDRA_THRIFT_PORT, DEFAULT_CASSANDRA_THRIFT_PORT);
     private final DynamicBooleanProperty IS_EUREKA_HOST_SUPPLIER_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_EUREKA_HOST_SUPPLIER_ENABLED, DEFAULT_IS_EUREKA_HOST_SUPPLIER_ENABLED);
     private final DynamicStringProperty COMMA_SEPARATED_CASSANDRA_HOSTNAMES = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_COMMA_SEPARATED_CASSANDRA_HOSTNAMES, DEFAULT_COMMA_SEPARATED_CASSANDRA_HOSTNAMES);
@@ -294,6 +318,8 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
     private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
     private final DynamicStringProperty TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT, DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT);
+    private final DynamicBooleanProperty IS_VPC_MIGRATION_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_VPC_MIGRATION_MODE_ENABLED, DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED);
+    private final DynamicStringProperty ACL_GROUP_NAME_FOR_VPC = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ACL_GROUP_NAME_FOR_VPC, DEFAULT_ACL_GROUP_NAME_FOR_VPC);
 
     @Inject
     public RaigadConfiguration(ICredential provider, IConfigSource config)
@@ -310,6 +336,12 @@ public class RaigadConfiguration implements IConfiguration
         setDefaultRACList(REGION);
         populateProps();
         SystemUtils.createDirs(getDataFileLocation());
+        //Following is a HACK : Need to come up with better solution
+        //IF Multi-Region VPC mode then Set PUBLIC_HOSTNAME and PUBLIC_IP to correct values
+        if (IS_DEPLOYED_IN_VPC && isMultiDC()) {
+            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+        }
     }
 
     private void setupEnvVars()
@@ -859,4 +891,19 @@ public class RaigadConfiguration implements IConfiguration
         return ES_NODE_NAME;
     }
 
+    @Override
+    public boolean isVPCMigrationModeEnabled() {
+        return IS_VPC_MIGRATION_MODE_ENABLED.get();
+    }
+
+    @Override
+    public boolean isDeployedInVPC() {
+        return IS_DEPLOYED_IN_VPC;
+    }
+
+    @Override
+    public String getACLGroupNameForVPC()
+    {
+        return ACL_GROUP_NAME_FOR_VPC.get();
+    }
 }

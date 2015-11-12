@@ -183,6 +183,79 @@ public class AWSMembership implements IMembership
         }
     }
 
+    /**
+     * Adds a iplist to the VPC SG.
+     */
+    public void addVpcACL(Collection<String> listIPs, int from, int to)
+    {
+        AmazonEC2 client = null;
+        try
+        {
+            client = getEc2Client();
+            List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
+            ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
+            client.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(config.getACLGroupNameForVPC(), ipPermissions));
+            logger.info("Done adding VPC ACL to: " + StringUtils.join(listIPs, ","));
+        }
+        finally
+        {
+            if (client != null)
+                client.shutdown();
+        }
+    }
+
+    /**
+     * removes a iplist from the VPC SG
+     */
+    public void removeVpcACL(Collection<String> listIPs, int from, int to)
+    {
+        AmazonEC2 client = null;
+        try
+        {
+            client = getEc2Client();
+            List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
+            ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
+            client.revokeSecurityGroupIngress(new RevokeSecurityGroupIngressRequest(config.getACLGroupNameForVPC(), ipPermissions));
+            logger.info("Done removing from VPC ACL: " + StringUtils.join(listIPs, ","));
+        }
+        finally
+        {
+            if (client != null)
+                client.shutdown();
+        }
+    }
+
+    /**
+     * List VPC SG ACL's
+     */
+    public List<String> listVpcACL(int from, int to)
+    {
+        AmazonEC2 client = null;
+        try
+        {
+            client = getEc2Client();
+            List<String> ipPermissions = new ArrayList<String>();
+            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupNameForVPC()));
+            DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
+            for (SecurityGroup group : result.getSecurityGroups())
+            {
+                for (IpPermission perm : group.getIpPermissions())
+                {
+                    if (perm.getFromPort() == from && perm.getToPort() == to)
+                    {
+                        ipPermissions.addAll(perm.getIpRanges());
+                    }
+                }
+            }
+            return ipPermissions;
+        }
+        finally
+        {
+            if (client != null)
+                client.shutdown();
+        }
+    }
+
     public Map<String,List<Integer>> getACLPortMap(String acl)
     {
         AmazonEC2 client = null;

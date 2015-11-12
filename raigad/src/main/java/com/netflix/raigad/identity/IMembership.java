@@ -68,6 +68,28 @@ public interface IMembership
     public List<String> listACL(int from, int to);
 
     /**
+     * Add VPC security group ACLs
+     *
+     * @param listIPs
+     * @param from
+     * @param to
+     */
+    public void addVpcACL(Collection<String> listIPs, int from, int to);
+
+    /**
+     * Remove VPC security group ACLs
+     *
+     * @param listIPs
+     * @param from
+     * @param to
+     */
+    public void removeVpcACL(Collection<String> listIPs, int from, int to);
+
+    /**
+     * List all VPC ACLs
+     */
+    public List<String> listVpcACL(int from, int to);
+    /**
      * Expand the membership size by 1.
      * 
      * @param count

@@ -49,15 +49,19 @@ import java.util.List;
 public class SystemUtils
 {
     private static final Logger logger = LoggerFactory.getLogger(SystemUtils.class);
+    public static final String NOT_FOUND_STR = "NOT_FOUND";
 
-    public static String getDataFromUrl(String url)
-    {
+    public static String getDataFromUrl(String url) {
         try
         {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(1000);
             conn.setRequestMethod("GET");
+            if (conn.getResponseCode() == 404)
+            {
+                return NOT_FOUND_STR;
+            }
             if (conn.getResponseCode() != 200)
             {
                 throw new RuntimeException("Unable to get data for URL " + url);
