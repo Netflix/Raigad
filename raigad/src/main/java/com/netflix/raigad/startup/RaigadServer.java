@@ -17,6 +17,7 @@ package com.netflix.raigad.startup;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.netflix.raigad.aws.SetVPCSecurityGroupID;
 import com.netflix.raigad.aws.UpdateSecuritySettings;
 import com.netflix.raigad.aws.UpdateTribeSecuritySettings;
 import com.netflix.raigad.aws.UpdateVPCSecuritySettings;
@@ -50,6 +51,7 @@ public class RaigadServer
     private final ElasticSearchIndexManager esIndexManager;
     private final SnapshotBackupManager snapshotBackupManager;
     private final HttpModule httpModule;
+    private final SetVPCSecurityGroupID setVPCSecurityGroupID;
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
     private static final int ES_HEALTH_MONITOR_DELAY = 600;
@@ -61,7 +63,8 @@ public class RaigadServer
     public RaigadServer(IConfiguration config, RaigadScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper,
                         InstanceManager instanceManager,
                         ElasticSearchIndexManager esIndexManager,
-                        SnapshotBackupManager snapshotBackupManager)
+                        SnapshotBackupManager snapshotBackupManager,
+                        SetVPCSecurityGroupID setVPCSecurityGroupID)
     {
         this.config = config;
         this.scheduler = scheduler;
@@ -71,6 +74,7 @@ public class RaigadServer
         this.instanceManager = instanceManager;
         this.esIndexManager = esIndexManager;
         this.snapshotBackupManager = snapshotBackupManager;
+        this.setVPCSecurityGroupID = setVPCSecurityGroupID;
     }
 
     public void initialize() throws Exception
@@ -106,6 +110,8 @@ public class RaigadServer
                                 sleeper.sleep(60 * 1000);
                             scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
                         }
+                        //Set SecurityGroupId
+                        setVPCSecurityGroupID.execute();
                         // update security settings
                         scheduler.runTaskNow(UpdateVPCSecuritySettings.class);
                         // sleep for 60 sec for the SG update to happen.

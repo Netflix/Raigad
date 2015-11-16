@@ -127,7 +127,7 @@ public class RaigadConfiguration implements IConfiguration
     private static final String MAC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/mac");
     private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/"+MAC_ID+"/vpc-id").trim();
 
-    private static String PUBLIC_HOSTNAME, PUBLIC_IP;
+    private static String PUBLIC_HOSTNAME, PUBLIC_IP, ACL_GROUP_ID_FOR_VPC;
 
     {
         if (VPC_ID.equals(SystemUtils.NOT_FOUND_STR)) {
@@ -372,7 +372,7 @@ public class RaigadConfiguration implements IConfiguration
             return null;
         }
     }
-    
+
     private class GetASGName extends RetryableCallable<String>
     {
         private static final int NUMBER_OF_RETRIES = 15;
@@ -905,5 +905,20 @@ public class RaigadConfiguration implements IConfiguration
     public String getACLGroupNameForVPC()
     {
         return ACL_GROUP_NAME_FOR_VPC.get();
+    }
+
+    @Override
+    public String getACLGroupIdForVPC() {
+        return ACL_GROUP_ID_FOR_VPC;
+    }
+
+    @Override
+    public void setACLGroupIdForVPC(String aclGroupIdForVPC) {
+        ACL_GROUP_ID_FOR_VPC =  aclGroupIdForVPC;
+    }
+
+    @Override
+    public String getMacIdForInstance() {
+        return MAC_ID;
     }
 }

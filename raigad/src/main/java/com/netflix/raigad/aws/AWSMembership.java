@@ -170,7 +170,7 @@ public class AWSMembership implements IMembership
                 {
                     if (perm.getFromPort() == from && perm.getToPort() == to)
                     {
-                   		ipPermissions.addAll(perm.getIpRanges());
+                        ipPermissions.addAll(perm.getIpRanges());
                     }
                 }
             }
@@ -194,7 +194,9 @@ public class AWSMembership implements IMembership
             client = getEc2Client();
             List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
             ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
-            client.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(config.getACLGroupNameForVPC(), ipPermissions));
+            if (config.getACLGroupIdForVPC().isEmpty())
+                throw new RuntimeException("ACLGroupIdForVPC can NOT be empty, Check if SetVPCSecurityGroupID is throwing any error !!");
+            client.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest().withGroupId(config.getACLGroupIdForVPC()).withIpPermissions(ipPermissions));
             logger.info("Done adding VPC ACL to: " + StringUtils.join(listIPs, ","));
         }
         finally
@@ -215,7 +217,9 @@ public class AWSMembership implements IMembership
             client = getEc2Client();
             List<IpPermission> ipPermissions = new ArrayList<IpPermission>();
             ipPermissions.add(new IpPermission().withFromPort(from).withIpProtocol("tcp").withIpRanges(listIPs).withToPort(to));
-            client.revokeSecurityGroupIngress(new RevokeSecurityGroupIngressRequest(config.getACLGroupNameForVPC(), ipPermissions));
+            if (config.getACLGroupIdForVPC().isEmpty())
+                throw new RuntimeException("ACLGroupIdForVPC can NOT be empty, Check if SetVPCSecurityGroupID is throwing any error !!");
+            client.revokeSecurityGroupIngress(new RevokeSecurityGroupIngressRequest().withGroupId(config.getACLGroupIdForVPC()).withIpPermissions(ipPermissions));
             logger.info("Done removing from VPC ACL: " + StringUtils.join(listIPs, ","));
         }
         finally
@@ -235,7 +239,9 @@ public class AWSMembership implements IMembership
         {
             client = getEc2Client();
             List<String> ipPermissions = new ArrayList<String>();
-            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupNameForVPC()));
+            if (config.getACLGroupIdForVPC().isEmpty())
+                throw new RuntimeException("ACLGroupIdForVPC can NOT be empty, Check if SetVPCSecurityGroupID is throwing any error !!");
+            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupIds(config.getACLGroupIdForVPC());
             DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
             for (SecurityGroup group : result.getSecurityGroups())
             {

@@ -315,4 +315,19 @@ public interface IConfiguration
      */
     public String getACLGroupNameForVPC();
 
+    /**
+     * Get the security group id for given Security Group in VPC
+     */
+    public String getACLGroupIdForVPC();
+
+    /**
+     * Set the security group id for given Security Group in VPC
+     */
+    public void setACLGroupIdForVPC(String aclGroupIdForVPC);
+
+    /**
+     * Get the MAC id for an instance
+     */
+    public String getMacIdForInstance();
+
 }
