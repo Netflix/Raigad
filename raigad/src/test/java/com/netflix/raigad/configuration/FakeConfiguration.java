@@ -489,4 +489,19 @@ public class FakeConfiguration implements IConfiguration {
         return null;
     }
 
+    @Override
+    public String getACLGroupIdForVPC() {
+        return null;
+    }
+
+    @Override
+    public void setACLGroupIdForVPC(String aclGroupIdForVPC) {
+
+    }
+
+    @Override
+    public String getMacIdForInstance() {
+        return null;
+    }
+
 }
