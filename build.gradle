@@ -30,7 +30,7 @@ subprojects {
     dependencies {
         compile "commons-lang:commons-lang:2.6"
         compile "commons-logging:commons-logging:1.1.1"
-        compile "commons-collections:commons-collections:3.2.1"
+        compile "commons-collections:commons-collections:3.2.2"
         compile "commons-io:commons-io:2.0.1"
         compile "commons-cli:commons-cli:1.2"
         compile "commons-httpclient:commons-httpclient:3.1"
@@ -58,7 +58,7 @@ subprojects {
         compile "com.netflix.servo:servo-core:0.5.5"
         compile "org.slf4j:slf4j-api:1.6.1"
         compile "org.slf4j:slf4j-log4j12:1.6.1"
-        compile "org.elasticsearch:elasticsearch:1.5.2"
+        compile "org.elasticsearch:elasticsearch:1.7.5"
         compile "com.netflix.eureka:eureka-client:1.1.142"
 
         compile('com.netflix.astyanax:astyanax:2.0.1') {
@@ -71,7 +71,7 @@ subprojects {
         provided "javax.servlet:servlet-api:2.5"
 
         testCompile "com.googlecode.jmockit:jmockit:0.999.17"
-        testCompile 'org.elasticsearch:elasticsearch:1.5.2:tests'
+        testCompile 'org.elasticsearch:elasticsearch:1.7.5:tests'
         testCompile 'org.apache.lucene:lucene-test-framework:4.10.4'
         testCompile 'com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.1.10'
         testCompile 'org.hamcrest:hamcrest-all:1.3'
