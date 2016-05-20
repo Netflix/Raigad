@@ -1,7 +1,7 @@
 <!--
 # Raigad
 -->
-![](images/raidad-type-lg.png?raw=true =150x150) </br>
+![](images/raigad-type-lg.png?raw=true =150x150)<br/>
 
 **Raigad** is a process/tool that runs alongside Elasticsearch to automate the following:
 - Snapshot backup and restore.
@@ -14,7 +14,7 @@ Elasticsearch is open source, distributed, real-time search and analytics engine
 
 The name 'Raigad' refers to the name of an Indian fort in state of Maharashtra.
 
-Raigad is actively developed and used at Netflix. 
+Raigad is actively developed and used at Netflix.
 
 Features:
 - Support multi-region Elasticsearch deployment in AWS via public IP.
