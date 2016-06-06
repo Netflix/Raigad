@@ -46,7 +46,7 @@ subprojects {
         compile "com.google.inject.extensions:guice-servlet:3.0"
         compile "com.googlecode.json-simple:json-simple:1.1"
 
-        compile "com.amazonaws:aws-java-sdk:latest.release"
+        compile "com.amazonaws:aws-java-sdk:1.11.+"
 
         compile "org.apache.cassandra:cassandra-all:[1.1.9,1.1.10["
         compile "org.apache.httpcomponents:httpclient:4.3.5"
