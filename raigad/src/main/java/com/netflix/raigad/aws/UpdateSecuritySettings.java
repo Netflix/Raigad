@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.identity.IRaigadInstanceFactory;
-import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.identity.IMembership;
+import com.netflix.raigad.identity.IRaigadInstanceFactory;
 import com.netflix.raigad.identity.InstanceManager;
+import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
@@ -36,89 +36,86 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * this class will associate Public IP's with a new instance so they can talk
- * across the regions.
+ * This class will associate public IP's with a new instance so they can talk across the regions.
  *
- * Requirement: 1) Nodes in the same region needs to be able to talk to each
- * other. 2) Nodes in other regions needs to be able to talk to the others in
- * the other region.
+ * Requirements:
+ * 1. Nodes in the same region needs to be able to talk to each other.
+ * 2. Nodes in other regions needs to be able to talk to the others in the other region.
  *
- * Assumption: 1) IRaigadInstanceFactory will provide the membership... and will
- * be visible across the regions 2) IMembership amazon or any other
- * implementation which can tell if the instance is part of the group (ASG in
- * amazons case).
- *
+ * Assumptions:
+ * 1. IRaigadInstanceFactory will provide the membership and will be visible across the regions
+ * 2. IMembership amazon or any other implementation which can tell if the instance is a
+ * part of the group (ASG in Amazon's case).
  */
-@Singleton
-public class UpdateSecuritySettings extends Task
-{
-	private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
-	public static final String JOBNAME = "Update_SG";
-    public static boolean firstTimeUpdated = false;
 
-    private static final Random ran = new Random();
+@Singleton
+public class UpdateSecuritySettings extends Task {
+	private static final Logger logger = LoggerFactory.getLogger(UpdateSecuritySettings.class);
+
+	public static final String JOB_NAME = "Update_SG";
+    public static boolean firstTimeUpdated = false;
+    private static final Random RANDOM = new Random();
+
     private final IMembership membership;
     private final IRaigadInstanceFactory factory;
 
 
     @Inject
-    public UpdateSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
-    {
+    public UpdateSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory) {
         super(config);
         this.membership = membership;
         this.factory = factory;
     }
 
     /**
-     * Master nodes execute this at the specified interval.
-     * Other nodes run only on startup.
+     * Master nodes execute this at the specified interval, others run only on startup
      */
     @Override
-    public void execute()
-    {
+    public void execute() {
         int port = config.getTransportTcpPort();
         List<String> acls = membership.listACL(port, port);
 
-        //Get instances based on Type of Nodes (Tribe / non-tribe)
+        // Get instances based on node types (tribe / non-tribe)
         List<RaigadInstance> instances = getInstanceList();
 
-        // iterate to add...
-        List<String> add = Lists.newArrayList();
-        for (RaigadInstance instance : getInstanceList())
-        {
+        // Iterate cluster nodes and build a list of IP's
+        List<String> ipsToAdd = Lists.newArrayList();
+        for (RaigadInstance instance : getInstanceList()) {
             String range = instance.getHostIP() + "/32";
-            if (!acls.contains(range))
-                add.add(range);
+            if (!acls.contains(range)) {
+                ipsToAdd.add(range);
+            }
         }
 
-        if (add.size() > 0)
-        {
-            membership.addACL(add, port, port);
+        if (ipsToAdd.size() > 0) {
+            membership.addACL(ipsToAdd, port, port);
             firstTimeUpdated = true;
         }
 
-        // just iterate to generate ranges.
+        // Just iterate to generate ranges
         List<String> currentRanges = Lists.newArrayList();
-        for (RaigadInstance instance : instances)
-        {
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
             currentRanges.add(range);
         }
 
-        // iterate to remove...
-        List<String> remove = Lists.newArrayList();
-        for (String acl : acls)
-            if (!currentRanges.contains(acl)) // if not found then remove....
-                remove.add(acl);
-        if (remove.size() > 0)
+        // Create a list of IP's to remove
+        List<String> ipsToRemove = Lists.newArrayList();
+        for (String acl : acls) {
+            // Remove if not found
+            if (!currentRanges.contains(acl)) {
+                ipsToRemove.add(acl);
+            }
+        }
+
+        if (ipsToRemove.size() > 0)
         {
-            membership.removeACL(remove, port, port);
+            membership.removeACL(ipsToRemove, port, port);
             firstTimeUpdated = true;
         }
     }
 
-    private List<RaigadInstance> getInstanceList()
-    {
+    private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
 
         if(config.amISourceClusterForTribeNode())
@@ -141,18 +138,18 @@ public class UpdateSecuritySettings extends Task
         return _instances;
     }
 
-    public static TaskTimer getTimer(InstanceManager instanceManager)
-    {
-        //Only Master nodes will Update Security Group Settings
-        if(!instanceManager.isMaster())
-            return new SimpleTimer(JOBNAME);
-        else
-            return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
+    public static TaskTimer getTimer(InstanceManager instanceManager) {
+        //Only master nodes will update security group settings
+        if (!instanceManager.isMaster()) {
+            return new SimpleTimer(JOB_NAME);
+        }
+        else {
+            return new SimpleTimer(JOB_NAME, 120 * 1000 + RANDOM.nextInt(120 * 1000));
+        }
     }
 
     @Override
-    public String getName()
-    {
-        return JOBNAME;
+    public String getName() {
+        return JOB_NAME;
     }
 }

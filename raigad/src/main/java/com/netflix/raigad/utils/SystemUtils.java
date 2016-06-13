@@ -306,9 +306,14 @@ public class SystemUtils
 
     public static String[] getSecurityGroupIds(String MAC_ID)
     {
-        String sec_group_ids = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/security-group-ids/").trim();
-        if (sec_group_ids.isEmpty())
-            throw new RuntimeException("Security Group IDs are Null or Empty, Something is Wrong, hence failing !!");
-        return sec_group_ids.split("\n");
+        String securityGroupIds = SystemUtils.getDataFromUrl(
+                "http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID +
+                        "/security-group-ids/").trim();
+
+        if (securityGroupIds.isEmpty()) {
+            throw new RuntimeException("Security group ID's are null or empty");
+        }
+
+        return securityGroupIds.split("\n");
     }
 }

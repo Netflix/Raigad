@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.google.inject.Singleton;
 import com.netflix.raigad.aws.SetVPCSecurityGroupID;
 import com.netflix.raigad.aws.UpdateSecuritySettings;
 import com.netflix.raigad.aws.UpdateTribeSecuritySettings;
-import com.netflix.raigad.aws.UpdateVPCSecuritySettings;
 import com.netflix.raigad.backup.RestoreBackupManager;
 import com.netflix.raigad.backup.SnapshotBackupManager;
 import com.netflix.raigad.configuration.IConfiguration;
@@ -37,12 +36,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Start all tasks here - Property update task - Backup task - Restore task -
- * Incremental backup
+ * Start all tasks here: Property update task, Backup task, Restore task, Incremental backup
  */
 @Singleton
 public class RaigadServer
 {
+    private static final int ES_MONITORING_INITIAL_DELAY = 10;
+    private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
+    private static final int ES_HEALTH_MONITOR_DELAY = 600;
+    private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
+
+    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
+
     private final RaigadScheduler scheduler;
     private final IConfiguration config;
     private final Sleeper sleeper;
@@ -52,15 +57,13 @@ public class RaigadServer
     private final SnapshotBackupManager snapshotBackupManager;
     private final HttpModule httpModule;
     private final SetVPCSecurityGroupID setVPCSecurityGroupID;
-    private static final int ES_MONITORING_INITIAL_DELAY = 10;
-    private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
-    private static final int ES_HEALTH_MONITOR_DELAY = 600;
-    private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
-    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
-
 
     @Inject
-    public RaigadServer(IConfiguration config, RaigadScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper,
+    public RaigadServer(IConfiguration config,
+                        RaigadScheduler scheduler,
+                        HttpModule httpModule,
+                        IElasticsearchProcess esProcess,
+                        Sleeper sleeper,
                         InstanceManager instanceManager,
                         ElasticSearchIndexManager esIndexManager,
                         SnapshotBackupManager snapshotBackupManager,
@@ -79,53 +82,65 @@ public class RaigadServer
 
     public void initialize() throws Exception
     {     
-    	//Check If it's really needed
-        if (instanceManager.getInstance().isOutOfService())
+    	// Check if it's really needed
+        if (instanceManager.getInstance().isOutOfService()) {
             return;
+        }
         
-        logger.info("Initializing RaigadServer now ...");
+        logger.info("Initializing Raigad server now...");
 
-        // start to schedule jobs
+        // Start to schedule jobs
         scheduler.start();
 
-        if(!config.isLocalModeEnabled()) {
+        if (!config.isLocalModeEnabled()) {
             if (config.amITribeNode()) {
-                // update security settings
+                // Update security settings
                 scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
-                // sleep for 60 sec for the SG update to happen.
-                if (UpdateTribeSecuritySettings.firstTimeUpdated)
-                    sleeper.sleep(60 * 1000);
-                scheduler.addTask(UpdateTribeSecuritySettings.JOBNAME, UpdateTribeSecuritySettings.class, UpdateTribeSecuritySettings.getTimer(instanceManager));
-            } else {
-                if(config.isSecutrityGroupInMultiDC()) {
 
-                    if(config.isDeployedInVPC())
-                    {
-                        if(config.isVPCMigrationModeEnabled())
-                        {
-                            // update security settings
+                // Sleep for 60 seconds for the SG update to happen
+                if (UpdateTribeSecuritySettings.firstTimeUpdated) {
+                    sleeper.sleep(60 * 1000);
+                }
+
+                scheduler.addTask(UpdateTribeSecuritySettings.JOB_NAME,
+                        UpdateTribeSecuritySettings.class,
+                        UpdateTribeSecuritySettings.getTimer(instanceManager));
+            }
+            else {
+                if (config.isSecutrityGroupInMultiDC()) {
+
+                    if (config.isDeployedInVPC()) {
+                        if (config.isVPCMigrationModeEnabled()) {
+                            logger.info("VPC migration mode: updating security settings");
+
+                            // Update security settings
                             scheduler.runTaskNow(UpdateSecuritySettings.class);
-                            // sleep for 60 sec for the SG update to happen.
-                            if (UpdateSecuritySettings.firstTimeUpdated)
+
+                            // Sleep for 60 seconds for the SG update to happen
+                            if (UpdateSecuritySettings.firstTimeUpdated) {
                                 sleeper.sleep(60 * 1000);
-                            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+                            }
+
+                            scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
+                                    UpdateSecuritySettings.class,
+                                    UpdateSecuritySettings.getTimer(instanceManager));
                         }
-                        //Set SecurityGroupId
+
+                        // Setting Security Group ID
                         setVPCSecurityGroupID.execute();
-                        // update security settings
-                        scheduler.runTaskNow(UpdateVPCSecuritySettings.class);
-                        // sleep for 60 sec for the SG update to happen.
-                        if (UpdateVPCSecuritySettings.firstTimeUpdated)
-                            sleeper.sleep(60 * 1000);
-                        scheduler.addTask(UpdateVPCSecuritySettings.JOBNAME, UpdateVPCSecuritySettings.class, UpdateVPCSecuritySettings.getTimer(instanceManager));
-                    } else {
-                        // update security settings
-                        scheduler.runTaskNow(UpdateSecuritySettings.class);
-                        // sleep for 60 sec for the SG update to happen.
-                        if (UpdateSecuritySettings.firstTimeUpdated)
-                            sleeper.sleep(60 * 1000);
-                        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
                     }
+
+                    // Update security settings
+                    scheduler.runTaskNow(UpdateSecuritySettings.class);
+
+                    // Sleep for 60 seconds for the SG update to happen
+                    if (UpdateSecuritySettings.firstTimeUpdated) {
+                        sleeper.sleep(60 * 1000);
+                    }
+
+                    scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
+                            UpdateSecuritySettings.class,
+                            UpdateSecuritySettings.getTimer(instanceManager));
                 }
             }
         }
@@ -133,15 +148,23 @@ public class RaigadServer
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
         
-        logger.info("Trying to start Elastic Search now ...");
+        logger.info("Trying to start Elasticsearch now ...");
         
 		if (!config.doesElasticsearchStartManually()) {
-            esProcess.start(true); // Start elasticsearch.
-            if (config.isRestoreEnabled())
-                scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME, RestoreBackupManager.class, RestoreBackupManager.getTimer(config), config.getRestoreTaskInitialDelayInSeconds());
+            // Start Elasticsearch
+            esProcess.start(true);
+
+            if (config.isRestoreEnabled()) {
+                scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME,
+                        RestoreBackupManager.class,
+                        RestoreBackupManager.getTimer(config),
+                        config.getRestoreTaskInitialDelayInSeconds());
+            }
         }
 		else {
-            logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually. Restore task needs to be started manually as well (if needed).");
+            logger.info("config.doesElasticsearchStartManually() is set to True," +
+                    "hence Elasticsearch needs to be started manually. " +
+                    "Restore task needs to be started manually as well (if needed).");
         }
 
         /*

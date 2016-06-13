@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,6 @@ public class UpdateVPCSecuritySettings extends Task
     private final IMembership membership;
     private final IRaigadInstanceFactory factory;
 
-
     @Inject
     public UpdateVPCSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
     {
@@ -70,49 +69,50 @@ public class UpdateVPCSecuritySettings extends Task
     }
 
     /**
-     * Master nodes execute this at the specified interval.
-     * Other nodes run only on startup.
+     * Master nodes execute this at the specified interval, others run only on startup
      */
     @Override
     public void execute()
     {
         int port = config.getTransportTcpPort();
-        List<String> acls = membership.listVpcACL(port, port);
+        List<String> acls = membership.listACL(port, port);
 
-        //Get instances based on Type of Nodes (Tribe / non-tribe)
+        // Get instances based on node types (tribe / non-tribe)
         List<RaigadInstance> instances = getInstanceList();
 
-        // iterate to add...
-        List<String> add = Lists.newArrayList();
-        for (RaigadInstance instance : getInstanceList())
-        {
+        // Iterate cluster nodes and build a list of IP's
+        List<String> ipsToAdd = Lists.newArrayList();
+        for (RaigadInstance instance : getInstanceList()) {
             String range = instance.getHostIP() + "/32";
-            if (!acls.contains(range))
-                add.add(range);
+            if (!acls.contains(range)) {
+                ipsToAdd.add(range);
+            }
         }
 
-        if (add.size() > 0)
-        {
-            membership.addVpcACL(add, port, port);
+        if (ipsToAdd.size() > 0) {
+            membership.addACL(ipsToAdd, port, port);
             firstTimeUpdated = true;
         }
 
-        // just iterate to generate ranges.
+        // Just iterate to generate ranges
         List<String> currentRanges = Lists.newArrayList();
-        for (RaigadInstance instance : instances)
-        {
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
             currentRanges.add(range);
         }
 
-        // iterate to remove...
-        List<String> remove = Lists.newArrayList();
-        for (String acl : acls)
-            if (!currentRanges.contains(acl)) // if not found then remove....
-                remove.add(acl);
-        if (remove.size() > 0)
+        // Create a list of IP's to remove
+        List<String> ipsToRemove = Lists.newArrayList();
+        for (String acl : acls) {
+            // Remove if not found
+            if (!currentRanges.contains(acl)) {
+                ipsToRemove.add(acl);
+            }
+        }
+
+        if (ipsToRemove.size() > 0)
         {
-            membership.removeVpcACL(remove, port, port);
+            membership.removeACL(ipsToRemove, port, port);
             firstTimeUpdated = true;
         }
     }

@@ -14,8 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Created by sloke on 11/16/15.
- * This class has been added especially for VPC Purposes.
- * If SecurityGroup is deployed in VPC,
+ * This class has been added especially for VPC Purposes. If SecurityGroup is deployed in VPC,
  * then SecurityGroupId is needed to make any modifications or querying to associated SecurityGroup
  *
  * Sets the Security Group Id for the VPC Security Group
@@ -24,68 +23,60 @@ import org.slf4j.LoggerFactory;
  * */
 
 @Singleton
-public class SetVPCSecurityGroupID
-{
+public class SetVPCSecurityGroupID {
     private static final Logger logger = LoggerFactory.getLogger(SetVPCSecurityGroupID.class);
     private final IConfiguration config;
     private final ICredential provider;
 
     @Inject
-    public SetVPCSecurityGroupID(IConfiguration config, ICredential provider)
-    {
+    public SetVPCSecurityGroupID(IConfiguration config, ICredential provider) {
         this.config = config;
         this.provider = provider;
     }
 
-    public void execute()
-    {
+    public void execute() {
         AmazonEC2 client = null;
-        try
-        {
+
+        try {
             client = getEc2Client();
 
             //Get All the Existing Sec Group Ids
-            String[] sec_group_idarr = SystemUtils.getSecurityGroupIds(config.getMacIdForInstance());
+            String[] securityGroupIds = SystemUtils.getSecurityGroupIds(config.getMacIdForInstance());
+            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupIds(securityGroupIds);
+            DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
 
-            boolean correctSecGroupFound = false;
+            boolean securityGroupFound = false;
 
-            for (String sec_grp_id : sec_group_idarr) {
+            for (SecurityGroup securityGroup : result.getSecurityGroups()) {
+                logger.info("Read " + securityGroup.getGroupName());
 
-                logger.info("*** " + sec_grp_id);
-                DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupIds(sec_grp_id);
-                DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
+                if (securityGroup.getGroupName().equals(config.getACLGroupNameForVPC())) {
+                    logger.info("Found matching security group name: " + securityGroup.getGroupName());
 
-                for (SecurityGroup secGroup : result.getSecurityGroups()) {
-                    logger.info("*** " + secGroup.getGroupName());
-                    if (secGroup.getGroupName().equals(config.getACLGroupNameForVPC())) {
-                        logger.info("@@@ SecGroupName = " + secGroup.getGroupName() + " matches for given Security Group Id = " + sec_grp_id);
-                        correctSecGroupFound = true;
-                        //Set the configuration value with Correct Security Group Id
-                        config.setACLGroupIdForVPC(sec_grp_id);
-                        break;
-                    }
-                }
+                    // Setting configuration value with the correct SG ID
+                    config.setACLGroupIdForVPC(securityGroup.getGroupId());
+                    securityGroupFound = true;
 
-                if (correctSecGroupFound)
                     break;
+                }
             }
-            //If Correct Sec Group is NOT FOUND then throw Exception
-            if (!correctSecGroupFound)
-                throw new RuntimeException("Sec Group ID and Sec Group Name does NOT match, Something is Wrong, hence failing !!");
+
+            // If correct SG was not found, throw Exception
+            if (!securityGroupFound) {
+                throw new RuntimeException("Cannot find matching security group for " + config.getACLGroupNameForVPC());
+            }
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             throw new RuntimeException(e);
         }
-        finally
-        {
-            if (client != null)
+        finally {
+            if (client != null) {
                 client.shutdown();
+            }
         }
     }
 
-    private AmazonEC2 getEc2Client()
-    {
+    private AmazonEC2 getEc2Client() {
         AmazonEC2 client = new AmazonEC2Client(provider.getAwsCredentialProvider());
         client.setEndpoint("ec2." + config.getDC() + ".amazonaws.com");
         return client;
