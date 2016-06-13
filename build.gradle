@@ -52,6 +52,7 @@ subprojects {
         compile "org.apache.httpcomponents:httpclient:4.3.5"
         compile "org.apache.httpcomponents:httpcore:4.3.2"
         compile "org.apache.cassandra:cassandra-all:[1.1.9,1.1.10["
+        compile "commons-validator:commons-validator:1.5.1"
 
         compile "org.quartz-scheduler:quartz:1.7.3"
         compile "org.xerial.snappy:snappy-java:1.0.4.1"
