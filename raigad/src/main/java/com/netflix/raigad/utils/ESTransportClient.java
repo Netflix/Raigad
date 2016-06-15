@@ -40,6 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ESTransportClient
 {
     private static final Logger logger = LoggerFactory.getLogger(ESTransportClient.class);
+
     private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<ESTransportClient>(null);
     private NodesStatsRequestBuilder nodeStatsRequestBuilder;
     private final TransportClient client;
@@ -89,6 +90,7 @@ public class ESTransportClient
         catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
+
         return null;
     }
 
@@ -99,9 +101,7 @@ public class ESTransportClient
 		// If Elasticsearch is started then only start the monitoring
 		if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
 			String exceptionMessage = "Elasticsearch is not yet started, check back again later";
-			//TODO: Change logger to debug
 			logger.info("Elasticsearch is not yet started, check back again later");
-
 			throw new ESTransportClientConnectionException(exceptionMessage);
 		}        		
     		
