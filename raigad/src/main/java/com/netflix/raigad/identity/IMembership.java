@@ -1,12 +1,12 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2016 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,80 +27,56 @@ import java.util.Map;
  * nodes in RAC etc. Also perform ACL updates used in multi-regional clusters
  */
 @ImplementedBy(AWSMembership.class)
-public interface IMembership
-{
+public interface IMembership {
     /**
      * Get a list of Instances in the current RAC
      */
-    public List<String> getRacMembership();
+    List<String> getRacMembership();
 
     /**
      * @return Size of current RAC
      */
-    public int getRacMembershipSize();
+    int getRacMembershipSize();
 
     /**
      * Number of RACs
      */
-    public int getRacCount();
+    int getRacCount();
 
     /**
      * Add security group ACLs
-     * 
+     *
      * @param listIPs
      * @param from
      * @param to
      */
-    public void addACL(Collection<String> listIPs, int from, int to);
+    void addACL(Collection<String> listIPs, int from, int to);
 
     /**
      * Remove security group ACLs
-     * 
+     *
      * @param listIPs
      * @param from
      * @param to
      */
-    public void removeACL(Collection<String> listIPs, int from, int to);
+    void removeACL(Collection<String> listIPs, int from, int to);
 
     /**
      * List all ACLs
      */
-    public List<String> listACL(int from, int to);
+    List<String> listACL(int from, int to);
 
     /**
-     * Add VPC security group ACLs
+     * Expand the membership size by 1
      *
-     * @param listIPs
-     * @param from
-     * @param to
-     */
-    public void addVpcACL(Collection<String> listIPs, int from, int to);
-
-    /**
-     * Remove VPC security group ACLs
-     *
-     * @param listIPs
-     * @param from
-     * @param to
-     */
-    public void removeVpcACL(Collection<String> listIPs, int from, int to);
-
-    /**
-     * List all VPC ACLs
-     */
-    public List<String> listVpcACL(int from, int to);
-    /**
-     * Expand the membership size by 1.
-     * 
      * @param count
      */
-    public void expandRacMembership(int count);
+    void expandRacMembership(int count);
 
     /**
      * Return From-To ports for given ACL
      * @param acl
-     * @return ACL to Ports Map (From-To)
-     * eg. 1.2.3.4 -> 5001,5002
+     * @return ACL to Ports Map (from-to), eg. 1.2.3.4 -> 5001, 5002
      */
-    public Map<String,List<Integer>> getACLPortMap(String acl);
+    Map<String, List<Integer>> getACLPortMap(String acl);
 }
