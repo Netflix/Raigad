@@ -80,8 +80,10 @@ public class UpdateSecuritySettings extends Task {
 
         // Iterate cluster nodes and build a list of IP's
         List<String> ipsToAdd = Lists.newArrayList();
-        for (RaigadInstance instance : getInstanceList()) {
+        List<String> currentRanges = Lists.newArrayList();
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
+            currentRanges.add(range);
             if (!acls.contains(range)) {
                 ipsToAdd.add(range);
             }
@@ -90,13 +92,6 @@ public class UpdateSecuritySettings extends Task {
         if (ipsToAdd.size() > 0) {
             membership.addACL(ipsToAdd, port, port);
             firstTimeUpdated = true;
-        }
-
-        // Just iterate to generate ranges
-        List<String> currentRanges = Lists.newArrayList();
-        for (RaigadInstance instance : instances) {
-            String range = instance.getHostIP() + "/32";
-            currentRanges.add(range);
         }
 
         // Create a list of IP's to remove
@@ -118,28 +113,31 @@ public class UpdateSecuritySettings extends Task {
     private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
 
-        if(config.amISourceClusterForTribeNode())
+        if (config.amISourceClusterForTribeNode())
         {
             List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
             assert (tribeClusters.size() != 0) : "I am a source cluster but I need One or more tribe clusters";
 
-            for(String tribeClusterName : tribeClusters)
-                 _instances.addAll(factory.getAllIds(tribeClusterName));
+            for(String tribeClusterName : tribeClusters) {
+                _instances.addAll(factory.getAllIds(tribeClusterName));
+            }
         }
 
-        //Adding Current cluster
+        // Adding the current cluster
         _instances.addAll(factory.getAllIds(config.getAppName()));
 
-        if(config.isDebugEnabled())
+        if (config.isDebugEnabled())
         {
-            for(RaigadInstance instance:_instances)
+            for (RaigadInstance instance : _instances) {
                 logger.debug(instance.toString());
+            }
         }
+
         return _instances;
     }
 
     public static TaskTimer getTimer(InstanceManager instanceManager) {
-        //Only master nodes will update security group settings
+        // Only master nodes will update security group settings
         if (!instanceManager.isMaster()) {
             return new SimpleTimer(JOB_NAME);
         }
