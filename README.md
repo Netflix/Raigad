@@ -12,7 +12,7 @@
 
 Elasticsearch is open source, distributed, real-time search and analytics engine: http://www.elasticsearch.org/
 
-The name 'Raigad' refers to the name of an indian fort in state of Maharashtra.
+The name 'Raigad' refers to the name of an Indian fort in state of Maharashtra.
 
 Raigad is actively developed and used at Netflix. 
 
