@@ -29,9 +29,9 @@ import java.util.Map;
 @ImplementedBy(AWSMembership.class)
 public interface IMembership {
     /**
-     * Get a list of Instances in the current RAC
+     * Get a list of instances per RAC
      */
-    List<String> getRacMembership();
+    Map<String, List<String>> getRacMembership(Collection<String> autoScalingGroupNames);
 
     /**
      * @return Size of current RAC
@@ -74,9 +74,9 @@ public interface IMembership {
     void expandRacMembership(int count);
 
     /**
-     * Return From-To ports for given ACL
+     * Return from-to ports for given ACL
      * @param acl
-     * @return ACL to Ports Map (from-to), eg. 1.2.3.4 -> 5001, 5002
+     * @return ACL to ports map (from-to), eg. 1.2.3.4 -> 5001, 5002
      */
     Map<String, List<Integer>> getACLPortMap(String acl);
 }
