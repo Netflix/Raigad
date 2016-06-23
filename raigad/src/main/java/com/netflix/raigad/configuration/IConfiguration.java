@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.configuration;
 
 import com.google.inject.ImplementedBy;
@@ -23,277 +24,277 @@ import java.util.List;
 @ImplementedBy(RaigadConfiguration.class)
 public interface IConfiguration
 {
-	
-    public void initialize();
+
+    void initialize();
 
     /**
      * @return Path to the home dir of Elasticsearch
      */
-    public String getElasticsearchHome();
+    String getElasticsearchHome();
 
-    public String getYamlLocation();
+    String getYamlLocation();
 
-    public String getBackupLocation();
+    String getBackupLocation();
 
     /**
      * @return Path to Elasticsearch startup script
      */
-    public String getElasticsearchStartupScript();
+    String getElasticsearchStartupScript();
 
     /**
      * @return Path to Elasticsearch stop script
      */
-    public String getElasticsearchStopScript();
-   
-    public int getTransportTcpPort();
-    
-    public int getHttpPort();
+    String getElasticsearchStopScript();
 
-    public int getNumOfShards();
-    
-    public int getNumOfReplicas();
+    int getTransportTcpPort();
 
-    public int getTotalShardsPerNode();
+    int getHttpPort();
 
-    public String getRefreshInterval();
-    
-    public boolean isMasterQuorumEnabled();
-    
-    public int getMinimumMasterNodes();
-    
-    public String getPingTimeout();
-    
-    public boolean isPingMulticastEnabled();
-    
-    public String getFdPingInterval();
-    
-    public String getFdPingTimeout();   
+    int getNumOfShards();
+
+    int getNumOfReplicas();
+
+    int getTotalShardsPerNode();
+
+    String getRefreshInterval();
+
+    boolean isMasterQuorumEnabled();
+
+    int getMinimumMasterNodes();
+
+    String getPingTimeout();
+
+    boolean isPingMulticastEnabled();
+
+    String getFdPingInterval();
+
+    String getFdPingTimeout();
 
     /**
      * @return Location of the local data dir
      */
-	public String getDataFileLocation();
+    String getDataFileLocation();
 
     /**
      * @return Location of the local log dir
      */
-	public String getLogFileLocation();
+    String getLogFileLocation();
 
-	public boolean doesElasticsearchStartManually();
+    boolean doesElasticsearchStartManually();
 
     /**
      * @return Cluster name
      */
-    public String getAppName();
+    String getAppName();
 
     /**
      * @return RAC (or zone for AWS)
      */
-    public String getRac();
+    String getRac();
 
     /**
      * @return List of all RAC used for the cluster
      */
-    public List<String> getRacs();
+    List<String> getRacs();
 
     /**
      * @return Local hostmame
      */
-    public String getHostname();
+    String getHostname();
 
     /**
      * @return Get instance name (for AWS)
      */
-    public String getInstanceName();
+    String getInstanceName();
 
     /**
      * @return Get instance id (for AWS)
      */
-    public String getInstanceId();
+    String getInstanceId();
 
 
     /**
      * @return Get the Data Center name (or region for AWS)
      */
-    public String getDC();
+    String getDC();
 
     /**
      * @param dc
      *            Set the current data center
      */
-    public void setDC(String dc);
+    void setDC(String dc);
 
- 
+
     /**
      * Amazon specific setting to query ASG Membership
      */
-    public String getASGName();
-    
+    String getASGName();
+
     /**
      * Get the security group associated with nodes in this cluster
      */
-    public String getACLGroupName();
+    String getACLGroupName();
 
-   
+
     /**
-     * @return Get host Public IP
+     * @return Get host IP
      */
-    public String getHostIP();
+    String getHostIP();
 
     /**
      * @return Get host Local IP
      */
-    public String getHostLocalIP();
-   
+    String getHostLocalIP();
+
     /**
      * @return Bootstrap cluster name (depends on another cass cluster)
      */
-    public String getBootClusterName();
-    
+    String getBootClusterName();
+
     /**
      * @return Elasticsearch Process Name
      */
-    public String getElasticsearchProcessName();
+    String getElasticsearchProcessName();
 
     /**
      * @return Elasticsearch Discovery Type
      */
-    public String getElasticsearchDiscoveryType();
+    String getElasticsearchDiscoveryType();
 
     /**
      * @return Whether it's a Multi-Region Setup
      */
-	public boolean isMultiDC();
+    boolean isMultiDC();
 
     /**
      * @return Elasticsearch Index Refresh Interval
      */
-	public String getIndexRefreshInterval();
+    String getIndexRefreshInterval();
 
-    public String getClusterRoutingAttributes();
-    
-    public boolean isAsgBasedDedicatedDeployment();
+    String getClusterRoutingAttributes();
 
-    public boolean isCustomShardAllocationPolicyEnabled();
+    boolean isAsgBasedDedicatedDeployment();
 
-    public String getClusterShardAllocationAttribute();
+    boolean isCustomShardAllocationPolicyEnabled();
+
+    String getClusterShardAllocationAttribute();
 
     /**
      * Providing a way to add New Config Params without any code change
      */
-    public String getExtraConfigParams();
+    String getExtraConfigParams();
 
-    public String getEsKeyName(String escarKey);
+    String getEsKeyName(String escarKey);
 
-    public boolean isDebugEnabled();
+    boolean isDebugEnabled();
 
-    public boolean isShardPerNodeEnabled();
+    boolean isShardPerNodeEnabled();
 
-    public boolean isIndexAutoCreationEnabled();
+    boolean isIndexAutoCreationEnabled();
 
-    public String getIndexMetadata();
+    String getIndexMetadata();
 
-    public int getAutoCreateIndexTimeout();
+    int getAutoCreateIndexTimeout();
 
-    public int getAutoCreateIndexInitialStartDelaySeconds();
+    int getAutoCreateIndexInitialStartDelaySeconds();
 
-    public int getAutoCreateIndexPeriodicScheduledHour();
+    int getAutoCreateIndexPeriodicScheduledHour();
 
     /*
         Backup related Config properties
     */
 
-    public boolean isSnapshotBackupEnabled();
+    boolean isSnapshotBackupEnabled();
 
-    public String getCommaSeparatedIndicesToBackup();
+    String getCommaSeparatedIndicesToBackup();
 
-    public boolean partiallyBackupIndices();
+    boolean partiallyBackupIndices();
 
-    public boolean includeGlobalStateDuringBackup();
+    boolean includeGlobalStateDuringBackup();
 
-    public boolean waitForCompletionOfBackup();
+    boolean waitForCompletionOfBackup();
 
-    public boolean includeIndexNameInSnapshot();
+    boolean includeIndexNameInSnapshot();
 
-    public boolean isHourlySnapshotEnabled();
+    boolean isHourlySnapshotEnabled();
 
-    public long getBackupCronTimerInSeconds();
+    long getBackupCronTimerInSeconds();
 
     /**
      * @return Backup hour for snapshot backups (0 - 23)
      */
-    public int getBackupHour();
+    int getBackupHour();
 
     /*
         Restore related Config properties
      */
 
-    public boolean isRestoreEnabled();
+    boolean isRestoreEnabled();
 
-    public String getRestoreRepositoryName();
+    String getRestoreRepositoryName();
 
-    public String getRestoreSourceClusterName();
+    String getRestoreSourceClusterName();
 
-    public String getRestoreSourceRepositoryRegion();
+    String getRestoreSourceRepositoryRegion();
 
-    public String getRestoreLocation();
+    String getRestoreLocation();
 
-    public String getRestoreRepositoryType();
+    String getRestoreRepositoryType();
 
-    public String getRestoreSnapshotName();
+    String getRestoreSnapshotName();
 
-    public String getCommaSeparatedIndicesToRestore();
+    String getCommaSeparatedIndicesToRestore();
 
-    public int getRestoreTaskInitialDelayInSeconds();
+    int getRestoreTaskInitialDelayInSeconds();
 
-    public boolean amITribeNode();
+    boolean amITribeNode();
 
-    public boolean amIWriteEnabledTribeNode();
+    boolean amIWriteEnabledTribeNode();
 
-    public boolean amIMetadataEnabledTribeNode();
+    boolean amIMetadataEnabledTribeNode();
 
-    public String getCommaSeparatedSourceClustersForTribeNode();
+    String getCommaSeparatedSourceClustersForTribeNode();
 
-    public boolean amISourceClusterForTribeNode();
+    boolean amISourceClusterForTribeNode();
 
-    public String getCommaSeparatedTribeClusterNames();
+    String getCommaSeparatedTribeClusterNames();
 
-    public boolean isNodeMismatchWithDiscoveryEnabled();
+    boolean isNodeMismatchWithDiscoveryEnabled();
 
-    public int getDesiredNumberOfNodesInCluster();
+    int getDesiredNumberOfNodesInCluster();
 
-    public boolean isEurekaHealthCheckEnabled();
+    boolean isEurekaHealthCheckEnabled();
 
-    public boolean isLocalModeEnabled();
+    boolean isLocalModeEnabled();
 
-    public String getCassandraKeyspaceName();
+    String getCassandraKeyspaceName();
 
-    public int getCassandraThriftPortForAstyanax();
+    int getCassandraThriftPortForAstyanax();
 
-    public boolean isEurekaHostSupplierEnabled();
+    boolean isEurekaHostSupplierEnabled();
 
-    public String getCommaSeparatedCassandraHostNames();
+    String getCommaSeparatedCassandraHostNames();
 
-    public boolean isSecutrityGroupInMultiDC();
+    boolean isSecutrityGroupInMultiDC();
 
-    public boolean isKibanaSetupRequired();
+    boolean isKibanaSetupRequired();
 
-    public int getKibanaPort();
+    int getKibanaPort();
 
     /**
      * @return Whether current cluster is Single Region cluster but is a Source Cluster in Multi-Region Tribe Node Setup
      */
-    public boolean amISourceClusterForTribeNodeInMultiDC();
+    boolean amISourceClusterForTribeNodeInMultiDC();
 
-    public boolean reportMetricsFromMasterOnly();
+    boolean reportMetricsFromMasterOnly();
 
     /**
      * To prefer the index from a specific tribe
      * @return tribe id
      */
-    public String getTribePreferredClusterIdOnConflict();
+    String getTribePreferredClusterIdOnConflict();
 
-    public String getEsNodeName();
+    String getEsNodeName();
 
     /**
      * Parameters associated with VPC
@@ -302,32 +303,31 @@ public interface IConfiguration
     /**
      * VPCMigration mode deals with moving instances from EC2 classic to VPC
      */
-    public boolean isVPCMigrationModeEnabled();
+    boolean isVPCMigrationModeEnabled();
 
     /**
      * Check if instance is deployed in VPC
      * @return true or false
      */
-    public boolean isDeployedInVPC();
+    boolean isDeployedInVPC();
 
     /**
      * Get the security group associated with nodes in this cluster in VPC
      */
-    public String getACLGroupNameForVPC();
+    String getACLGroupNameForVPC();
 
     /**
      * Get the security group id for given Security Group in VPC
      */
-    public String getACLGroupIdForVPC();
+    String getACLGroupIdForVPC();
 
     /**
      * Set the security group id for given Security Group in VPC
      */
-    public void setACLGroupIdForVPC(String aclGroupIdForVPC);
+    void setACLGroupIdForVPC(String aclGroupIdForVPC);
 
     /**
      * Get the MAC id for an instance
      */
-    public String getMacIdForInstance();
-
+    String getMacIdForInstance();
 }

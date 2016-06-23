@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.identity.RaigadInstance;
-import com.netflix.raigad.identity.IRaigadInstanceFactory;
 import com.netflix.raigad.identity.IMembership;
+import com.netflix.raigad.identity.IRaigadInstanceFactory;
 import com.netflix.raigad.identity.InstanceManager;
+import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
@@ -49,8 +49,8 @@ import java.util.*;
 @Singleton
 public class UpdateTribeSecuritySettings extends Task
 {
-	private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
-	public static final String JOBNAME = "Update_TRIBESG";
+    private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
+    public static final String JOB_NAME = "Update_TRIBE_SG";
     public static boolean firstTimeUpdated = false;
     private static final String COMMA_SEPARATOR = ",";
     private static final String PARAM_SEPARATOR = "=";
@@ -87,8 +87,8 @@ public class UpdateTribeSecuritySettings extends Task
         List<String> acls = Lists.newArrayList();
         for(String clusterName:clusterPortMap.keySet())
         {
-           List<String> aclList = membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName));
-           acls.addAll(aclList);
+            List<String> aclList = membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName));
+            acls.addAll(aclList);
         }
 
         List<RaigadInstance> instances = getInstanceList();
@@ -197,30 +197,28 @@ public class UpdateTribeSecuritySettings extends Task
         return clusterAclsMap;
     }
 
-    private List<RaigadInstance> getInstanceList()
-    {
+    private List<RaigadInstance> getInstanceList() {
         List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
 
-        for(String clusterName:clusterPortMap.keySet())
-        {
+        for (String clusterName : clusterPortMap.keySet()) {
             _instances.addAll(factory.getAllIds(clusterName));
         }
-        if(config.isDebugEnabled())
-        {
-            for(RaigadInstance instance:_instances)
+
+        if (config.isDebugEnabled()) {
+            for(RaigadInstance instance : _instances) {
                 logger.debug(instance.toString());
+            }
         }
+
         return _instances;
     }
 
-    public static TaskTimer getTimer(InstanceManager instanceManager)
-    {
-        return new SimpleTimer(JOBNAME, 120 * 1000 + ran.nextInt(120 * 1000));
+    public static TaskTimer getTimer(InstanceManager instanceManager) {
+        return new SimpleTimer(JOB_NAME, 120 * 1000 + ran.nextInt(120 * 1000));
     }
 
     @Override
-    public String getName()
-    {
-        return JOBNAME;
+    public String getName() {
+        return JOB_NAME;
     }
 }

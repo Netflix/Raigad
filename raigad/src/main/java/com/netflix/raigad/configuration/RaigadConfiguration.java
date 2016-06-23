@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.configuration;
 
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -24,7 +25,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.config.*;
 import com.netflix.raigad.aws.ICredential;
-import com.netflix.raigad.utils.RetryableCallable;
+import com.netflix.raigad.utils.RetriableCallable;
 import com.netflix.raigad.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -144,7 +145,7 @@ public class RaigadConfiguration implements IConfiguration
     }
 
     private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-//    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+    //    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
 //    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
     private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
@@ -364,7 +365,7 @@ public class RaigadConfiguration implements IConfiguration
     private String populateASGName(String region, String instanceId)
     {
         GetASGName getASGName = new GetASGName(region, instanceId);
-        
+
         try {
             return getASGName.call();
         } catch (Exception e) {
@@ -373,14 +374,14 @@ public class RaigadConfiguration implements IConfiguration
         }
     }
 
-    private class GetASGName extends RetryableCallable<String>
+    private class GetASGName extends RetriableCallable<String>
     {
         private static final int NUMBER_OF_RETRIES = 15;
         private static final long WAIT_TIME = 30000;
         private final String region;
         private final String instanceId;
         private final AmazonEC2 client;
-        
+
         public GetASGName(String region, String instanceId) {
             super(NUMBER_OF_RETRIES, WAIT_TIME);
             this.region = region;
@@ -388,12 +389,12 @@ public class RaigadConfiguration implements IConfiguration
             client = new AmazonEC2Client(provider.getAwsCredentialProvider());
             client.setEndpoint("ec2." + region + ".amazonaws.com");
         }
-        
+
         @Override
         public String retriableCall() throws IllegalStateException {
             DescribeInstancesRequest desc = new DescribeInstancesRequest().withInstanceIds(instanceId);
             DescribeInstancesResult res = client.describeInstances(desc);
-    
+
             for (Reservation resr : res.getReservations())
             {
                 for (Instance ins : resr.getInstances())
@@ -405,7 +406,7 @@ public class RaigadConfiguration implements IConfiguration
                     }
                 }
             }
-            
+
             logger.warn("Couldn't determine ASG name");
             throw new IllegalStateException("Couldn't determine ASG name");
         }
@@ -426,7 +427,7 @@ public class RaigadConfiguration implements IConfiguration
                 break;
         }
 //        DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
-      DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
+        DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
     }
 
     private void populateProps()
@@ -440,7 +441,7 @@ public class RaigadConfiguration implements IConfiguration
     {
         return config.getList(CONFIG_AVAILABILITY_ZONES, DEFAULT_AVAILABILITY_ZONES);
     }
-   
+
 
     @Override
     public String getDC()
@@ -454,7 +455,7 @@ public class RaigadConfiguration implements IConfiguration
         config.set(CONFIG_REGION_NAME, region);
     }
 
-    
+
     @Override
     public String getASGName()
     {
@@ -464,7 +465,7 @@ public class RaigadConfiguration implements IConfiguration
     @Override
     public String getACLGroupName()
     {
-    	return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
+        return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
     }
 
     @Override

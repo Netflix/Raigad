@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.utils;
 
 import com.google.common.base.Charsets;
@@ -306,9 +307,14 @@ public class SystemUtils
 
     public static String[] getSecurityGroupIds(String MAC_ID)
     {
-        String sec_group_ids = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/security-group-ids/").trim();
-        if (sec_group_ids.isEmpty())
-            throw new RuntimeException("Security Group IDs are Null or Empty, Something is Wrong, hence failing !!");
-        return sec_group_ids.split("\n");
+        String securityGroupIds = SystemUtils.getDataFromUrl(
+                "http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID +
+                        "/security-group-ids/").trim();
+
+        if (securityGroupIds.isEmpty()) {
+            throw new RuntimeException("Security group ID's are null or empty");
+        }
+
+        return securityGroupIds.split("\n");
     }
 }
