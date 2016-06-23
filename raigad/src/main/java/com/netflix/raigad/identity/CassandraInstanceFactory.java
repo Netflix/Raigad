@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.identity;
 
 import com.google.inject.Inject;
@@ -24,12 +25,11 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Factory to use cassandra for managing instance data
+ * Factory to use Cassandra for managing instance data
  */
 @Singleton
 public class CassandraInstanceFactory implements IRaigadInstanceFactory {
-    private static final Logger logger = LoggerFactory
-            .getLogger(CassandraInstanceFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(CassandraInstanceFactory.class);
 
     @Inject
     IConfiguration config;
@@ -39,18 +39,18 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
 
     @Override
     public RaigadInstance create(String app, String id, String instanceID,
-                                     String hostname, String ip, String zone, String dc, String asgName,
-                                     Map<String, Object> volumes) {
+                                 String hostname, String ip, String zone, String dc, String asgName,
+                                 Map<String, Object> volumes) {
 
         try {
             logger.info("App = (" + app + ") " +
-                            "id = (" + id + ") " +
-                            "instanceID = ("	+ instanceID + ") " +
-                            "hostname = (" + hostname + ") " +
-                            "ip = ("	+ ip + ") " +
-                            "zone = (" + zone + ") " +
-                            "dc = (" + dc + ")"
-            );
+                    "id = (" + id + ") " +
+                    "instanceID = (" + instanceID + ") " +
+                    "hostname = (" + hostname + ") " +
+                    "IP = (" + ip + ") " +
+                    "zone = (" + zone + ") " +
+                    "dc = (" + dc + ")");
+
             RaigadInstance raigadInstance = new RaigadInstance();
             raigadInstance.setAvailabilityZone(zone);
             raigadInstance.setHostIP(ip);
@@ -63,7 +63,8 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
 
             dao.createInstanceEntry(raigadInstance);
             return raigadInstance;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.getMessage());
             throw new RuntimeException(e);
         }
@@ -71,15 +72,15 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
 
     @Override
     public List<RaigadInstance> getAllIds(String appName) {
-        List<RaigadInstance> return_ = new ArrayList<RaigadInstance>();
-        for (RaigadInstance instance : dao.getAllInstances(appName)) {
-            if (config.isDebugEnabled()) {
-                logger.debug("Instance Details = " + instance.getInstanceId());
+        List<RaigadInstance> raigadInstances = new ArrayList<>(dao.getAllInstances(appName));
+
+        if (config.isDebugEnabled()) {
+            for (RaigadInstance instance : dao.getAllInstances(appName)) {
+                logger.debug("Instance details: " + instance.getInstanceId());
             }
-            return_.add(instance);
         }
 
-        return return_;
+        return raigadInstances;
     }
 
     @Override
@@ -109,9 +110,10 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
     public void delete(RaigadInstance instance) {
         try {
             dao.deleteInstanceEntry(instance);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.getMessage());
-            throw new RuntimeException("Unable to deregister RaigadInstance",e);
+            throw new RuntimeException("Unable to deregister Raigad instance", e);
         }
     }
 
@@ -123,7 +125,5 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
     @Override
     public void attachVolumes(RaigadInstance arg0, String arg1, String arg2) {
         // TODO Auto-generated method stub
-
     }
-
 }

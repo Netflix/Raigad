@@ -21,7 +21,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class BoundedExponentialRetryCallable<T> extends RetryableCallable<T>
+public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallable<T>
 {    
     public final static long MAX_SLEEP = 10000;
     public final static long MIN_SLEEP = 1000;

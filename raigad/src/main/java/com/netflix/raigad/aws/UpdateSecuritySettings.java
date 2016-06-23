@@ -103,37 +103,34 @@ public class UpdateSecuritySettings extends Task {
             }
         }
 
-        if (ipsToRemove.size() > 0)
-        {
+        if (ipsToRemove.size() > 0) {
             membership.removeACL(ipsToRemove, port, port);
             firstTimeUpdated = true;
         }
     }
 
     private List<RaigadInstance> getInstanceList() {
-        List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
 
-        if (config.amISourceClusterForTribeNode())
-        {
+        if (config.amISourceClusterForTribeNode()) {
             List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
-            assert (tribeClusters.size() != 0) : "I am a source cluster but I need One or more tribe clusters";
+            assert (tribeClusters.size() != 0) : "I am a source cluster but I need one or more tribe clusters";
 
-            for(String tribeClusterName : tribeClusters) {
-                _instances.addAll(factory.getAllIds(tribeClusterName));
+            for (String tribeClusterName : tribeClusters) {
+                instances.addAll(factory.getAllIds(tribeClusterName));
             }
         }
 
         // Adding the current cluster
-        _instances.addAll(factory.getAllIds(config.getAppName()));
+        instances.addAll(factory.getAllIds(config.getAppName()));
 
-        if (config.isDebugEnabled())
-        {
-            for (RaigadInstance instance : _instances) {
+        if (config.isDebugEnabled()) {
+            for (RaigadInstance instance : instances) {
                 logger.debug(instance.toString());
             }
         }
 
-        return _instances;
+        return instances;
     }
 
     public static TaskTimer getTimer(InstanceManager instanceManager) {

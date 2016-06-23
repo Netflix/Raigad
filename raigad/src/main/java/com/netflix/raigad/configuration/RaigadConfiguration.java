@@ -24,7 +24,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.config.*;
 import com.netflix.raigad.aws.ICredential;
-import com.netflix.raigad.utils.RetryableCallable;
+import com.netflix.raigad.utils.RetriableCallable;
 import com.netflix.raigad.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -373,7 +373,7 @@ public class RaigadConfiguration implements IConfiguration
         }
     }
 
-    private class GetASGName extends RetryableCallable<String>
+    private class GetASGName extends RetriableCallable<String>
     {
         private static final int NUMBER_OF_RETRIES = 15;
         private static final long WAIT_TIME = 30000;

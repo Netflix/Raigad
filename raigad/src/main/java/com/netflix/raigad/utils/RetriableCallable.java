@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,68 +22,63 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 
-public abstract class RetryableCallable<T> implements Callable<T>
-{
-    private static final Logger logger = LoggerFactory.getLogger(RetryableCallable.class);
+public abstract class RetriableCallable<T> implements Callable<T> {
     public static final int DEFAULT_NUMBER_OF_RETRIES = 15;
     public static final long DEFAULT_WAIT_TIME = 100;
-    private int retrys;
+
+    private static final Logger logger = LoggerFactory.getLogger(RetriableCallable.class);
+
+    private int retries;
     private long waitTime;
 
-    public RetryableCallable()
-    {
+    public RetriableCallable() {
         this(DEFAULT_NUMBER_OF_RETRIES, DEFAULT_WAIT_TIME);
     }
 
-    public RetryableCallable(int retrys, long waitTime)
-    {
-        set(retrys, waitTime);
+    public RetriableCallable(int retries, long waitTime) {
+        set(retries, waitTime);
     }
 
-    public void set(int retrys, long waitTime)
-    {
-        this.retrys = retrys;
+    public void set(int retries, long waitTime) {
+        this.retries = retries;
         this.waitTime = waitTime;
     }
 
     public abstract T retriableCall() throws Exception;
 
-    public T call() throws Exception
-    {
+    public T call() throws Exception {
         int retry = 0;
         int logCounter = 0;
-        while (true)
-        {
-            try
-            {
+
+        while (true) {
+            try {
                 return retriableCall();
             }
-            catch (CancellationException e)
-            {
+            catch (CancellationException e) {
                 throw e;
             }
-            catch (Exception e)
-            {
-                retry++;
-                if (retry == retrys)
-                {
+            catch (Exception e) {
+                retry ++;
+
+                if (retry == retries) {
                     throw e;
                 }
-                logger.error(String.format("Retry #%d for: %s",retry, e.getMessage()));
 
-                if(++logCounter == 1)
-                		logger.error("Exception --> "+ExceptionUtils.getFullStackTrace(e));
+                logger.error(String.format("Retry #%d for: %s", retry, e.getMessage()));
+
+                if (++logCounter == 1) {
+                    logger.error("Exception: " + ExceptionUtils.getFullStackTrace(e));
+                }
+
                 Thread.sleep(waitTime);
             }
-            finally
-            {
+            finally {
                 forEachExecution();
             }
         }
     }
 
-    public void forEachExecution()
-    {
-        // do nothing by default.
+    public void forEachExecution() {
+        // Do nothing by default
     }
 }
