@@ -30,13 +30,13 @@ import org.elasticsearch.transport.TransportService;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NetflixDiscoveryUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
+public class RaigadDiscoveryUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
     private final TransportService transportService;
     private final Version version;
     private final Settings settings;
 
     @Inject
-    public NetflixDiscoveryUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
+    public RaigadDiscoveryUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
         super(settings);
         this.transportService = transportService;
         this.version = version;
@@ -56,10 +56,10 @@ public class NetflixDiscoveryUnicastHostsProvider extends AbstractComponent impl
                 //TODO: Check for null node name
                 String tribeId = nodeName.substring(nodeName.indexOf("/") + 1);
                 logger.debug("Tribe node name: {}, tribe ID: {}", nodeName, tribeId);
-                strNodes = DataFetcher.fetchData(NetflixDiscovery.GET_NODES_TRIBE_URL_PREFIX + tribeId, logger);
+                strNodes = DataFetcher.fetchData(RaigadDiscovery.GET_NODES_TRIBE_URL_PREFIX + tribeId, logger);
             }
             else {
-                strNodes = DataFetcher.fetchData(NetflixDiscovery.GET_NODES_ISLAND_URL, logger);
+                strNodes = DataFetcher.fetchData(RaigadDiscovery.GET_NODES_ISLAND_URL, logger);
             }
 
             List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
@@ -72,7 +72,7 @@ public class NetflixDiscoveryUnicastHostsProvider extends AbstractComponent impl
                     // We only limit to 1 port, makes no sense to ping 100 ports
 
                     for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_FOREIGN_PORTS_COUNT); i ++) {
-                        logger.debug("Adding instance {} (address {}, transport_address {})",
+                        logger.debug("Adding instance {} (address {}, transport address {})",
                                 instance.getId(), instance.getHostIP(), addresses[i]);
                         discoveryNodes.add(new DiscoveryNode(instance.getId(), addresses[i], version.minimumCompatibilityVersion()));
                     }
