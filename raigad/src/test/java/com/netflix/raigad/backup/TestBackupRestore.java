@@ -13,10 +13,10 @@ import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResp
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.settings.ImmutableSettings;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.repositories.RepositoryMissingException;
 import org.elasticsearch.snapshots.SnapshotState;
-import org.elasticsearch.test.ElasticsearchIntegrationTest;
+import org.elasticsearch.test.ESIntegTestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -29,11 +29,10 @@ import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 
 /**
- *
  * Reference:https://github.com/elasticsearch/elasticsearch-cloud-aws/blob/es-1.1/src/test/java/org/elasticsearch/repositories/s3/S3SnapshotRestoreTest.java
- *
+ * <p>
  * Following tests do not test S3 cloud functionality but uses fs (file system) locally to run Snapshot and Backup
- * TODO Need to fix for S3 functionality
+ * TODO: Need to fix for S3 functionality
  */
 /*
     {
@@ -56,13 +55,12 @@ import static org.hamcrest.Matchers.equalTo;
     }
  */
 @Ignore
-@ElasticsearchIntegrationTest.ClusterScope(scope = ElasticsearchIntegrationTest.Scope.TEST, numDataNodes=2)
-public class TestBackupRestore extends ElasticsearchIntegrationTest
-{
+@ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST, numDataNodes = 2)
+public class TestBackupRestore extends ESIntegTestCase {
     private static final char PATH_SEP = File.separatorChar;
-    public static String repositoryName="";
-    public static String repositoryLocation="";
-    public static String LOCAL_DIR="data";
+    public static String repositoryName = "";
+    public static String repositoryLocation = "";
+    public static String LOCAL_DIR = "data";
 
     private static Injector injector;
     public static Client client0;
@@ -81,7 +79,6 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
 
     @Before
     public final void setup() throws IOException {
-
         System.out.println("Running setup now ...");
         injector = Guice.createInjector(new UnitTestModule());
         conf = injector.getInstance(IConfiguration.class);
@@ -94,11 +91,11 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         s3Repository = injector.getInstance(S3Repository.class);
 
         Mockit.setUpMock(SnapshotBackupManager.class, MockSnapshotBackupManager.class);
-        if(snapshotBackupManager == null)
+        if (snapshotBackupManager == null)
             snapshotBackupManager = injector.getInstance(SnapshotBackupManager.class);
 
         Mockit.setUpMock(RestoreBackupManager.class, MockRestoreBackupManager.class);
-        if(restoreBackupManager == null)
+        if (restoreBackupManager == null)
             restoreBackupManager = injector.getInstance(RestoreBackupManager.class);
 
         wipeRepositories();
@@ -114,13 +111,12 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         s3RepositorySettingsParams = null;
         s3Repository = null;
         esTransportClient = null;
-        client0= null;
+        client0 = null;
         cleanupDir(LOCAL_DIR, null);
     }
 
     @Test
-    public void testSimpleWorkflow() throws Exception
-    {
+    public void testSimpleWorkflow() throws Exception {
         client0 = client();
         repositoryName = s3Repository.getRemoteRepositoryName();
 
@@ -146,13 +142,17 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
                 .setSnapshots(snapshotBackupManager.getSnapshotName("_all", false)).get().getSnapshots().get(0).state(), equalTo(SnapshotState.SUCCESS));
 
         logger.info("--> delete some data");
+
         for (int i = 0; i < 50; i++) {
             client0.prepareDelete("test-idx-1", "doc", Integer.toString(i)).get();
         }
+
         for (int i = 0; i < 100; i += 2) {
             client0.prepareDelete("test-idx-3", "doc", Integer.toString(i)).get();
         }
+
         refresh();
+
         assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(50L));
         assertThat(client0.prepareCount("test-idx-3").get().getCount(), equalTo(50L));
 
@@ -160,54 +160,53 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         client0.admin().indices().prepareClose("test-idx-1", "test-idx-3").get();
 
         logger.info("--> restore all indices from the snapshot");
-        restoreBackupManager.runRestore(repositoryName,"fs",snapshotBackupManager.getSnapshotName("_all", false),null,null,null);
+        restoreBackupManager.runRestore(repositoryName, "fs", snapshotBackupManager.getSnapshotName("_all", false), null, null, null);
 
         ensureGreen();
+
         assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(100L));
         assertThat(client0.prepareCount("test-idx-3").get().getCount(), equalTo(100L));
 
     }
 
     @Ignore
-    public static class MockESTransportClient
-    {
+    public static class MockESTransportClient {
         @Mock
-        public static ESTransportClient instance(IConfiguration config)
-        {
+        public static ESTransportClient instance(IConfiguration config) {
             return esTransportClient;
         }
 
         @Mock
-        public Client getTransportClient(){
-
+        public Client getTransportClient() {
             return client0;
         }
     }
 
     @Ignore
-    public static class MockS3Repository
-    {
+    public static class MockS3Repository {
         @Mock
-        public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient,String s3RepoName)
-        {
-            PutRepositoryResponse putRepositoryResponse = client0.admin().cluster().preparePutRepository(repositoryName)
-                    .setType(AbstractRepository.RepositoryType.fs.name()).setSettings(ImmutableSettings.settingsBuilder()
-                                    .put("location", LOCAL_DIR + PATH_SEP + s3RepositorySettingsParams.getBase_path())
-                    ).get();
+        public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient, String s3RepoName) {
+            String localRepositoryLocation = LOCAL_DIR + PATH_SEP + s3RepositorySettingsParams.getBase_path();
+
+            PutRepositoryResponse putRepositoryResponse =
+                    client0.admin().cluster()
+                            .preparePutRepository(repositoryName)
+                            .setType(AbstractRepository.RepositoryType.fs.name())
+                            .setSettings(Settings.settingsBuilder().put("location", localRepositoryLocation))
+                            .get();
 
             //Setting local repository location
-            repositoryLocation = LOCAL_DIR + PATH_SEP+ s3RepositorySettingsParams.getBase_path();
+            repositoryLocation = localRepositoryLocation;
+
             return putRepositoryResponse;
         }
 
     }
 
     @Ignore
-    public static class MockSnapshotBackupManager
-    {
+    public static class MockSnapshotBackupManager {
         @Mock
-        public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient,String repositoryName, String snapshotName)
-        {
+        public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient, String repositoryName, String snapshotName) {
             return client0.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
                     .setWaitForCompletion(conf.waitForCompletionOfBackup())
                     .setIndices(conf.getCommaSeparatedIndicesToBackup())
@@ -217,11 +216,10 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
     }
 
     @Ignore
-    public static class MockRestoreBackupManager
-    {
+    public static class MockRestoreBackupManager {
         @Mock
-        public RestoreSnapshotResponse getRestoreSnapshotResponse(Client esTransportClient, String commaSeparatedIndices,String restoreRepositoryName,String snapshotN)
-        {
+        public RestoreSnapshotResponse getRestoreSnapshotResponse(
+                Client esTransportClient, String commaSeparatedIndices, String restoreRepositoryName, String snapshotN) {
             snapshotN = snapshotBackupManager.getSnapshotName("_all", false);
             return client0.admin().cluster().prepareRestoreSnapshot(repositoryName, snapshotN)
                     .setIndices("test-idx-*")
@@ -231,14 +229,14 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         }
     }
 
-    public static void cleanupDir(String dirPath, List<String> childdirs) throws IOException
-    {
-        if (childdirs == null || childdirs.size() == 0)
+    public static void cleanupDir(String dirPath, List<String> childDirs) throws IOException {
+        if (childDirs == null || childDirs.size() == 0) {
             FileUtils.cleanDirectory(new File(dirPath));
-        else
-        {
-            for (String cdir : childdirs)
-                FileUtils.cleanDirectory(new File(dirPath + "/" + cdir));
+        }
+        else {
+            for (String childDir : childDirs) {
+                FileUtils.cleanDirectory(new File(dirPath + "/" + childDir));
+            }
         }
     }
 
@@ -253,7 +251,8 @@ public class TestBackupRestore extends ElasticsearchIntegrationTest
         for (String repository : repositories) {
             try {
                 client().admin().cluster().prepareDeleteRepository(repository).execute().actionGet();
-            } catch (RepositoryMissingException ex) {
+            }
+            catch (RepositoryMissingException ex) {
                 // ignore
             }
         }

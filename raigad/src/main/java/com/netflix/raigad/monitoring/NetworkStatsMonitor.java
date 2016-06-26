@@ -1,18 +1,20 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2016 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
 package com.netflix.raigad.monitoring;
 
 import com.google.inject.Inject;
@@ -35,132 +37,74 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
-public class NetworkStatsMonitor extends Task
-{
-	private static final Logger logger = LoggerFactory.getLogger(NetworkStatsMonitor.class);
+public class NetworkStatsMonitor extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(NetworkStatsMonitor.class);
+
     public static final String METRIC_NAME = "Elasticsearch_FsMonitor";
     private final Elasticsearch_NetworkStatsReporter networkStatsReporter;
-    
+
     @Inject
-    public NetworkStatsMonitor(IConfiguration config)
-    {
+    public NetworkStatsMonitor(IConfiguration config) {
         super(config);
         networkStatsReporter = new Elasticsearch_NetworkStatsReporter();
-    		Monitors.registerObject(networkStatsReporter);
+        Monitors.registerObject(networkStatsReporter);
     }
 
-  	@Override
-	public void execute() throws Exception {
+    public static TaskTimer getTimer(String name) {
+        return new SimpleTimer(name, 60 * 1000);
+    }
 
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
-			String exceptionMsg = "Elasticsearch is not yet started, check back again later";
-			logger.info(exceptionMsg);
-			return;
-		}        		
-	
-  		NetworkStatsBean networkStatsBean = new NetworkStatsBean();
-  		try
-  		{
-  			NodesStatsResponse ndsStatsResponse = ESTransportClient.getNodesStatsResponse(config);
-  			NetworkStats networkStats = null;
-  			NodeStats ndStat = null;
-  			if (ndsStatsResponse.getNodes().length > 0) {
-  				ndStat = ndsStatsResponse.getAt(0);
+    @Override
+    public void execute() throws Exception {
+        // Only start monitoring if Elasticsearch is started
+        if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
+            String exceptionMsg = "Elasticsearch is not yet started, check back again later";
+            logger.info(exceptionMsg);
+            return;
+        }
+
+        NetworkStatsBean networkStatsBean = new NetworkStatsBean();
+
+        try {
+            NodesStatsResponse nodesStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NetworkStats networkStats = null;
+            NodeStats nodeStats = null;
+            if (nodesStatsResponse.getNodes().length > 0) {
+                nodeStats = nodesStatsResponse.getAt(0);
             }
-			if (ndStat == null) {
-				logger.info("NodeStats is null,hence returning (No NetworkStats).");
-				return;
-			}
-			networkStats = ndStat.getNetwork();
-			if (networkStats == null) {
-				logger.info("NetworkStats is null,hence returning (No NetworkStats).");
-				return;
-			}
-	
-			networkStatsBean.activeOpens = networkStats.getTcp().getActiveOpens();
-			networkStatsBean.passiveOpens = networkStats.getTcp().getPassiveOpens();
-			networkStatsBean.attemptFails = networkStats.getTcp().getAttemptFails();
-			networkStatsBean.estabResets = networkStats.getTcp().getEstabResets();
-			networkStatsBean.currEstab = networkStats.getTcp().getCurrEstab();
-			networkStatsBean.inSegs = networkStats.getTcp().getInSegs();
-			networkStatsBean.outSegs = networkStats.getTcp().getOutSegs();  	
-			networkStatsBean.retransSegs = networkStats.getTcp().getRetransSegs();
-			networkStatsBean.inErrs = networkStats.getTcp().getInErrs();
-			networkStatsBean.outRsts = networkStats.getTcp().getOutRsts();
-  		}
-  		catch(Exception e)
-  		{
-  			logger.warn("failed to load Network stats data", e);
-  		}
+            if (nodeStats == null) {
+                logger.info("NodeStats is null,hence returning (No NetworkStats).");
+                return;
+            }
+            networkStats = nodeStats.getNetwork();
+            if (networkStats == null) {
+                logger.info("NetworkStats is null,hence returning (No NetworkStats).");
+                return;
+            }
 
-  		networkStatsReporter.networkStatsBean.set(networkStatsBean);
-	}
-  	
-    public class Elasticsearch_NetworkStatsReporter
-    {
-        private final AtomicReference<NetworkStatsBean> networkStatsBean;
+            networkStatsBean.activeOpens = networkStats.getTcp().getActiveOpens();
+            networkStatsBean.passiveOpens = networkStats.getTcp().getPassiveOpens();
+            networkStatsBean.attemptFails = networkStats.getTcp().getAttemptFails();
+            networkStatsBean.estabResets = networkStats.getTcp().getEstabResets();
+            networkStatsBean.currEstab = networkStats.getTcp().getCurrEstab();
+            networkStatsBean.inSegs = networkStats.getTcp().getInSegs();
+            networkStatsBean.outSegs = networkStats.getTcp().getOutSegs();
+            networkStatsBean.retransSegs = networkStats.getTcp().getRetransSegs();
+            networkStatsBean.inErrs = networkStats.getTcp().getInErrs();
+            networkStatsBean.outRsts = networkStats.getTcp().getOutRsts();
+        } catch (Exception e) {
+            logger.warn("failed to load Network stats data", e);
+        }
 
-        public Elasticsearch_NetworkStatsReporter()
-        {
-        		networkStatsBean = new AtomicReference<NetworkStatsBean>(new NetworkStatsBean());
-        }
-        
-        @Monitor(name ="active_opens", type=DataSourceType.GAUGE)
-        public long getActiveOpens()
-        {
-            return networkStatsBean.get().activeOpens;
-        }
-        
-        @Monitor(name ="passive_opens", type=DataSourceType.GAUGE)
-        public long getPassiveOpens()
-        {
-            return networkStatsBean.get().passiveOpens;
-        }
-        @Monitor(name ="attempt_fails", type=DataSourceType.GAUGE)
-        public long getAttemptFails()
-        {
-            return networkStatsBean.get().attemptFails;
-        }
-        @Monitor(name ="estab_resets", type=DataSourceType.GAUGE)
-        public long geEstabResets()
-        {
-            return networkStatsBean.get().estabResets;
-        }
-        @Monitor(name ="curr_estab", type=DataSourceType.GAUGE)
-        public long getCurrEstab()
-        {
-            return networkStatsBean.get().currEstab;
-        }
-        @Monitor(name ="in_segs", type=DataSourceType.GAUGE)
-        public long getInSegs()
-        {
-            return networkStatsBean.get().inSegs;
-        }
-        @Monitor(name ="out_segs", type=DataSourceType.GAUGE)
-        public long getOutSegs()
-        {
-            return networkStatsBean.get().outSegs;
-        }
-        @Monitor(name ="retrans_segs", type=DataSourceType.GAUGE)
-        public double getRetransSegs()
-        {
-            return networkStatsBean.get().retransSegs;
-        }
-        @Monitor(name ="in_errs", type=DataSourceType.GAUGE)
-        public double getInErrs()
-        {
-            return networkStatsBean.get().inErrs;
-        }
-        @Monitor(name ="outRsts", type=DataSourceType.GAUGE)
-        public double getOutRsts()
-        {
-            return networkStatsBean.get().outRsts;
-        }
+        networkStatsReporter.networkStatsBean.set(networkStatsBean);
     }
 
-    private static class NetworkStatsBean
-    {
+    @Override
+    public String getName() {
+        return METRIC_NAME;
+    }
+
+    private static class NetworkStatsBean {
         private long activeOpens;
         private long passiveOpens;
         private long attemptFails;
@@ -174,15 +118,63 @@ public class NetworkStatsMonitor extends Task
 
     }
 
-	public static TaskTimer getTimer(String name)
-	{
-		return new SimpleTimer(name, 60 * 1000);
-	}
+    public class Elasticsearch_NetworkStatsReporter {
+        private final AtomicReference<NetworkStatsBean> networkStatsBean;
 
-	@Override
-	public String getName()
-	{
-		return METRIC_NAME;
-	}
+        public Elasticsearch_NetworkStatsReporter() {
+            networkStatsBean = new AtomicReference<NetworkStatsBean>(new NetworkStatsBean());
+        }
+
+        @Monitor(name = "active_opens", type = DataSourceType.GAUGE)
+        public long getActiveOpens() {
+            return networkStatsBean.get().activeOpens;
+        }
+
+        @Monitor(name = "passive_opens", type = DataSourceType.GAUGE)
+        public long getPassiveOpens() {
+            return networkStatsBean.get().passiveOpens;
+        }
+
+        @Monitor(name = "attempt_fails", type = DataSourceType.GAUGE)
+        public long getAttemptFails() {
+            return networkStatsBean.get().attemptFails;
+        }
+
+        @Monitor(name = "estab_resets", type = DataSourceType.GAUGE)
+        public long geEstabResets() {
+            return networkStatsBean.get().estabResets;
+        }
+
+        @Monitor(name = "curr_estab", type = DataSourceType.GAUGE)
+        public long getCurrEstab() {
+            return networkStatsBean.get().currEstab;
+        }
+
+        @Monitor(name = "in_segs", type = DataSourceType.GAUGE)
+        public long getInSegs() {
+            return networkStatsBean.get().inSegs;
+        }
+
+        @Monitor(name = "out_segs", type = DataSourceType.GAUGE)
+        public long getOutSegs() {
+            return networkStatsBean.get().outSegs;
+        }
+
+        @Monitor(name = "retrans_segs", type = DataSourceType.GAUGE)
+        public double getRetransSegs() {
+            return networkStatsBean.get().retransSegs;
+        }
+
+        @Monitor(name = "in_errs", type = DataSourceType.GAUGE)
+        public double getInErrs() {
+            return networkStatsBean.get().inErrs;
+        }
+
+        @Monitor(name = "outRsts", type = DataSourceType.GAUGE)
+        public double getOutRsts() {
+            return networkStatsBean.get().outRsts;
+        }
+    }
 
 }
+*/

@@ -25,24 +25,23 @@ import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilde
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class to get data out of Elasticsearch
  */
 @Singleton
-public class ESTransportClient
-{
+public class ESTransportClient {
     private static final Logger logger = LoggerFactory.getLogger(ESTransportClient.class);
 
-    private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<ESTransportClient>(null);
+    private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<>(null);
     private NodesStatsRequestBuilder nodeStatsRequestBuilder;
     private final TransportClient client;
 
@@ -51,31 +50,28 @@ public class ESTransportClient
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    public ESTransportClient(String host, int port, String clusterName, String nodeName) throws IOException, InterruptedException
-    {
-        Settings settings = ImmutableSettings.settingsBuilder()
+    public ESTransportClient(InetAddress host, int port, String clusterName, String nodeName) throws IOException, InterruptedException {
+        Settings settings = Settings.settingsBuilder()
                 .put("cluster.name", clusterName)
                 //.put("client.transport.sniff", true)
                 .build();
 
-        client = new TransportClient(settings);
+        client = TransportClient.builder().settings(settings).build();
         client.addTransportAddress(new InetSocketTransportAddress(host, port));
 
         nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(nodeName).all();
     }
 
     @Inject
-    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException
-    {
-        this("localhost", config.getTransportTcpPort(), config.getAppName(), config.getEsNodeName());
+    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException {
+        this(InetAddress.getLocalHost(), config.getTransportTcpPort(), config.getAppName(), config.getEsNodeName());
     }
 
     /**
      * Try to create if it is null.
      * @throws IOException
      */
-    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException
-    {
+    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException {
         if (esTransportClient.get() == null) {
             esTransportClient.set(connect(config));
         }
@@ -83,8 +79,7 @@ public class ESTransportClient
         return esTransportClient.get();
     }
 
-    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config)
-    {
+    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config) {
         try {
             return ESTransportClient.instance(config).nodeStatsRequestBuilder.execute().actionGet();
         }
@@ -95,8 +90,7 @@ public class ESTransportClient
         return null;
     }
 
-    public static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException
-    {
+    private static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException {
         ESTransportClient transportClient;
 
         // If Elasticsearch is started then only start the monitoring
@@ -111,7 +105,7 @@ public class ESTransportClient
                 @Override
                 public ESTransportClient retriableCall() throws Exception {
                     ESTransportClient transportClientLocal = new ESTransportClient(
-                            "localhost",
+                            InetAddress.getLocalHost(),
                             config.getTransportTcpPort(),
                             config.getAppName(),
                             config.getEsNodeName());
@@ -129,8 +123,7 @@ public class ESTransportClient
     }
 
     private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
-                                  String state, String load, String owns, String token) throws JSONException
-    {
+                                  String state, String load, String owns, String token) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("endpoint", primaryEndpoint);
         object.put("dc", dataCenter);
