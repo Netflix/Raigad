@@ -1,22 +1,22 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2016 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.elasticsearch.discovery.custom;
+package com.netflix.raigad.discovery;
 
-import org.elasticsearch.common.logging.ESLogger;
 import org.apache.commons.lang.CharEncoding;
+import org.elasticsearch.common.logging.ESLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -24,48 +24,49 @@ import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class DataFetcher
-{
-
-    public static String fetchData(String url,ESLogger logger)
-    {
+public class DataFetcher {
+    public static String fetchData(String url, ESLogger logger) {
         DataInputStream responseStream = null;
-        try
-        {
+
+        try {
             HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setConnectTimeout(1000);
             conn.setReadTimeout(10000);
             conn.setRequestMethod("GET");
-            if (conn.getResponseCode() != 200)
-                throw new RuntimeException("Unable to get data for URL " + url);
+
+            if (conn.getResponseCode() != 200) {
+                throw new RuntimeException("Unable to get data from URL " + url);
+            }
 
             byte[] b = new byte[2048];
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             responseStream = new DataInputStream((FilterInputStream) conn.getContent());
+
             int c = 0;
-            while ((c = responseStream.read(b, 0, b.length)) != -1)
+
+            while ((c = responseStream.read(b, 0, b.length)) != -1) {
                 bos.write(b, 0, c);
-            String return_ = new String(bos.toByteArray(), CharEncoding.UTF_8);
-            logger.info(String.format("Calling URL API: %s returns: %s", url, return_));
+            }
+
+            String result = new String(bos.toByteArray(), CharEncoding.UTF_8);
+            logger.info(String.format("Calling URL API: %s returns: %s", url, result));
             conn.disconnect();
-            return return_;
+
+            return result;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-        finally
-        {
+        finally {
             try
             {
-                if(responseStream != null)
+                if (responseStream != null) {
                     responseStream.close();
+                }
             }
-            catch (Exception e)
-            {
+            catch (Exception e) {
                 logger.warn("Failed to close response stream from priam", e);
             }
         }
     }
-
 }

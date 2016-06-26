@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.resources;
 
 import com.google.inject.AbstractModule;
@@ -40,36 +41,34 @@ import com.netflix.raigad.startup.RaigadServer;
 import com.sun.jersey.api.core.PackagesResourceConfig;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-import org.elasticsearch.common.collect.Lists;
 import org.quartz.SchedulerFactory;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class InjectedWebListener extends GuiceServletContextListener
-{
+public class InjectedWebListener extends GuiceServletContextListener {
     protected static final Logger logger = LoggerFactory.getLogger(InjectedWebListener.class);
 
     @Override
-    protected Injector getInjector()
-    {
-        List<Module> moduleList = Lists.newArrayList();
+    protected Injector getInjector() {
+        List<Module> moduleList = new ArrayList<>();
         moduleList.add(new JaxServletModule());
         moduleList.add(new RaigadGuiceModule());
         Injector injector;
-        try
-        {   injector = LifecycleInjector.builder().withModules(moduleList).build().createInjector();
+
+        try {
+            injector = LifecycleInjector.builder().withModules(moduleList).build().createInjector();
             startJobs(injector);
 
             LifecycleManager manager = injector.getInstance(LifecycleManager.class);
             manager.start();
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             logger.error(e.getMessage(),e);
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -77,40 +76,35 @@ public class InjectedWebListener extends GuiceServletContextListener
         return injector;
     }
 
-    private void startJobs(Injector injector) throws Exception
-    {
+    private void startJobs(Injector injector) throws Exception {
         injector.getInstance(IConfiguration.class).initialize();
 
-        logger.info("**Now starting to initialize raigadserver from OSS");
+        logger.info("** Now starting to initialize Raigad server from OSS");
         injector.getInstance(RaigadServer.class).initialize();
     }
 
-    public static class JaxServletModule extends ServletModule
-    {
+    private static class JaxServletModule extends ServletModule {
         @Override
-        protected void configureServlets()
-        {
+        protected void configureServlets() {
             Map<String, String> params = new HashMap<String, String>();
-            params.put(PackagesResourceConfig.PROPERTY_PACKAGES
-                    , "unbound");
+            params.put(PackagesResourceConfig.PROPERTY_PACKAGES, "unbound");
             params.put("com.sun.jersey.config.property.packages", "com.netflix.raigad.resources");
             params.put(ServletContainer.PROPERTY_FILTER_CONTEXT_PATH, "/REST");
             serve("/REST/*").with(GuiceContainer.class, params);
         }
     }
 
-
-    public static class RaigadGuiceModule extends AbstractModule
-    {
+    private static class RaigadGuiceModule extends AbstractModule {
         @Override
-        protected void configure()
-        {
-    		logger.info("**Binding OSS Config classes.");
-            // fix bug in Jersey-Guice integration exposed by child injectors
+        protected void configure() {
+    		logger.info("** Binding OSS Config classes.");
+
+            // Fix bug in Jersey-Guice integration exposed by child injectors
             binder().bind(GuiceContainer.class).asEagerSingleton();
             binder().bind(GuiceJobFactory.class).asEagerSingleton();
             binder().bind(IRaigadInstanceFactory.class).to(CassandraInstanceFactory.class);
-            //TODO: use config.getCredentialProvider() instead of IAMCredential
+
+            // TODO: Use config.getCredentialProvider() instead of IAMCredential
             binder().bind(ICredential.class).to(IAMCredential.class);
             binder().bind(AbstractRepository.class).annotatedWith(Names.named("s3")).to(S3Repository.class);
             binder().bind(AbstractRepositorySettingsParams.class).annotatedWith(Names.named("s3")).to(S3RepositorySettingsParams.class);

@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2016 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.startup;
 
 import com.google.inject.Inject;
@@ -20,7 +21,6 @@ import com.google.inject.Singleton;
 import com.netflix.raigad.aws.SetVPCSecurityGroupID;
 import com.netflix.raigad.aws.UpdateSecuritySettings;
 import com.netflix.raigad.aws.UpdateTribeSecuritySettings;
-import com.netflix.raigad.aws.UpdateVPCSecuritySettings;
 import com.netflix.raigad.backup.RestoreBackupManager;
 import com.netflix.raigad.backup.SnapshotBackupManager;
 import com.netflix.raigad.configuration.IConfiguration;
@@ -37,12 +37,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Start all tasks here - Property update task - Backup task - Restore task -
- * Incremental backup
+ * Start all tasks here: Property update task, Backup task, Restore task, Incremental backup
  */
 @Singleton
-public class RaigadServer
-{
+public class RaigadServer {
+    private static final int ES_MONITORING_INITIAL_DELAY = 10;
+    private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
+    private static final int ES_HEALTH_MONITOR_DELAY = 600;
+    private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
+
+    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
+
     private final RaigadScheduler scheduler;
     private final IConfiguration config;
     private final Sleeper sleeper;
@@ -52,20 +57,17 @@ public class RaigadServer
     private final SnapshotBackupManager snapshotBackupManager;
     private final HttpModule httpModule;
     private final SetVPCSecurityGroupID setVPCSecurityGroupID;
-    private static final int ES_MONITORING_INITIAL_DELAY = 10;
-    private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
-    private static final int ES_HEALTH_MONITOR_DELAY = 600;
-    private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
-    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
-
 
     @Inject
-    public RaigadServer(IConfiguration config, RaigadScheduler scheduler, HttpModule httpModule, IElasticsearchProcess esProcess, Sleeper sleeper,
+    public RaigadServer(IConfiguration config,
+                        RaigadScheduler scheduler,
+                        HttpModule httpModule,
+                        IElasticsearchProcess esProcess,
+                        Sleeper sleeper,
                         InstanceManager instanceManager,
                         ElasticSearchIndexManager esIndexManager,
                         SnapshotBackupManager snapshotBackupManager,
-                        SetVPCSecurityGroupID setVPCSecurityGroupID)
-    {
+                        SetVPCSecurityGroupID setVPCSecurityGroupID) {
         this.config = config;
         this.scheduler = scheduler;
         this.httpModule = httpModule;
@@ -77,71 +79,90 @@ public class RaigadServer
         this.setVPCSecurityGroupID = setVPCSecurityGroupID;
     }
 
-    public void initialize() throws Exception
-    {     
-    	//Check If it's really needed
-        if (instanceManager.getInstance().isOutOfService())
+    public void initialize() throws Exception {
+        // Check if it's really needed
+        if (instanceManager.getInstance().isOutOfService()) {
             return;
-        
-        logger.info("Initializing RaigadServer now ...");
+        }
 
-        // start to schedule jobs
+        logger.info("Initializing Raigad server now...");
+
+        // Start to schedule jobs
         scheduler.start();
 
-        if(!config.isLocalModeEnabled()) {
+        if (!config.isLocalModeEnabled()) {
             if (config.amITribeNode()) {
-                // update security settings
+                // Update security settings
                 scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
-                // sleep for 60 sec for the SG update to happen.
-                if (UpdateTribeSecuritySettings.firstTimeUpdated)
-                    sleeper.sleep(60 * 1000);
-                scheduler.addTask(UpdateTribeSecuritySettings.JOBNAME, UpdateTribeSecuritySettings.class, UpdateTribeSecuritySettings.getTimer(instanceManager));
-            } else {
-                if(config.isSecutrityGroupInMultiDC()) {
 
-                    if(config.isDeployedInVPC())
-                    {
-                        if(config.isVPCMigrationModeEnabled())
-                        {
-                            // update security settings
+                // Sleep for 60 seconds for the SG update to happen
+                if (UpdateTribeSecuritySettings.firstTimeUpdated) {
+                    sleeper.sleep(60 * 1000);
+                }
+
+                scheduler.addTask(UpdateTribeSecuritySettings.JOB_NAME,
+                        UpdateTribeSecuritySettings.class,
+                        UpdateTribeSecuritySettings.getTimer(instanceManager));
+            }
+            else {
+                if (config.isSecutrityGroupInMultiDC()) {
+
+                    if (config.isDeployedInVPC()) {
+                        if (config.isVPCMigrationModeEnabled()) {
+                            logger.info("VPC migration mode: updating security settings");
+
+                            // Update security settings
                             scheduler.runTaskNow(UpdateSecuritySettings.class);
-                            // sleep for 60 sec for the SG update to happen.
-                            if (UpdateSecuritySettings.firstTimeUpdated)
+
+                            // Sleep for 60 seconds for the SG update to happen
+                            if (UpdateSecuritySettings.firstTimeUpdated) {
                                 sleeper.sleep(60 * 1000);
-                            scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
+                            }
+
+                            scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
+                                    UpdateSecuritySettings.class,
+                                    UpdateSecuritySettings.getTimer(instanceManager));
                         }
-                        //Set SecurityGroupId
+
+                        // Setting Security Group ID
                         setVPCSecurityGroupID.execute();
-                        // update security settings
-                        scheduler.runTaskNow(UpdateVPCSecuritySettings.class);
-                        // sleep for 60 sec for the SG update to happen.
-                        if (UpdateVPCSecuritySettings.firstTimeUpdated)
-                            sleeper.sleep(60 * 1000);
-                        scheduler.addTask(UpdateVPCSecuritySettings.JOBNAME, UpdateVPCSecuritySettings.class, UpdateVPCSecuritySettings.getTimer(instanceManager));
-                    } else {
-                        // update security settings
-                        scheduler.runTaskNow(UpdateSecuritySettings.class);
-                        // sleep for 60 sec for the SG update to happen.
-                        if (UpdateSecuritySettings.firstTimeUpdated)
-                            sleeper.sleep(60 * 1000);
-                        scheduler.addTask(UpdateSecuritySettings.JOBNAME, UpdateSecuritySettings.class, UpdateSecuritySettings.getTimer(instanceManager));
                     }
+
+                    // Update security settings
+                    scheduler.runTaskNow(UpdateSecuritySettings.class);
+
+                    // Sleep for 60 seconds for the SG update to happen
+                    if (UpdateSecuritySettings.firstTimeUpdated) {
+                        sleeper.sleep(60 * 1000);
+                    }
+
+                    scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
+                            UpdateSecuritySettings.class,
+                            UpdateSecuritySettings.getTimer(instanceManager));
                 }
             }
         }
 
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
-        
-        logger.info("Trying to start Elastic Search now ...");
-        
-		if (!config.doesElasticsearchStartManually()) {
-            esProcess.start(true); // Start elasticsearch.
-            if (config.isRestoreEnabled())
-                scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME, RestoreBackupManager.class, RestoreBackupManager.getTimer(config), config.getRestoreTaskInitialDelayInSeconds());
+
+        logger.info("Trying to start Elasticsearch now ...");
+
+        if (!config.doesElasticsearchStartManually()) {
+            // Start Elasticsearch
+            esProcess.start(true);
+
+            if (config.isRestoreEnabled()) {
+                scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME,
+                        RestoreBackupManager.class,
+                        RestoreBackupManager.getTimer(config),
+                        config.getRestoreTaskInitialDelayInSeconds());
+            }
         }
-		else {
-            logger.info("config.doesElasticsearchStartManually() is set to True, hence Elasticsearch needs to be started manually. Restore task needs to be started manually as well (if needed).");
+        else {
+            logger.info("config.doesElasticsearchStartManually() is set to True," +
+                    "hence Elasticsearch needs to be started manually. " +
+                    "Restore task needs to be started manually as well (if needed).");
         }
 
         /*
@@ -152,23 +173,21 @@ public class RaigadServer
         /*
          *  Run Snapshot Backup task
          */
-        if (config.isAsgBasedDedicatedDeployment())
-        {
-            if (config.getASGName().toLowerCase().contains("master"))
-            {   // Run Snapshot task only on Master Nodes
+        if (config.isAsgBasedDedicatedDeployment()) {
+            if (config.getASGName().toLowerCase().contains("master")) {
+                // Run Snapshot task only on Master Nodes
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
-                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
                 scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
             else if (!config.reportMetricsFromMasterOnly()) {
                 scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
         }
-        else
-        {
+        else {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
-            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
             scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
         }
 
@@ -179,7 +198,10 @@ public class RaigadServer
         scheduler.addTask(TransportStatsMonitor.METRIC_NAME, TransportStatsMonitor.class, TransportStatsMonitor.getTimer("TransportStatsMonitor"));
         scheduler.addTask(NodeIndicesStatsMonitor.METRIC_NAME, NodeIndicesStatsMonitor.class, NodeIndicesStatsMonitor.getTimer("NodeIndicesStatsMonitor"));
         scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
-        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));
+
+        // TODO: 2X: Determine if this is necessary and if yes find an alternative
+        //scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));
+
         scheduler.addTask(JvmStatsMonitor.METRIC_NAME, JvmStatsMonitor.class, JvmStatsMonitor.getTimer("JvmStatsMonitor"));
         scheduler.addTask(OsStatsMonitor.METRIC_NAME, OsStatsMonitor.class, OsStatsMonitor.getTimer("OsStatsMonitor"));
         scheduler.addTask(ProcessStatsMonitor.METRIC_NAME, ProcessStatsMonitor.class, ProcessStatsMonitor.getTimer("ProcessStatsMonitor"));
@@ -187,22 +209,17 @@ public class RaigadServer
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
         scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"),ES_NODE_HEALTH_MONITOR_DELAY);
-
     }
 
-    public InstanceManager getInstanceManager()
-    {
+    public InstanceManager getInstanceManager() {
         return instanceManager;
     }
 
-    public RaigadScheduler getScheduler()
-    {
+    public RaigadScheduler getScheduler() {
         return scheduler;
     }
 
-    public IConfiguration getConfiguration()
-    {
+    public IConfiguration getConfiguration() {
         return config;
     }
-
 }

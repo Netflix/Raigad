@@ -1,3 +1,19 @@
+/**
+ * Copyright 2016 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.raigad.utils;
 
 import com.netflix.raigad.backup.exception.MultipleMasterNodesException;
@@ -6,10 +22,10 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.dataobjects.MasterNodeInformationDO;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.objectmapper.DefaultMasterNodeInfoMapper;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.type.TypeReference;
 import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.common.collect.Lists;
 import org.elasticsearch.snapshots.SnapshotInfo;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -24,9 +40,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EsUtils 
-{
+public class EsUtils {
     private static final Logger logger = LoggerFactory.getLogger(EsUtils.class);
+
     private static final String HOST_NAME = "host_name";
     private static final String ID = "id";
     private static final String APP_NAME = "app_name";
@@ -47,95 +63,101 @@ public class EsUtils
     private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
 
-
-
     @SuppressWarnings("unchecked")
-	public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances)
-    {
-    		JSONObject esJsonInstances = new JSONObject();
-    		
-    		for(int i=0;i<instances.size();i++)
-    		{
-    	   		JSONArray esJsonInstance = new JSONArray();
-    	   		
-    	   	 	JSONObject jsInstance = new JSONObject();
-    			jsInstance.put(HOST_NAME, instances.get(i).getHostName());
-    			jsInstance.put(ID, instances.get(i).getId());
-    			jsInstance.put(APP_NAME, instances.get(i).getApp());
-    			jsInstance.put(INSTANCE_ID, instances.get(i).getInstanceId());
-    			jsInstance.put(AVAILABILITY_ZONE, instances.get(i).getAvailabilityZone());
-    			jsInstance.put(PUBLIC_IP, instances.get(i).getHostIP());
-    			jsInstance.put(DC, instances.get(i).getDC());
-    			jsInstance.put(UPDATE_TIME, instances.get(i).getUpdatetime());
-    			esJsonInstance.add(jsInstance);
-    			esJsonInstances.put("instance-"+i,jsInstance);
-    		}    	
-    		
-    		JSONObject allInstances = new JSONObject();
-    		allInstances.put("instances", esJsonInstances);
-    		return allInstances;
+	public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances) {
+        JSONObject esJsonInstances = new JSONObject();
+
+        for (int i=0; i < instances.size(); i ++) {
+            JSONArray esJsonInstance = new JSONArray();
+
+            JSONObject jsInstance = new JSONObject();
+            jsInstance.put(HOST_NAME, instances.get(i).getHostName());
+            jsInstance.put(ID, instances.get(i).getId());
+            jsInstance.put(APP_NAME, instances.get(i).getApp());
+            jsInstance.put(INSTANCE_ID, instances.get(i).getInstanceId());
+            jsInstance.put(AVAILABILITY_ZONE, instances.get(i).getAvailabilityZone());
+            jsInstance.put(PUBLIC_IP, instances.get(i).getHostIP());
+            jsInstance.put(DC, instances.get(i).getDC());
+            jsInstance.put(UPDATE_TIME, instances.get(i).getUpdatetime());
+            esJsonInstance.add(jsInstance);
+            esJsonInstances.put("instance-"+i,jsInstance);
+        }
+
+        JSONObject allInstances = new JSONObject();
+        allInstances.put("instances", esJsonInstances);
+        return allInstances;
     }
     
-	public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances)
-    {
-		List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
+	public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances) {
+		List<RaigadInstance> raigadInstances = new ArrayList<>();
 		
 		JSONObject topLevelInstance = (JSONObject) instances.get("instances");
 		
-		for(int i=0;;i++)
+		for (int i = 0; ; i ++)
 		{
-			if(topLevelInstance.get("instance-"+i) == null)
-				break;
-			JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-"+i);
-			//Build RaigadInstance
-			RaigadInstance escInstance = new RaigadInstance();
-			escInstance.setApp((String) eachInstance.get(APP_NAME));
-			escInstance.setAvailabilityZone((String) eachInstance.get(AVAILABILITY_ZONE));
-			escInstance.setDC((String) eachInstance.get(DC));
-			escInstance.setHostIP((String) eachInstance.get(PUBLIC_IP));
-			escInstance.setHostName((String) eachInstance.get(HOST_NAME));
-			escInstance.setId((String) eachInstance.get(ID));
-			escInstance.setInstanceId((String) eachInstance.get(INSTANCE_ID));
-			escInstance.setUpdatetime((Long) eachInstance.get(UPDATE_TIME));
-			//Add to the list
-			raigadInstances.add(escInstance);
+			if (topLevelInstance.get("instance-" + i) == null) {
+                break;
+            }
+
+			JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-" + i);
+
+			// Build RaigadInstance
+			RaigadInstance raigadInstance = new RaigadInstance();
+            raigadInstance.setApp((String) eachInstance.get(APP_NAME));
+            raigadInstance.setAvailabilityZone((String) eachInstance.get(AVAILABILITY_ZONE));
+            raigadInstance.setDC((String) eachInstance.get(DC));
+            raigadInstance.setHostIP((String) eachInstance.get(PUBLIC_IP));
+            raigadInstance.setHostName((String) eachInstance.get(HOST_NAME));
+            raigadInstance.setId((String) eachInstance.get(ID));
+            raigadInstance.setInstanceId((String) eachInstance.get(INSTANCE_ID));
+            raigadInstance.setUpdatetime((Long) eachInstance.get(UPDATE_TIME));
+
+			// Add to the list
+			raigadInstances.add(raigadInstance);
 		}
   		
-    		return raigadInstances;
+        return raigadInstances;
     }
 
-    public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception
-    {
+    public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception {
         boolean iAmTheMaster = false;
+
         final DefaultMasterNodeInfoMapper defaultMasterNodeInfoMapper = new DefaultMasterNodeInfoMapper();
+
         String URL = httpModule.findMasterNodeURL();
         String response = SystemUtils.runHttpGetCommand(URL);
+
         if (config.isDebugEnabled()) {
             logger.debug("Calling URL API: {} returns: {}", URL, response);
         }
-        //Check the response
-        if (response == null || response.isEmpty()) {
-            logger.error("Response from URL : <" + URL + "> is Null or Empty, hence returning.");
+
+        // Check the response
+        if (StringUtils.isEmpty(response)) {
+            logger.error("Response from URL <" + URL + "> is null or empty, hence returning");
             return iAmTheMaster;
         }
-        //Map MasterNodeInfo response to DO
+
+        // Map MasterNodeInfo response to DO
         TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
         List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response,typeRef);
 
-        if (masterNodeInformationDOList.size() == 0 )
-            throw new NoMasterNodeException("No Master Node found. Something went wrong !!");
+        if (masterNodeInformationDOList.size() == 0 ) {
+            throw new NoMasterNodeException("NO MASTER NODE FOUND - something went wrong");
+        }
 
-        if (masterNodeInformationDOList.size() > 1 )
-            throw new MultipleMasterNodesException("Multiple Master Nodes found. Something went wrong !!");
+        if (masterNodeInformationDOList.size() > 1 ) {
+            throw new MultipleMasterNodesException("MULTIPLE MASTER NODES FOUND - something went wrong");
+        }
 
         //Get MasterNode Ip
         String ip = masterNodeInformationDOList.get(0).getIp();
-        if (ip == null || ip.isEmpty()) {
-            logger.error("ip from URL : <" + URL + "> is Null or Empty, hence can not run Snapshot Backup");
+        if (StringUtils.isEmpty(ip)) {
+            logger.error("IP from URL <" + URL + "> is null or empty, hence can not run Snapshot Backup");
             return iAmTheMaster;
         }
-        if (config.isDebugEnabled())
-            logger.debug("*** IP of Master Node = " + ip);
+        if (config.isDebugEnabled()) {
+            logger.debug("*** Master node IP is " + ip);
+        }
 
         //Confirm if Current Node is a Master Node
         if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP())) {
@@ -145,16 +167,15 @@ public class EsUtils
         return iAmTheMaster;
     }
 
-    public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName)
-    {
+    public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName) {
         logger.info("Searching for available snapshots");
-        List<String> snapshots = Lists.newArrayList();
+
+        List<String> snapshots = new ArrayList<>();
         GetSnapshotsResponse getSnapshotsResponse = transportClient.admin().cluster()
                 .prepareGetSnapshots(repositoryName)
                 .get();
 
-        for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots())
-        {
+        for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots()) {
             snapshots.add(snapshotInfo.name());
         }
 
@@ -165,19 +186,16 @@ public class EsUtils
      * Repository Name is Today's Date in yyyyMMdd format eg. 20140630
      * @return Repository Name
      */
-    public static String getS3RepositoryName()
-    {
-        DateTime dt = new DateTime();
-        DateTime dtGmt = dt.withZone(currentZone);
-        return formatDate(dtGmt,S3_REPO_DATE_FORMAT);
+    public static String getS3RepositoryName() {
+        DateTime dateTime = new DateTime();
+        DateTime dateTimeGmt = dateTime.withZone(currentZone);
+        return formatDate(dateTimeGmt, S3_REPO_DATE_FORMAT);
     }
 
-    public static String formatDate(DateTime dateTime, String dateFormat)
-    {
+    public static String formatDate(DateTime dateTime, String dateFormat) {
         DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
         return dateTime.toString(fmt);
     }
-
 
 //    public static Set<String> getExistingRepositoryNames(String httpUrl) throws UnsupportedEncodingException, IllegalStateException, IOException, ParseException {
 //        HttpGet repoResponse = new HttpGet(httpUrl);

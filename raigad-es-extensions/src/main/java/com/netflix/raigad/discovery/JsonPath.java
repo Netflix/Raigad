@@ -16,15 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.elasticsearch.discovery.custom;
 
-import org.elasticsearch.common.collect.Lists;
+package com.netflix.raigad.discovery;
+
+import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Holds a json object and allows to extract specific values from it
@@ -40,7 +41,9 @@ public class JsonPath {
     }
 
     private static Map<String, Object> convertToMap(String json) throws IOException {
-        return JsonXContent.jsonXContent.createParser(json).mapOrderedAndClose();
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(json)) {
+            return parser.mapOrdered();
+        }
     }
 
     /**
@@ -78,7 +81,7 @@ public class JsonPath {
     }
 
     private String[] parsePath(String path) {
-        List<String> list = Lists.newArrayList();
+        List<String> list = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean escape = false;
         for (int i = 0; i < path.length(); i++) {
