@@ -28,24 +28,24 @@ import org.elasticsearch.node.settings.NodeSettingsService;
 import org.elasticsearch.threadpool.ThreadPool;
 import org.elasticsearch.transport.TransportService;
 
-public class NetflixDiscovery extends ZenDiscovery {
-    public static final String DISCOVERY_TYPE = "netflix";
+public class RaigadDiscovery extends ZenDiscovery {
+    public static final String DISCOVERY_TYPE = "raigad";
     public static final String DISCOVERY_TYPE_LOCATION = "discovery.type";
-    public static final String DISCOVERY_DESCRIPTION = "Netflix custom discovery plugin";
+    public static final String DISCOVERY_DESCRIPTION = "Raigad custom discovery plugin";
 
     public static final String GET_NODES_ISLAND_URL = "http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes";
     public static final String GET_NODES_TRIBE_URL_PREFIX = "http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_tribe_nodes/";
 
     @Inject
-    public NetflixDiscovery(Settings settings,
-                            ClusterName clusterName,
-                            ThreadPool threadPool,
-                            TransportService transportService,
-                            ClusterService clusterService,
-                            NodeSettingsService nodeSettingsService,
-                            ZenPingService pingService,
-                            ElectMasterService electMasterService,
-                            DiscoverySettings discoverySettings) {
+    public RaigadDiscovery(Settings settings,
+                           ClusterName clusterName,
+                           ThreadPool threadPool,
+                           TransportService transportService,
+                           ClusterService clusterService,
+                           NodeSettingsService nodeSettingsService,
+                           ZenPingService pingService,
+                           ElectMasterService electMasterService,
+                           DiscoverySettings discoverySettings) {
         super(settings, clusterName, threadPool, transportService, clusterService,
                 nodeSettingsService, pingService, electMasterService, discoverySettings);
     }

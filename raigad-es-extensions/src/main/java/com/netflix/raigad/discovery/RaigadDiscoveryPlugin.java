@@ -22,41 +22,41 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.discovery.DiscoveryModule;
 import org.elasticsearch.plugins.Plugin;
 
-public class NetflixDiscoveryPlugin extends Plugin {
-    protected final ESLogger logger = Loggers.getLogger(NetflixDiscoveryPlugin.class);
+public class RaigadDiscoveryPlugin extends Plugin {
+    protected final ESLogger logger = Loggers.getLogger(RaigadDiscoveryPlugin.class);
     private final Settings settings;
 
-    public NetflixDiscoveryPlugin(Settings settings) {
+    public RaigadDiscoveryPlugin(Settings settings) {
         this.settings = settings;
-        logger.info("Starting Netflix custom discovery");
+        logger.info("Starting Raigad custom discovery");
     }
 
     public static boolean discoveryEnabled(Settings settings, ESLogger logger) {
-        if (NetflixDiscovery.DISCOVERY_TYPE.equalsIgnoreCase(settings.get(NetflixDiscovery.DISCOVERY_TYPE_LOCATION))) {
-            logger.info("Netflix custom discovery is [ON]");
+        if (RaigadDiscovery.DISCOVERY_TYPE.equalsIgnoreCase(settings.get(RaigadDiscovery.DISCOVERY_TYPE_LOCATION))) {
+            logger.info("Raigad custom discovery is [ON]");
             return true;
         }
 
-        logger.info("To enable Netflix custom discovery set {} to \"{}\"",
-                NetflixDiscovery.DISCOVERY_TYPE_LOCATION, NetflixDiscovery.DISCOVERY_TYPE);
+        logger.info("To enable Raigad custom discovery set {} to \"{}\"",
+                RaigadDiscovery.DISCOVERY_TYPE_LOCATION, RaigadDiscovery.DISCOVERY_TYPE);
 
         return false;
     }
 
     @Override
     public String name() {
-        return NetflixDiscovery.DISCOVERY_TYPE;
+        return RaigadDiscovery.DISCOVERY_TYPE;
     }
 
     @Override
     public String description() {
-        return NetflixDiscovery.DISCOVERY_DESCRIPTION;
+        return RaigadDiscovery.DISCOVERY_DESCRIPTION;
     }
 
     public void onModule(DiscoveryModule discoveryModule) {
         if (discoveryEnabled(settings, logger)) {
-            discoveryModule.addDiscoveryType(NetflixDiscovery.DISCOVERY_TYPE, NetflixDiscovery.class);
-            discoveryModule.addUnicastHostProvider(NetflixDiscoveryUnicastHostsProvider.class);
+            discoveryModule.addDiscoveryType(RaigadDiscovery.DISCOVERY_TYPE, RaigadDiscovery.class);
+            discoveryModule.addUnicastHostProvider(RaigadDiscoveryUnicastHostsProvider.class);
         }
     }
 }
