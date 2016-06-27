@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.discovery;
 
-import org.apache.commons.lang.CharEncoding;
 import org.elasticsearch.common.logging.ESLogger;
 
 import java.io.ByteArrayOutputStream;
@@ -23,6 +23,7 @@ import java.io.DataInputStream;
 import java.io.FilterInputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class DataFetcher {
     public static String fetchData(String url, ESLogger logger) {
@@ -35,21 +36,21 @@ public class DataFetcher {
             conn.setRequestMethod("GET");
 
             if (conn.getResponseCode() != 200) {
-                throw new RuntimeException("Unable to get data from URL " + url);
+                logger.error("Unable to get data from URL " + url);
+                throw new RuntimeException("Unable to fetch data from Raigad API");
             }
 
             byte[] b = new byte[2048];
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             responseStream = new DataInputStream((FilterInputStream) conn.getContent());
 
-            int c = 0;
-
+            int c;
             while ((c = responseStream.read(b, 0, b.length)) != -1) {
                 bos.write(b, 0, c);
             }
 
-            String result = new String(bos.toByteArray(), CharEncoding.UTF_8);
-            logger.info(String.format("Calling URL API: %s returns: %s", url, result));
+            String result = new String(bos.toByteArray(), StandardCharsets.UTF_8);
+            logger.info("Calling Raigad API ({}) returns {}", url, result);
             conn.disconnect();
 
             return result;
@@ -65,7 +66,7 @@ public class DataFetcher {
                 }
             }
             catch (Exception e) {
-                logger.warn("Failed to close response stream from priam", e);
+                logger.warn("Failed to close response stream from Raigad", e);
             }
         }
     }

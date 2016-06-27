@@ -16,7 +16,6 @@
 
 package com.netflix.raigad.discovery;
 
-import org.apache.commons.lang.StringUtils;
 import org.elasticsearch.Version;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.common.component.AbstractComponent;
@@ -38,6 +37,7 @@ public class RaigadDiscoveryUnicastHostsProvider extends AbstractComponent imple
     @Inject
     public RaigadDiscoveryUnicastHostsProvider(Settings settings, TransportService transportService, Version version) {
         super(settings);
+
         this.transportService = transportService;
         this.version = version;
         this.settings = settings;
@@ -63,16 +63,14 @@ public class RaigadDiscoveryUnicastHostsProvider extends AbstractComponent imple
             }
 
             List<RaigadInstance> instances = ElasticsearchUtil.getRaigadInstancesFromJsonString(strNodes, logger);
-
             for (RaigadInstance instance : instances) {
                 try {
                     TransportAddress[] addresses =
                             transportService.addressesFromString(instance.getHostIP(), UnicastZenPing.LIMIT_FOREIGN_PORTS_COUNT);
 
                     // We only limit to 1 port, makes no sense to ping 100 ports
-
                     for (int i = 0; (i < addresses.length && i < UnicastZenPing.LIMIT_FOREIGN_PORTS_COUNT); i ++) {
-                        logger.debug("Adding instance {} (address {}, transport address {})",
+                        logger.info("Adding instance [{}] (address {}, transport address {})",
                                 instance.getId(), instance.getHostIP(), addresses[i]);
                         discoveryNodes.add(new DiscoveryNode(instance.getId(), addresses[i], version.minimumCompatibilityVersion()));
                     }
@@ -88,20 +86,19 @@ public class RaigadDiscoveryUnicastHostsProvider extends AbstractComponent imple
         }
 
         logger.info("Using the following dynamic discovery nodes: {}", discoveryNodes);
-
         return discoveryNodes;
     }
 
     private boolean isCurrentNodeTribe(Settings settings) {
-        boolean currentNodeTribe = false;
-
-        if (settings != null && !StringUtils.isEmpty(settings.get("name"))) {
-            String tribeName = settings.get("name");
-            if (tribeName.contains("/t")) {
-                currentNodeTribe = true;
-            }
+        if (settings == null) {
+            return false;
         }
 
-        return currentNodeTribe;
+        String tribeName = settings.get("name");
+        if (tribeName == null || tribeName.isEmpty()) {
+            return false;
+        }
+
+        return tribeName.contains("/t");
     }
 }
