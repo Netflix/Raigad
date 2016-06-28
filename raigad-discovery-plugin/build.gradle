@@ -9,7 +9,7 @@ task createZip(type: Zip) {
 
 publishing {
     publications {
-        nebulaIvy(IvyPublication) {
+        nebula(MavenPublication) {
             artifact createZip
         }
     }
