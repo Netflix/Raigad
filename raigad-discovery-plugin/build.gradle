@@ -1,0 +1,16 @@
+apply plugin: 'osgi'
+apply plugin: 'project-report'
+apply plugin: 'java'
+
+task createZip(type: Zip) {
+    from 'src/main/resources/plugin-metadata'
+    from jar.archivePath
+}
+
+publishing {
+    publications {
+        nebulaIvy(IvyPublication) {
+            artifact createZip
+        }
+    }
+}
