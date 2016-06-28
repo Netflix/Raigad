@@ -1,2 +1,0 @@
-apply plugin: 'osgi'
-apply plugin: 'project-report'
