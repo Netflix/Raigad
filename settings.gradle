@@ -1,2 +1,2 @@
 rootProject.name = 'raigad-parent'
-include 'raigad','raigad-web','raigad-es-extensions'
+include 'raigad','raigad-web','raigad-discovery-plugin'
