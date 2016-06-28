@@ -3,6 +3,7 @@ apply plugin: 'project-report'
 apply plugin: 'java'
 
 task createZip(type: Zip) {
+    archiveName = 'raigad-discovery-plugin.zip'
     from 'src/main/resources/plugin-metadata'
     from jar.archivePath
 }
