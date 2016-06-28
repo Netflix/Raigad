@@ -11,6 +11,12 @@ plugins {
     id 'nebula.netflixoss' version '3.3.0'
 }
 
+allprojects {
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+}
+
 // Establish version and status
 ext.githubProjectName = 'Raigad'
 
