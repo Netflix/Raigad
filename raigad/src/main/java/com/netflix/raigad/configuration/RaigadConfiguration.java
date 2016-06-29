@@ -35,6 +35,8 @@ import java.util.List;
 
 @Singleton
 public class RaigadConfiguration implements IConfiguration {
+    private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
+
     public static final String MY_WEBAPP_NAME = "Raigad";
 
     private static final String CONFIG_CLUSTER_NAME = MY_WEBAPP_NAME + ".es.clustername";
@@ -132,7 +134,8 @@ public class RaigadConfiguration implements IConfiguration {
         if (VPC_ID.equals(SystemUtils.NOT_FOUND_STR)) {
             PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
             PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-        } else {
+        }
+        else {
             IS_DEPLOYED_IN_VPC = true;
             // Following is a HACK : Need to come up with a better solution
             // If Deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP
@@ -143,8 +146,8 @@ public class RaigadConfiguration implements IConfiguration {
     }
 
     private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-    //    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-//    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+    // private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+    // private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
     private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
     private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
@@ -239,7 +242,6 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster-vpc";
 
     private final IConfigSource config;
-    private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
     private final ICredential provider;
 
     private final DynamicStringProperty CREDENTIAL_PROVIDER = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);

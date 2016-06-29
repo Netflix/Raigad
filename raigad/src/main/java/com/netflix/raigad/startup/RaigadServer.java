@@ -146,7 +146,7 @@ public class RaigadServer {
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
 
-        logger.info("Trying to start Elasticsearch now ...");
+        logger.info("Trying to start Elasticsearch now...");
 
         if (!config.doesElasticsearchStartManually()) {
             // Start Elasticsearch
