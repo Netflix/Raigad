@@ -46,6 +46,8 @@ public class StandardTuner implements IElasticsearchTuner {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void writeAllProperties(String yamlLocation, String hostname) throws IOException {
+        logger.info("Using configuration of type [{}]", config.getClass());
+
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
