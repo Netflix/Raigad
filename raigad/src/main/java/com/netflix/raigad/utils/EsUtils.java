@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,12 +64,10 @@ public class EsUtils {
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
 
     @SuppressWarnings("unchecked")
-	public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances) {
+    public static JSONObject transformRaigadInstanceToJson(List<RaigadInstance> instances) {
         JSONObject esJsonInstances = new JSONObject();
 
-        for (int i=0; i < instances.size(); i ++) {
-            JSONArray esJsonInstance = new JSONArray();
-
+        for (int i = 0; i < instances.size(); i++) {
             JSONObject jsInstance = new JSONObject();
             jsInstance.put(HOST_NAME, instances.get(i).getHostName());
             jsInstance.put(ID, instances.get(i).getId());
@@ -79,30 +77,32 @@ public class EsUtils {
             jsInstance.put(PUBLIC_IP, instances.get(i).getHostIP());
             jsInstance.put(DC, instances.get(i).getDC());
             jsInstance.put(UPDATE_TIME, instances.get(i).getUpdatetime());
+
+            JSONArray esJsonInstance = new JSONArray();
             esJsonInstance.add(jsInstance);
-            esJsonInstances.put("instance-"+i,jsInstance);
+
+            esJsonInstances.put("instance-" + i, jsInstance);
         }
 
         JSONObject allInstances = new JSONObject();
         allInstances.put("instances", esJsonInstances);
         return allInstances;
     }
-    
-	public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances) {
-		List<RaigadInstance> raigadInstances = new ArrayList<>();
-		
-		JSONObject topLevelInstance = (JSONObject) instances.get("instances");
-		
-		for (int i = 0; ; i ++)
-		{
-			if (topLevelInstance.get("instance-" + i) == null) {
+
+    public static List<RaigadInstance> getRaigadInstancesFromJson(JSONObject instances) {
+        List<RaigadInstance> raigadInstances = new ArrayList<>();
+
+        JSONObject topLevelInstance = (JSONObject) instances.get("instances");
+
+        for (int i = 0; ; i++) {
+            if (topLevelInstance.get("instance-" + i) == null) {
                 break;
             }
 
-			JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-" + i);
+            JSONObject eachInstance = (JSONObject) topLevelInstance.get("instance-" + i);
 
-			// Build RaigadInstance
-			RaigadInstance raigadInstance = new RaigadInstance();
+            // Build RaigadInstance
+            RaigadInstance raigadInstance = new RaigadInstance();
             raigadInstance.setApp((String) eachInstance.get(APP_NAME));
             raigadInstance.setAvailabilityZone((String) eachInstance.get(AVAILABILITY_ZONE));
             raigadInstance.setDC((String) eachInstance.get(DC));
@@ -112,14 +112,14 @@ public class EsUtils {
             raigadInstance.setInstanceId((String) eachInstance.get(INSTANCE_ID));
             raigadInstance.setUpdatetime((Long) eachInstance.get(UPDATE_TIME));
 
-			// Add to the list
-			raigadInstances.add(raigadInstance);
-		}
-  		
+            // Add to the list
+            raigadInstances.add(raigadInstance);
+        }
+
         return raigadInstances;
     }
 
-    public static boolean amIMasterNode(IConfiguration config,HttpModule httpModule) throws Exception {
+    public static boolean amIMasterNode(IConfiguration config, HttpModule httpModule) throws Exception {
         boolean iAmTheMaster = false;
 
         final DefaultMasterNodeInfoMapper defaultMasterNodeInfoMapper = new DefaultMasterNodeInfoMapper();
@@ -139,13 +139,13 @@ public class EsUtils {
 
         // Map MasterNodeInfo response to DO
         TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
-        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response,typeRef);
+        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
 
-        if (masterNodeInformationDOList.size() == 0 ) {
+        if (masterNodeInformationDOList.size() == 0) {
             throw new NoMasterNodeException("NO MASTER NODE FOUND - something went wrong");
         }
 
-        if (masterNodeInformationDOList.size() > 1 ) {
+        if (masterNodeInformationDOList.size() > 1) {
             throw new MultipleMasterNodesException("MULTIPLE MASTER NODES FOUND - something went wrong");
         }
 

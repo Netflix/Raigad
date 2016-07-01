@@ -43,13 +43,8 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
                                  Map<String, Object> volumes) {
 
         try {
-            logger.info("App = (" + app + ") " +
-                    "id = (" + id + ") " +
-                    "instanceID = (" + instanceID + ") " +
-                    "hostname = (" + hostname + ") " +
-                    "IP = (" + ip + ") " +
-                    "zone = (" + zone + ") " +
-                    "dc = (" + dc + ")");
+            logger.info("Creating entry for instance {} (node ID {}, hostname {}, IP {}) in {} ES cluster in {}, {}",
+                    instanceID, id, hostname, ip, app, zone, dc);
 
             RaigadInstance raigadInstance = new RaigadInstance();
             raigadInstance.setAvailabilityZone(zone);

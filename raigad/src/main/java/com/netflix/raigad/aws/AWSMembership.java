@@ -27,7 +27,9 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.IMembership;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.lucene.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,10 @@ public class AWSMembership implements IMembership {
 
     @Override
     public Map<String, List<String>> getRacMembership(Collection<String> autoScalingGroupNames) {
+        if (CollectionUtils.isEmpty(autoScalingGroupNames)) {
+            return Collections.emptyMap();
+        }
+
         AmazonAutoScaling client = null;
 
         try {
