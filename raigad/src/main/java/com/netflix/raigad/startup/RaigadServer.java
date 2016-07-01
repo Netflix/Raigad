@@ -41,12 +41,12 @@ import org.slf4j.LoggerFactory;
  */
 @Singleton
 public class RaigadServer {
+    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
+
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
     private static final int ES_HEALTH_MONITOR_DELAY = 600;
     private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
-
-    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
 
     private final RaigadScheduler scheduler;
     private final IConfiguration config;
@@ -92,6 +92,13 @@ public class RaigadServer {
 
         if (!config.isLocalModeEnabled()) {
             if (config.amITribeNode()) {
+                logger.info("Updating security setting for the tribe node");
+
+                if (config.isDeployedInVPC()) {
+                    logger.info("Setting Security Group ID (VPC)");
+                    setVPCSecurityGroupID.execute();
+                }
+
                 // Update security settings
                 scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
 
@@ -106,6 +113,7 @@ public class RaigadServer {
             }
             else {
                 if (config.isSecutrityGroupInMultiDC()) {
+                    logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
                         if (config.isVPCMigrationModeEnabled()) {
@@ -124,7 +132,7 @@ public class RaigadServer {
                                     UpdateSecuritySettings.getTimer(instanceManager));
                         }
 
-                        // Setting Security Group ID
+                        logger.info("Setting Security Group ID (VPC)");
                         setVPCSecurityGroupID.execute();
                     }
 

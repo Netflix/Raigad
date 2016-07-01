@@ -42,7 +42,7 @@ public class InstanceManager {
 	private final IRaigadInstanceFactory instanceFactory;
 	private final IMembership membership;
 	private final IConfiguration config;
-	private RaigadInstance myInstance;
+	private RaigadInstance thisInstance;
 
 	@Inject
 	public InstanceManager(IRaigadInstanceFactory instanceFactory, IMembership membership, IConfiguration config) throws Exception {
@@ -53,18 +53,17 @@ public class InstanceManager {
 	}
 
 	private void init() throws Exception {
-		logger.info("*** Deregistering dead instances");
+		logger.info("Deregistering dead instances");
 		new RetriableCallable<Void>() {
 			@Override
 			public Void retriableCall() throws Exception {
-				logger.info("*** Calling deregisterInstance");
 				deregisterInstance(instanceFactory, config);
 				return null;
 			}
 		}.call();
 
-		logger.info("*** Registering instance");
-		myInstance = new RetriableCallable<RaigadInstance>() {
+		logger.info("Registering this instance");
+		thisInstance = new RetriableCallable<RaigadInstance>() {
 			@Override
 			public RaigadInstance retriableCall() throws Exception {
 				RaigadInstance instance = registerInstance(instanceFactory, config);
@@ -72,7 +71,7 @@ public class InstanceManager {
 			}
 		}.call();
 
-		logger.info("Raigad instance details: " + myInstance.toString());
+		logger.info("Raigad instance details: " + thisInstance.toString());
 	}
 
 	private RaigadInstance registerInstance(IRaigadInstanceFactory instanceFactory, IConfiguration config) throws Exception {
@@ -123,7 +122,7 @@ public class InstanceManager {
 	}
 
 	public RaigadInstance getInstance() {
-		return myInstance;
+		return thisInstance;
 	}
 
 	public List<RaigadInstance> getAllInstances() {

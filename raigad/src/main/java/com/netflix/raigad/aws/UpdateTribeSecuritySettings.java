@@ -1,21 +1,21 @@
 /**
  * Copyright 2016 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.aws;
 
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
@@ -33,23 +33,22 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * this class will associate Public IP's with a new instance so they can talk
- * across the regions.
+ * This class will associate public IP's with a new instance so they can talk across the regions.
  *
- * Requirement: 1) Nodes in the same region needs to be able to talk to each
- * other. 2) Nodes in other regions needs to be able to talk to the others in
- * the other region.
+ * Requirements:
+ * (1) Nodes in the same region needs to be able to talk to each other.
+ * (2) Nodes in other regions needs to be able to talk to the others in the other region.
  *
- * Assumption: 1) IRaigadInstanceFactory will provide the membership... and will
- * be visible across the regions 2) IMembership amazon or any other
- * implementation which can tell if the instance is part of the group (ASG in
- * amazons case).
- *
+ * Assumptions:
+ * (1) IRaigadInstanceFactory will provide the membership and will be visible across the regions
+ * (2) IMembership Amazon or any other implementation which can tell if the instance
+ * is part of the group (ASG in Amazon's case).
  */
+
 @Singleton
-public class UpdateTribeSecuritySettings extends Task
-{
+public class UpdateTribeSecuritySettings extends Task {
     private static final Logger logger = LoggerFactory.getLogger(UpdateTribeSecuritySettings.class);
+
     public static final String JOB_NAME = "Update_TRIBE_SG";
     public static boolean firstTimeUpdated = false;
     private static final String COMMA_SEPARATOR = ",";
@@ -58,17 +57,17 @@ public class UpdateTribeSecuritySettings extends Task
     private static final Random ran = new Random();
     private final IMembership membership;
     private final IRaigadInstanceFactory factory;
+
     /**
      * clusterPortMap
      * es_tribe : 8000
-     * es_tribesource1 : 9001
-     * es_tribesource2 : 9002
+     * es_tribe_source1 : 8001
+     * es_tribe_source2 : 8002
      */
-    private final Map<String,Integer> clusterPortMap = new HashMap<String,Integer>();
+    private final Map<String, Integer> clusterPortMap = new HashMap<String, Integer>();
 
     @Inject
-    public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory)
-    {
+    public UpdateTribeSecuritySettings(IConfiguration config, IMembership membership, IRaigadInstanceFactory factory) {
         super(config);
         this.membership = membership;
         this.factory = factory;
@@ -79,118 +78,101 @@ public class UpdateTribeSecuritySettings extends Task
      * Other nodes run only on startup.
      */
     @Override
-    public void execute()
-    {
-        //Initialize Cluster-Port map from Config properties
+    public void execute() {
+        // Initializing cluster-port map from config properties
         initializeClusterPortMap();
 
-        List<String> acls = Lists.newArrayList();
-        for(String clusterName:clusterPortMap.keySet())
-        {
-            List<String> aclList = membership.listACL(clusterPortMap.get(clusterName),clusterPortMap.get(clusterName));
+        List<String> acls = new ArrayList<>();
+        for (String clusterName : clusterPortMap.keySet()) {
+            List<String> aclList = membership.listACL(clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
             acls.addAll(aclList);
         }
 
         List<RaigadInstance> instances = getInstanceList();
+        Map<String, String> addAclClusterMap = new HashMap<>();
+        Map<String, String> currentIpClusterMap = new HashMap<>();
 
-        Map<String,String> addAclClusterMap = new HashMap<String, String>();
-        //iterate to add ...
-        for (RaigadInstance instance : getInstanceList())
-        {
+        for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
-            if(!acls.contains(range))
-                addAclClusterMap.put(range,instance.getApp());
+            if (!acls.contains(range)) {
+                addAclClusterMap.put(range, instance.getApp());
+            }
+
+            // Just generating ranges
+            currentIpClusterMap.put(range, instance.getApp());
         }
 
-        if (addAclClusterMap.keySet().size() > 0)
-        {
+        if (addAclClusterMap.keySet().size() > 0) {
             /**
              * clusterInstancesMap
              * es_tribe : 50.60.70.80,50.60.70.81
-             * es_tribesource1 : 60.70.80.90,60.70.80.91
-             * es_tribesource2 : 70.80.90.00,70.80.90.01
+             * es_tribe_source1 : 60.70.80.90,60.70.80.91
+             * es_tribe_source2 : 70.80.90.00,70.80.90.01
              */
-            Map<String,List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
+            Map<String, List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
 
-            for(String clusterName : clusterInstancesMap.keySet())
+            for (String clusterName : clusterInstancesMap.keySet()) {
                 membership.addACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
+            }
 
             firstTimeUpdated = true;
         }
 
-        Map<String,String> currentIpClusterMap = new HashMap<String, String>();
-        //just iterate to generate ranges ...
-        for (RaigadInstance instance : instances)
-        {
-            String range = instance.getHostIP() + "/32";
-            currentIpClusterMap.put(range,instance.getApp());
-        }
-
-        //iterate to remove ...
-        List<String> removeAclList = new ArrayList<String>();
-        for(String acl:acls)
-        {
-            if(!currentIpClusterMap.containsKey(acl))
+        // Iterating to remove ACL's
+        List<String> removeAclList = new ArrayList<>();
+        for (String acl : acls) {
+            if (!currentIpClusterMap.containsKey(acl)) {
                 removeAclList.add(acl);
+            }
         }
 
-        if(removeAclList.size() > 0)
-        {
-            for(String acl:removeAclList)
-            {
-                Map<String,List<Integer>> aclPortMap = membership.getACLPortMap(acl);
+        if (removeAclList.size() > 0) {
+            for (String acl : removeAclList) {
+                Map<String, List<Integer>> aclPortMap = membership.getACLPortMap(acl);
                 int from = aclPortMap.get(acl).get(0);
                 int to = aclPortMap.get(acl).get(1);
-                membership.removeACL(Collections.singletonList(acl),from,to);
+                membership.removeACL(Collections.singletonList(acl), from, to);
             }
             firstTimeUpdated = true;
         }
     }
 
-    private void initializeClusterPortMap()
-    {
-        //Add Existing cluster-port
-        if(!clusterPortMap.containsKey(config.getAppName()))
-        {
+    private void initializeClusterPortMap() {
+        // Adding existing cluster-port mapping
+        if (!clusterPortMap.containsKey(config.getAppName())) {
             clusterPortMap.put(config.getAppName(), config.getTransportTcpPort());
-            logger.info("Adding Cluster = <{}> with Port = <{}>", config.getAppName(), config.getTransportTcpPort());
+            logger.info("Adding cluster [{}:{}]", config.getAppName(), config.getTransportTcpPort());
         }
 
         String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
-        assert (clusterParams != null) : "Clusters parameters can't be null";
+        assert (clusterParams != null) : "Clusters parameters cannot be null";
 
-        String[] clusters = StringUtils.split(clusterParams.trim(),COMMA_SEPARATOR);
-        assert (clusters.length != 0) : "One or more clusters needed";
+        String[] clusters = StringUtils.split(clusterParams.trim(), COMMA_SEPARATOR);
+        assert (clusters.length != 0) : "At least one cluster is needed";
 
-        //Common Settings
-        for(int i=0; i< clusters.length;i++)
-        {
-            String[] clusterPort = clusters[i].trim().split(PARAM_SEPARATOR);
-            assert (clusterPort.length != 2) : "Cluster Name or Transport Port is missing in configuration";
+        //Common settings
+        for (String cluster : clusters) {
+            String[] clusterPort = cluster.trim().split(PARAM_SEPARATOR);
+            assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
 
-            if(!clusterPortMap.containsKey(clusterPort[0].trim()))
-            {
+            if (!clusterPortMap.containsKey(clusterPort[0].trim())) {
                 clusterPortMap.put(clusterPort[0].trim(), Integer.parseInt(clusterPort[1].trim()));
-                logger.info("Adding Cluster = <{}> with Port = <{}>", clusterPort[0], clusterPort[1]);
+                logger.info("Adding cluster [{}:{}]", clusterPort[0], clusterPort[1]);
             }
         }
     }
 
-    private Map<String,List<String>> generateClusterToAclListMap(Map<String,String> addAclClusterMap )
-    {
-        Map<String,List<String>> clusterAclsMap = new HashMap<String,List<String>>();
+    private Map<String, List<String>> generateClusterToAclListMap(Map<String, String> addAclClusterMap) {
+        Map<String, List<String>> clusterAclsMap = new HashMap<>();
 
-        for(String acl:addAclClusterMap.keySet())
-        {
-            if (clusterAclsMap.containsKey(addAclClusterMap.get(acl)))
-            {
+        for (String acl : addAclClusterMap.keySet()) {
+            if (clusterAclsMap.containsKey(addAclClusterMap.get(acl))) {
                 clusterAclsMap.get(addAclClusterMap.get(acl)).add(acl);
             }
-            else
-            {
-                List<String> aclList = Lists.newArrayList();
+            else {
+                List<String> aclList = new ArrayList<>();
                 aclList.add(acl);
-                clusterAclsMap.put(addAclClusterMap.get(acl),aclList);
+                clusterAclsMap.put(addAclClusterMap.get(acl), aclList);
             }
         }
 
@@ -198,19 +180,19 @@ public class UpdateTribeSecuritySettings extends Task
     }
 
     private List<RaigadInstance> getInstanceList() {
-        List<RaigadInstance> _instances = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> instances = new ArrayList<>();
 
         for (String clusterName : clusterPortMap.keySet()) {
-            _instances.addAll(factory.getAllIds(clusterName));
+            instances.addAll(factory.getAllIds(clusterName));
         }
 
         if (config.isDebugEnabled()) {
-            for(RaigadInstance instance : _instances) {
+            for (RaigadInstance instance : instances) {
                 logger.debug(instance.toString());
             }
         }
 
-        return _instances;
+        return instances;
     }
 
     public static TaskTimer getTimer(InstanceManager instanceManager) {

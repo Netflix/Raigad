@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 
 public class StandardTuner implements IElasticsearchTuner {
     private static final Logger logger = LoggerFactory.getLogger(StandardTuner.class);
@@ -60,7 +60,7 @@ public class StandardTuner implements IElasticsearchTuner {
         map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
-        map.put("transport.tcp.port", config.getTransportTcpPort());
+        map.put("network.publish_host", "_global_");
 
         if (config.isKibanaSetupRequired()) {
             map.put("http.cors.enabled", true);
@@ -69,28 +69,38 @@ public class StandardTuner implements IElasticsearchTuner {
 
         if (config.amITribeNode()) {
             String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
-            assert (clusterParams != null) : "Source Clusters for tribe nodes cannot be null";
+            assert (clusterParams != null) : "Source clusters for tribe nodes cannot be null";
 
             String[] clusters = StringUtils.split(clusterParams, COMMA_SEPARATOR);
-            assert (clusters.length != 0) : "One or more clusters needed";
+            assert (clusters.length != 0) : "At least one source cluster is needed";
+
+            List<Integer> tribePorts = new ArrayList<>();
+            tribePorts.add(config.getTransportTcpPort());
 
             //Common settings
             for (int i = 0; i < clusters.length; i++) {
-                String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
-                assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
+                String[] clusterNameAndPort = clusters[i].split(PARAM_SEPARATOR);
+                assert (clusterNameAndPort.length != 2) : "Cluster name or transport port is missing in configuration";
+                assert (StringUtils.isNumeric(clusterNameAndPort[1])) : "Source tribe cluster port is invalid";
 
-                map.put("tribe.t" + i + ".cluster.name", clusterPort[0]);
-                map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterPort[1]));
+                map.put("tribe.t" + i + ".cluster.name", clusterNameAndPort[0]);
+                map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterNameAndPort[1]));
                 map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
-                logger.info("Adding cluster [{}:{}]", clusterPort[0], clusterPort[1]);
+                map.put("tribe.t" + i + ".network.host", "_global_");
+                logger.info("Adding cluster [{}:{}]", clusterNameAndPort[0], clusterNameAndPort[1]);
+
+                tribePorts.add(Integer.valueOf(clusterNameAndPort[1]));
             }
+
+            Collections.sort(tribePorts);
+            String transportPortRange = String.format("%d-%d", tribePorts.get(0), tribePorts.get(tribePorts.size() - 1));
+            logger.info("Setting tribe transport port range to {}", transportPortRange);
+
+            // Adding port range to include tribe cluster port as well as transport for each source cluster
+            map.put("transport.tcp.port", transportPortRange);
 
             map.put("node.master", false);
             map.put("node.data", false);
-
-            if (config.isMultiDC()) {
-                map.put("network.publish_host", config.getHostIP());
-            }
 
             if (config.amIWriteEnabledTribeNode()) {
                 map.put("tribe.blocks.write", false);
@@ -109,6 +119,8 @@ public class StandardTuner implements IElasticsearchTuner {
             map.put("tribe.on_conflict", "prefer_" + config.getTribePreferredClusterIdOnConflict());
         }
         else {
+            map.put("transport.tcp.port", config.getTransportTcpPort());
+
             map.put("discovery.type", config.getElasticsearchDiscoveryType());
             map.put("discovery.zen.minimum_master_nodes", config.getMinimumMasterNodes());
             map.put("index.number_of_shards", config.getNumOfShards());
@@ -127,11 +139,8 @@ public class StandardTuner implements IElasticsearchTuner {
 
             if (config.isMultiDC()) {
                 map.put("node.rack_id", config.getDC());
-                map.put("network.publish_host", config.getHostIP());
-            } else if (config.amISourceClusterForTribeNodeInMultiDC()) {
-                map.put("node.rack_id", config.getRac());
-                map.put("network.publish_host", config.getHostIP());
-            } else {
+            }
+            else {
                 map.put("node.rack_id", config.getRac());
             }
 
