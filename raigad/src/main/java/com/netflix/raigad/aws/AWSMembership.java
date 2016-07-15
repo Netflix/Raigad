@@ -208,17 +208,14 @@ public class AWSMembership implements IMembership {
                 if (config.getACLGroupIdForVPC().isEmpty()) {
                     throw new RuntimeException("ACLGroupIdForVPC cannot be empty, check if SetVPCSecurityGroupID had any errors");
                 }
-
-                DescribeSecurityGroupsRequest req =
+                DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupIds(config.getACLGroupIdForVPC());
-
-                result = client.describeSecurityGroups(req);
+                result = client.describeSecurityGroups(describeSecurityGroupsRequest);
             }
             else {
-                DescribeSecurityGroupsRequest req =
+                DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
-
-                result = client.describeSecurityGroups(req);
+                result = client.describeSecurityGroups(describeSecurityGroupsRequest);
             }
 
             for (SecurityGroup group : result.getSecurityGroups()) {
@@ -244,13 +241,26 @@ public class AWSMembership implements IMembership {
 
         try {
             client = getEc2Client();
-            DescribeSecurityGroupsRequest req = new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
-            DescribeSecurityGroupsResult result = client.describeSecurityGroups(req);
+            DescribeSecurityGroupsResult result;
+
+            if (config.isDeployedInVPC()) {
+                if (config.getACLGroupIdForVPC().isEmpty()) {
+                    throw new RuntimeException("ACLGroupIdForVPC cannot be empty, check if SetVPCSecurityGroupID had any errors");
+                }
+                DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
+                        new DescribeSecurityGroupsRequest().withGroupIds(config.getACLGroupIdForVPC());
+                result = client.describeSecurityGroups(describeSecurityGroupsRequest);
+            }
+            else {
+                DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
+                        new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
+                result = client.describeSecurityGroups(describeSecurityGroupsRequest);
+            }
 
             for (SecurityGroup group : result.getSecurityGroups()) {
                 for (IpPermission perm : group.getIpPermissions()) {
                     for (String ipRange : perm.getIpRanges()) {
-                        //If given ACL matches from the list of IP ranges then look for "from" and "to" ports
+                        // If given ACL matches from the list of IP ranges then look for "from" and "to" ports
                         if (acl.equalsIgnoreCase(ipRange)) {
                             List<Integer> fromToList = new ArrayList<Integer>();
                             fromToList.add(perm.getFromPort());

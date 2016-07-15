@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,49 +47,55 @@ import java.security.MessageDigest;
 import java.util.List;
 
 
-public class SystemUtils
-{
-    private static final Logger logger = LoggerFactory.getLogger(SystemUtils.class);
+public class SystemUtils {
     public static final String NOT_FOUND_STR = "NOT_FOUND";
+    private static final Logger logger = LoggerFactory.getLogger(SystemUtils.class);
 
     public static String getDataFromUrl(String url) {
-        try
-        {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setConnectTimeout(1000);
-            conn.setReadTimeout(1000);
-            conn.setRequestMethod("GET");
-            if (conn.getResponseCode() == 404)
-            {
+        HttpURLConnection connection = null;
+
+        try {
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(1000);
+            connection.setReadTimeout(1000);
+            connection.setRequestMethod("GET");
+
+            if (connection.getResponseCode() == 404) {
                 return NOT_FOUND_STR;
             }
-            if (conn.getResponseCode() != 200)
-            {
-                throw new RuntimeException("Unable to get data for URL " + url);
+
+            if (connection.getResponseCode() != 200) {
+                throw new RuntimeException("Unable to get data from " + url);
             }
-            byte[] b = new byte[2048];
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            DataInputStream d = new DataInputStream((FilterInputStream) conn.getContent());
-            int c = 0;
-            while ((c = d.read(b, 0, b.length)) != -1)
-                bos.write(b, 0, c);
-            String return_ = new String(bos.toByteArray(), Charsets.UTF_8);
-            logger.info("Calling URL API: {} returns: {}", url, return_);
-            conn.disconnect();
-            return return_;
+
+            byte[] byteArray = new byte[2048];
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            DataInputStream dataInputStream = new DataInputStream((FilterInputStream) connection.getContent());
+
+            int character;
+            while ((character = dataInputStream.read(byteArray, 0, byteArray.length)) != -1) {
+                byteArrayOutputStream.write(byteArray, 0, character);
+            }
+
+            String requestResult = new String(byteArrayOutputStream.toByteArray(), Charsets.UTF_8);
+            logger.info("Calling URL API: {}, response: {}", url, requestResult);
+
+            return requestResult;
         }
-        catch (Exception ex)
-        {
+        catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-
+        finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
     }
 
-    public static String runHttpGetCommand(String url) throws Exception
-    {
-        String return_;
+    public static String runHttpGetCommand(String url) throws Exception {
         DefaultHttpClient client = new DefaultHttpClient();
         InputStream isStream = null;
+
         try {
             HttpParams httpParameters = new BasicHttpParams();
             int timeoutConnection = 1000;
@@ -104,35 +110,35 @@ public class SystemUtils
             HttpResponse resp = client.execute(getRequest);
 
             if (resp == null || resp.getEntity() == null) {
-                throw new ESHttpException("Unable to execute GET URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
+                throw new ESHttpException("Unable to execute GET URL (" + url + "), exception Message: < Null Response or Null HttpEntity >");
             }
 
             isStream = resp.getEntity().getContent();
 
             if (resp.getStatusLine().getStatusCode() != 200) {
-
-                throw new ESHttpException("Unable to execute GET URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+                throw new ESHttpException("Unable to execute GET URL (" + url + "), exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
-            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
-            logger.debug("GET URL API: {} returns: {}", url, return_);
+            String requestResult = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
+            logger.debug("GET URL API: {} returns: {}", url, requestResult);
+
+            return requestResult;
         }
-        catch(Exception e)
-        {
-            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+        catch (Exception e) {
+            throw new ESHttpException("Caught an exception during execution of URL (" + url + "), exception Message: (" + e + ")");
         }
-        finally{
-            if (isStream != null)
+        finally {
+            if (isStream != null) {
                 isStream.close();
+            }
         }
-        return return_;
     }
 
-    public static String runHttpPutCommand(String url,String jsonBody) throws IOException
-    {
+    public static String runHttpPutCommand(String url, String jsonBody) throws IOException {
         String return_;
         DefaultHttpClient client = new DefaultHttpClient();
         InputStream isStream = null;
+
         try {
             HttpParams httpParameters = new BasicHttpParams();
             int timeoutConnection = 1000;
@@ -148,32 +154,31 @@ public class SystemUtils
             HttpResponse resp = client.execute(putRequest);
 
             if (resp == null || resp.getEntity() == null) {
-                throw new ESHttpException("Unable to execute PUT URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
+                throw new ESHttpException("Unable to execute PUT URL (" + url + "), exception message: < Null Response or Null HttpEntity >");
             }
 
             isStream = resp.getEntity().getContent();
 
             if (resp.getStatusLine().getStatusCode() != 200) {
-
-                throw new ESHttpException("Unable to execute PUT URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+                throw new ESHttpException("Unable to execute PUT URL (" + url + "), exception message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
-            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
-            logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody, return_);
+            String requestResult = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
+            logger.debug("PUT URL API: {} with JSONBody {} returns: {}", url, jsonBody, requestResult);
+
+            return requestResult;
         }
-        catch(Exception e)
-        {
-            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+        catch (Exception e) {
+            throw new ESHttpException("Caught an exception during execution of URL (" + url + "), exception message: (" + e + ")");
         }
-        finally{
-            if (isStream != null)
+        finally {
+            if (isStream != null) {
                 isStream.close();
+            }
         }
-        return return_;
     }
 
-    public static String runHttpPostCommand(String url,String jsonBody) throws IOException
-    {
+    public static String runHttpPostCommand(String url, String jsonBody) throws IOException {
         String return_;
         DefaultHttpClient client = new DefaultHttpClient();
         InputStream isStream = null;
@@ -186,7 +191,7 @@ public class SystemUtils
             client.setParams(httpParameters);
 
             HttpPost postRequest = new HttpPost(url);
-            if(StringUtils.isNotEmpty(jsonBody))
+            if (StringUtils.isNotEmpty(jsonBody))
                 postRequest.setEntity(new StringEntity(jsonBody, StandardCharsets.UTF_8));
             postRequest.setHeader("Content-type", "application/json");
 
@@ -200,17 +205,14 @@ public class SystemUtils
 
             if (resp.getStatusLine().getStatusCode() != 200) {
 
-                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream,StandardCharsets.UTF_8.toString()) + ")");
+                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
-            return_=IOUtils.toString(isStream,StandardCharsets.UTF_8.toString());
+            return_ = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
             logger.debug("POST URL API: {} with JSONBody {} returns: {}", url, jsonBody, return_);
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
-        }
-        finally{
+        } finally {
             if (isStream != null)
                 isStream.close();
         }
@@ -221,39 +223,30 @@ public class SystemUtils
      * delete all the files/dirs in the given Directory but dont delete the dir
      * itself.
      */
-    public static void cleanupDir(String dirPath, List<String> childdirs) throws IOException
-    {
+    public static void cleanupDir(String dirPath, List<String> childdirs) throws IOException {
         if (childdirs == null || childdirs.size() == 0)
             FileUtils.cleanDirectory(new File(dirPath));
-        else
-        {
+        else {
             for (String cdir : childdirs)
                 FileUtils.cleanDirectory(new File(dirPath + "/" + cdir));
         }
     }
 
-    public static void createDirs(String location)
-    {
+    public static void createDirs(String location) {
         File dirFile = new File(location);
-        if (dirFile.exists() && dirFile.isFile())
-        {
+        if (dirFile.exists() && dirFile.isFile()) {
             dirFile.delete();
             dirFile.mkdirs();
-        }
-        else if (!dirFile.exists())
+        } else if (!dirFile.exists())
             dirFile.mkdirs();
     }
 
-    public static byte[] md5(byte[] buf)
-    {
-        try
-        {
+    public static byte[] md5(byte[] buf) {
+        try {
             MessageDigest mdigest = MessageDigest.getInstance("MD5");
             mdigest.update(buf, 0, buf.length);
             return mdigest.digest();
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -261,31 +254,22 @@ public class SystemUtils
     /**
      * Get a Md5 string which is similar to OS Md5sum
      */
-    public static String md5(File file)
-    {
-        try
-        {
+    public static String md5(File file) {
+        try {
             HashCode hc = Files.hash(file, Hashing.md5());
             return toHex(hc.asBytes());
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static String toHex(byte[] digest)
-    {
+    public static String toHex(byte[] digest) {
         StringBuffer sb = new StringBuffer(digest.length * 2);
-        for (int i = 0; i < digest.length; i++)
-        {
+        for (int i = 0; i < digest.length; i++) {
             String hex = Integer.toHexString(digest[i]);
-            if (hex.length() == 1)
-            {
+            if (hex.length() == 1) {
                 sb.append("0");
-            }
-            else if (hex.length() == 8)
-            {
+            } else if (hex.length() == 8) {
                 hex = hex.substring(6);
             }
             sb.append(hex);
@@ -293,20 +277,17 @@ public class SystemUtils
         return sb.toString().toLowerCase();
     }
 
-    public static String toBase64(byte[] md5)
-    {
+    public static String toBase64(byte[] md5) {
         byte encoded[] = Base64.encodeBase64(md5, false);
         return new String(encoded);
     }
 
-    public static String formatDate(DateTime dateTime,String dateFormat)
-    {
+    public static String formatDate(DateTime dateTime, String dateFormat) {
         DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
         return dateTime.toString(fmt);
     }
 
-    public static String[] getSecurityGroupIds(String MAC_ID)
-    {
+    public static String[] getSecurityGroupIds(String MAC_ID) {
         String securityGroupIds = SystemUtils.getDataFromUrl(
                 "http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID +
                         "/security-group-ids/").trim();
