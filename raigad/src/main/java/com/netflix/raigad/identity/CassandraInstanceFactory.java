@@ -70,7 +70,7 @@ public class CassandraInstanceFactory implements IRaigadInstanceFactory {
         List<RaigadInstance> raigadInstances = new ArrayList<>(dao.getAllInstances(appName));
 
         if (config.isDebugEnabled()) {
-            for (RaigadInstance instance : dao.getAllInstances(appName)) {
+            for (RaigadInstance instance : raigadInstances) {
                 logger.debug("Instance details: " + instance.getInstanceId());
             }
         }

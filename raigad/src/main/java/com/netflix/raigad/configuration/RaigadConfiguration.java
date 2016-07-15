@@ -131,23 +131,34 @@ public class RaigadConfiguration implements IConfiguration {
     private static String PUBLIC_HOSTNAME, PUBLIC_IP, ACL_GROUP_ID_FOR_VPC;
 
     {
-        if (VPC_ID.equals(SystemUtils.NOT_FOUND_STR)) {
+        if (StringUtils.equals(VPC_ID, SystemUtils.NOT_FOUND_STR)) {
             PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
             PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
         }
         else {
             IS_DEPLOYED_IN_VPC = true;
-            // Following is a HACK : Need to come up with a better solution
-            // If Deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP
-            // Hence, Storing LOCAL_HOSTNAME and LOCAL_IP instead
-            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+
+            // Following is a HACK: need to come up with a better solution.
+            // If deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP,
+            // hence, storing LOCAL_HOSTNAME and LOCAL_IP instead
+
+            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            if (StringUtils.equals(PUBLIC_HOSTNAME, SystemUtils.NOT_FOUND_STR)) {
+                // Looks like this is VPC internal, trying local hostname
+                PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+            }
+            logger.info("Node host name initialized with {}", PUBLIC_HOSTNAME);
+
+            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+            if (StringUtils.equals(PUBLIC_IP, SystemUtils.NOT_FOUND_STR)) {
+                // Looks like this is VPC internal, trying local IP
+                PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+            }
+            logger.info("Node IP initialized with {}", PUBLIC_IP);
         }
     }
 
     private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-    // private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-    // private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
     private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
     private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
