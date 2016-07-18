@@ -125,6 +125,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String CONFIG_ACL_GROUP_NAME_FOR_VPC = MY_WEBAPP_NAME + ".acl.groupname.vpc";
 
     private static Boolean IS_DEPLOYED_IN_VPC = false;
+    private static Boolean IS_VPC_EXTERNAL = false;
     private static final String MAC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/mac");
     private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/vpc-id").trim();
 
@@ -137,15 +138,13 @@ public class RaigadConfiguration implements IConfiguration {
         }
         else {
             IS_DEPLOYED_IN_VPC = true;
-
-            // Following is a HACK: need to come up with a better solution.
-            // If deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP,
-            // hence, storing LOCAL_HOSTNAME and LOCAL_IP instead
+            IS_VPC_EXTERNAL = true;
 
             PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
             if (StringUtils.equals(PUBLIC_HOSTNAME, SystemUtils.NOT_FOUND_STR)) {
                 // Looks like this is VPC internal, trying local hostname
                 PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+                IS_VPC_EXTERNAL = false;
             }
             logger.info("Node host name initialized with {}", PUBLIC_HOSTNAME);
 
@@ -153,6 +152,7 @@ public class RaigadConfiguration implements IConfiguration {
             if (StringUtils.equals(PUBLIC_IP, SystemUtils.NOT_FOUND_STR)) {
                 // Looks like this is VPC internal, trying local IP
                 PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+                IS_VPC_EXTERNAL = false;
             }
             logger.info("Node IP initialized with {}", PUBLIC_IP);
         }
@@ -345,12 +345,6 @@ public class RaigadConfiguration implements IConfiguration {
         setDefaultRACList(REGION);
         populateProps();
         SystemUtils.createDirs(getDataFileLocation());
-        //Following is a HACK : Need to come up with better solution
-        //IF Multi-Region VPC mode then Set PUBLIC_HOSTNAME and PUBLIC_IP to correct values
-        if (IS_DEPLOYED_IN_VPC && isMultiDC()) {
-            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-        }
     }
 
     private void setupEnvVars() {
@@ -894,6 +888,11 @@ public class RaigadConfiguration implements IConfiguration {
     @Override
     public boolean isDeployedInVPC() {
         return IS_DEPLOYED_IN_VPC;
+    }
+
+    @Override
+    public boolean isVPCExternal() {
+        return IS_VPC_EXTERNAL;
     }
 
     @Override

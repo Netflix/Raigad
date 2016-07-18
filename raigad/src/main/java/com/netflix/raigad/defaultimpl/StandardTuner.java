@@ -60,7 +60,14 @@ public class StandardTuner implements IElasticsearchTuner {
         map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
-        map.put("network.publish_host", "_global_");
+
+        if (config.isVPCExternal()) {
+            map.put("network.publish_host", config.getHostIP());
+            map.put("http.publish_host", config.getHostname());
+        }
+        else {
+            map.put("network.publish_host", "_global_");
+        }
 
         if (config.isKibanaSetupRequired()) {
             map.put("http.cors.enabled", true);

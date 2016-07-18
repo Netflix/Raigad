@@ -310,6 +310,12 @@ public interface IConfiguration {
     boolean isDeployedInVPC();
 
     /**
+     * Check if instance is deployed in VPC external
+     * @return true or false
+     */
+    boolean isVPCExternal();
+
+    /**
      * Get the security group associated with nodes in this cluster in VPC
      */
     String getACLGroupNameForVPC();
