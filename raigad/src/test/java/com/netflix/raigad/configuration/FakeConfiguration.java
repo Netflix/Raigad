@@ -485,6 +485,11 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
+    public boolean isVPCExternal() {
+        return false;
+    }
+
+    @Override
     public String getACLGroupNameForVPC() {
         return null;
     }

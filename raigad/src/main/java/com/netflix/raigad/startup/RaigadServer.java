@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.startup;
 
 import com.google.inject.Inject;
@@ -39,14 +40,13 @@ import org.slf4j.LoggerFactory;
  * Start all tasks here: Property update task, Backup task, Restore task, Incremental backup
  */
 @Singleton
-public class RaigadServer
-{
+public class RaigadServer {
+    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
+
     private static final int ES_MONITORING_INITIAL_DELAY = 10;
     private static final int ES_SNAPSHOT_INITIAL_DELAY = 100;
     private static final int ES_HEALTH_MONITOR_DELAY = 600;
     private static final int ES_NODE_HEALTH_MONITOR_DELAY = 10;
-
-    private static final Logger logger = LoggerFactory.getLogger(RaigadServer.class);
 
     private final RaigadScheduler scheduler;
     private final IConfiguration config;
@@ -67,8 +67,7 @@ public class RaigadServer
                         InstanceManager instanceManager,
                         ElasticSearchIndexManager esIndexManager,
                         SnapshotBackupManager snapshotBackupManager,
-                        SetVPCSecurityGroupID setVPCSecurityGroupID)
-    {
+                        SetVPCSecurityGroupID setVPCSecurityGroupID) {
         this.config = config;
         this.scheduler = scheduler;
         this.httpModule = httpModule;
@@ -80,13 +79,12 @@ public class RaigadServer
         this.setVPCSecurityGroupID = setVPCSecurityGroupID;
     }
 
-    public void initialize() throws Exception
-    {     
-    	// Check if it's really needed
+    public void initialize() throws Exception {
+        // Check if it's really needed
         if (instanceManager.getInstance().isOutOfService()) {
             return;
         }
-        
+
         logger.info("Initializing Raigad server now...");
 
         // Start to schedule jobs
@@ -94,6 +92,13 @@ public class RaigadServer
 
         if (!config.isLocalModeEnabled()) {
             if (config.amITribeNode()) {
+                logger.info("Updating security setting for the tribe node");
+
+                if (config.isDeployedInVPC()) {
+                    logger.info("Setting Security Group ID (VPC)");
+                    setVPCSecurityGroupID.execute();
+                }
+
                 // Update security settings
                 scheduler.runTaskNow(UpdateTribeSecuritySettings.class);
 
@@ -108,6 +113,7 @@ public class RaigadServer
             }
             else {
                 if (config.isSecutrityGroupInMultiDC()) {
+                    logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
                         if (config.isVPCMigrationModeEnabled()) {
@@ -126,7 +132,7 @@ public class RaigadServer
                                     UpdateSecuritySettings.getTimer(instanceManager));
                         }
 
-                        // Setting Security Group ID
+                        logger.info("Setting Security Group ID (VPC)");
                         setVPCSecurityGroupID.execute();
                     }
 
@@ -147,10 +153,10 @@ public class RaigadServer
 
         // Tune Elasticsearch
         scheduler.runTaskNow(TuneElasticsearch.class);
-        
-        logger.info("Trying to start Elasticsearch now ...");
-        
-		if (!config.doesElasticsearchStartManually()) {
+
+        logger.info("Trying to start Elasticsearch now...");
+
+        if (!config.doesElasticsearchStartManually()) {
             // Start Elasticsearch
             esProcess.start(true);
 
@@ -161,7 +167,7 @@ public class RaigadServer
                         config.getRestoreTaskInitialDelayInSeconds());
             }
         }
-		else {
+        else {
             logger.info("config.doesElasticsearchStartManually() is set to True," +
                     "hence Elasticsearch needs to be started manually. " +
                     "Restore task needs to be started manually as well (if needed).");
@@ -175,23 +181,21 @@ public class RaigadServer
         /*
          *  Run Snapshot Backup task
          */
-        if (config.isAsgBasedDedicatedDeployment())
-        {
-            if (config.getASGName().toLowerCase().contains("master"))
-            {   // Run Snapshot task only on Master Nodes
+        if (config.isAsgBasedDedicatedDeployment()) {
+            if (config.getASGName().toLowerCase().contains("master")) {
+                // Run Snapshot task only on Master Nodes
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
-                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
                 scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
             else if (!config.reportMetricsFromMasterOnly()) {
                 scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
         }
-        else
-        {
+        else {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
-            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOBNAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
             scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
         }
 
@@ -202,7 +206,10 @@ public class RaigadServer
         scheduler.addTask(TransportStatsMonitor.METRIC_NAME, TransportStatsMonitor.class, TransportStatsMonitor.getTimer("TransportStatsMonitor"));
         scheduler.addTask(NodeIndicesStatsMonitor.METRIC_NAME, NodeIndicesStatsMonitor.class, NodeIndicesStatsMonitor.getTimer("NodeIndicesStatsMonitor"));
         scheduler.addTask(FsStatsMonitor.METRIC_NAME, FsStatsMonitor.class, FsStatsMonitor.getTimer("FsStatsMonitor"));
-        scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));
+
+        // TODO: 2X: Determine if this is necessary and if yes find an alternative
+        //scheduler.addTask(NetworkStatsMonitor.METRIC_NAME, NetworkStatsMonitor.class, NetworkStatsMonitor.getTimer("NetworkStatsMonitor"));
+
         scheduler.addTask(JvmStatsMonitor.METRIC_NAME, JvmStatsMonitor.class, JvmStatsMonitor.getTimer("JvmStatsMonitor"));
         scheduler.addTask(OsStatsMonitor.METRIC_NAME, OsStatsMonitor.class, OsStatsMonitor.getTimer("OsStatsMonitor"));
         scheduler.addTask(ProcessStatsMonitor.METRIC_NAME, ProcessStatsMonitor.class, ProcessStatsMonitor.getTimer("ProcessStatsMonitor"));
@@ -210,22 +217,17 @@ public class RaigadServer
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
         scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"),ES_NODE_HEALTH_MONITOR_DELAY);
-
     }
 
-    public InstanceManager getInstanceManager()
-    {
+    public InstanceManager getInstanceManager() {
         return instanceManager;
     }
 
-    public RaigadScheduler getScheduler()
-    {
+    public RaigadScheduler getScheduler() {
         return scheduler;
     }
 
-    public IConfiguration getConfiguration()
-    {
+    public IConfiguration getConfiguration() {
         return config;
     }
-
 }

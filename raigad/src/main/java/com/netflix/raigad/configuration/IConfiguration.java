@@ -1,29 +1,28 @@
 /**
  * Copyright 2016 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.configuration;
 
 import com.google.inject.ImplementedBy;
 
 import java.util.List;
 
-
 @ImplementedBy(RaigadConfiguration.class)
-public interface IConfiguration
-{
-	
+public interface IConfiguration {
+
     void initialize();
 
     /**
@@ -44,42 +43,42 @@ public interface IConfiguration
      * @return Path to Elasticsearch stop script
      */
     String getElasticsearchStopScript();
-   
+
     int getTransportTcpPort();
-    
+
     int getHttpPort();
 
     int getNumOfShards();
-    
+
     int getNumOfReplicas();
 
     int getTotalShardsPerNode();
 
     String getRefreshInterval();
-    
+
     boolean isMasterQuorumEnabled();
-    
+
     int getMinimumMasterNodes();
-    
+
     String getPingTimeout();
-    
+
     boolean isPingMulticastEnabled();
-    
+
     String getFdPingInterval();
-    
+
     String getFdPingTimeout();
 
     /**
      * @return Location of the local data dir
      */
-	String getDataFileLocation();
+    String getDataFileLocation();
 
     /**
      * @return Location of the local log dir
      */
-	String getLogFileLocation();
+    String getLogFileLocation();
 
-	boolean doesElasticsearchStartManually();
+    boolean doesElasticsearchStartManually();
 
     /**
      * @return Cluster name
@@ -123,18 +122,18 @@ public interface IConfiguration
      */
     void setDC(String dc);
 
- 
+
     /**
      * Amazon specific setting to query ASG Membership
      */
     String getASGName();
-    
+
     /**
      * Get the security group associated with nodes in this cluster
      */
     String getACLGroupName();
 
-   
+
     /**
      * @return Get host IP
      */
@@ -144,12 +143,12 @@ public interface IConfiguration
      * @return Get host Local IP
      */
     String getHostLocalIP();
-   
+
     /**
      * @return Bootstrap cluster name (depends on another cass cluster)
      */
     String getBootClusterName();
-    
+
     /**
      * @return Elasticsearch Process Name
      */
@@ -163,15 +162,15 @@ public interface IConfiguration
     /**
      * @return Whether it's a Multi-Region Setup
      */
-	boolean isMultiDC();
+    boolean isMultiDC();
 
     /**
      * @return Elasticsearch Index Refresh Interval
      */
-	String getIndexRefreshInterval();
+    String getIndexRefreshInterval();
 
     String getClusterRoutingAttributes();
-    
+
     boolean isAsgBasedDedicatedDeployment();
 
     boolean isCustomShardAllocationPolicyEnabled();
@@ -309,6 +308,12 @@ public interface IConfiguration
      * @return true or false
      */
     boolean isDeployedInVPC();
+
+    /**
+     * Check if instance is deployed in VPC external
+     * @return true or false
+     */
+    boolean isVPCExternal();
 
     /**
      * Get the security group associated with nodes in this cluster in VPC

@@ -66,7 +66,7 @@ import java.util.Map;
 public class ElasticSearchIndexManager extends Task {
 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchIndexManager.class);
-    public static String JOBNAME = "ElasticSearchIndexManager";
+    public static String JOB_NAME = "ElasticSearchIndexManager";
     private final HttpModule httpModule;
 
     @Inject
@@ -145,13 +145,13 @@ public class ElasticSearchIndexManager extends Task {
 
     @Override
     public String getName() {
-        return JOBNAME;
+        return JOB_NAME;
     }
 
     public static TaskTimer getTimer(IConfiguration config)
     {
         int hour = config.getAutoCreateIndexPeriodicScheduledHour();
-        return new CronTimer(hour, 1, 0,JOBNAME);
+        return new CronTimer(hour, 1, 0, JOB_NAME);
     }
 
     /**

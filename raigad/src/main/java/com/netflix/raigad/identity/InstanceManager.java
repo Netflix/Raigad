@@ -40,9 +40,9 @@ public class InstanceManager {
 	private static final String PARAM_SEPARATOR = "=";
 
 	private final IRaigadInstanceFactory instanceFactory;
-    private final IMembership membership;
-    private final IConfiguration config;
-	private RaigadInstance myInstance;
+	private final IMembership membership;
+	private final IConfiguration config;
+	private RaigadInstance thisInstance;
 
 	@Inject
 	public InstanceManager(IRaigadInstanceFactory instanceFactory, IMembership membership, IConfiguration config) throws Exception {
@@ -53,18 +53,17 @@ public class InstanceManager {
 	}
 
 	private void init() throws Exception {
-		logger.info("*** Deregistering dead instances");
+		logger.info("Deregistering dead instances");
 		new RetriableCallable<Void>() {
 			@Override
 			public Void retriableCall() throws Exception {
-				logger.info("*** Calling deregisterInstance");
 				deregisterInstance(instanceFactory, config);
 				return null;
 			}
 		}.call();
-		
-		logger.info("*** Registering instance");
-		myInstance = new RetriableCallable<RaigadInstance>() {
+
+		logger.info("Registering this instance");
+		thisInstance = new RetriableCallable<RaigadInstance>() {
 			@Override
 			public RaigadInstance retriableCall() throws Exception {
 				RaigadInstance instance = registerInstance(instanceFactory, config);
@@ -72,7 +71,7 @@ public class InstanceManager {
 			}
 		}.call();
 
-		logger.info("Raigad instance details: " + myInstance.toString());
+		logger.info("Raigad instance details: " + thisInstance.toString());
 	}
 
 	private RaigadInstance registerInstance(IRaigadInstanceFactory instanceFactory, IConfiguration config) throws Exception {
@@ -84,7 +83,7 @@ public class InstanceManager {
 	}
 
 	private void deregisterInstance(IRaigadInstanceFactory instanceFactory, IConfiguration config) throws Exception {
-	    final List<RaigadInstance> allInstances = getInstanceList();
+		final List<RaigadInstance> allInstances = getInstanceList();
 
 		HashSet<String> asgNames = new HashSet<>();
 		for (RaigadInstance raigadInstance : allInstances) {
@@ -96,9 +95,9 @@ public class InstanceManager {
 		logger.info("Known instances: {}", allInstances);
 		logger.info("Known ASG's: {}", StringUtils.join(asgNames, ","));
 
-	    Map<String, List<String>> asgInstances = membership.getRacMembership(asgNames);
+		Map<String, List<String>> asgInstances = membership.getRacMembership(asgNames);
 
-	    for (RaigadInstance knownInstance : allInstances) {
+		for (RaigadInstance knownInstance : allInstances) {
 			// Test same region and if it is alive.
 			// TODO: Provide a config property to choose same DC/Region
 
@@ -119,80 +118,80 @@ public class InstanceManager {
 
 			logger.info("Found dead instance: " + knownInstance.getInstanceId());
 			instanceFactory.delete(knownInstance);
-	    }
+		}
 	}
 
 	public RaigadInstance getInstance() {
-		return myInstance;
+		return thisInstance;
 	}
-	
+
 	public List<RaigadInstance> getAllInstances() {
 		return getInstanceList();
 	}
 
-    private List<RaigadInstance> getInstanceList() {
-        List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+	private List<RaigadInstance> getInstanceList() {
+		List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
 
-        // Considering same cluster will not serve as a tribe node and source cluster for the tribe node
-        if (config.amITribeNode()) {
-            String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
-            assert (clusterParams != null) : "I am a tribe node but I need one or more source clusters";
+		// Considering same cluster will not serve as a tribe node and source cluster for the tribe node
+		if (config.amITribeNode()) {
+			String clusterParams = config.getCommaSeparatedSourceClustersForTribeNode();
+			assert (clusterParams != null) : "I am a tribe node but I need one or more source clusters";
 
-            String[] clusters = StringUtils.split(clusterParams, COMMA_SEPARATOR);
-            assert (clusters.length != 0) : "One or more clusters needed";
+			String[] clusters = StringUtils.split(clusterParams, COMMA_SEPARATOR);
+			assert (clusters.length != 0) : "One or more clusters needed";
 
-            List<String> sourceClusters = new ArrayList<String>();
+			List<String> sourceClusters = new ArrayList<String>();
 
-            // Common settings
-            for (int i = 0; i < clusters.length; i ++) {
-                String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
-                assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
-                sourceClusters.add(clusterPort[0]);
-                logger.info("Adding cluster = <{}> ", clusterPort[0]);
-            }
+			// Common settings
+			for (int i = 0; i < clusters.length; i ++) {
+				String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
+				assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
+				sourceClusters.add(clusterPort[0]);
+				logger.info("Adding cluster = <{}> ", clusterPort[0]);
+			}
 
-            for (String sourceClusterName : sourceClusters) {
+			for (String sourceClusterName : sourceClusters) {
 				instances.addAll(instanceFactory.getAllIds(sourceClusterName));
 			}
 
-            logger.info("Printing tribe node related nodes...");
+			logger.info("Printing tribe node related nodes...");
 
-            for (RaigadInstance instance:instances) {
+			for (RaigadInstance instance:instances) {
 				logger.info(instance.toString());
 			}
-        }
-        else {
+		}
+		else {
 			instances.addAll(instanceFactory.getAllIds(config.getAppName()));
 		}
 
-        if (config.isDebugEnabled()) {
+		if (config.isDebugEnabled()) {
 			for (RaigadInstance instance : instances) {
 				logger.debug(instance.toString());
 			}
-        }
+		}
 
-        return instances;
-    }
+		return instances;
+	}
 
-    public List<RaigadInstance> getAllInstancesPerCluster(String clusterName) {
-        return getInstanceListPerCluster(clusterName);
-    }
+	public List<RaigadInstance> getAllInstancesPerCluster(String clusterName) {
+		return getInstanceListPerCluster(clusterName);
+	}
 
-    private List<RaigadInstance> getInstanceListPerCluster(String clusterName) {
-        List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
-        instances.addAll(instanceFactory.getAllIds(clusterName.trim().toLowerCase()));
+	private List<RaigadInstance> getInstanceListPerCluster(String clusterName) {
+		List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+		instances.addAll(instanceFactory.getAllIds(clusterName.trim().toLowerCase()));
 
-        if (config.isDebugEnabled()) {
-            for (RaigadInstance instance : instances) {
+		if (config.isDebugEnabled()) {
+			for (RaigadInstance instance : instances) {
 				logger.debug(instance.toString());
 			}
-        }
+		}
 
-        return instances;
-    }
+		return instances;
+	}
 
-    public boolean isMaster() {
-        //For non-dedicated deployments, return true (every node can be a master)
-        return (!config.isAsgBasedDedicatedDeployment() || config.getASGName().toLowerCase().contains("master"));
-    }
+	public boolean isMaster() {
+		//For non-dedicated deployments, return true (every node can be a master)
+		return (!config.isAsgBasedDedicatedDeployment() || config.getASGName().toLowerCase().contains("master"));
+	}
 }
