@@ -67,7 +67,7 @@ public class StandardTuner implements IElasticsearchTuner {
             map.put("http.publish_host", config.getHostname());
         }
         else {
-            map.put("network.publish_host", "_non_loopback_");
+            map.put("network.publish_host", "_non_loopback:ipv4_");
         }
 
         if (config.isKibanaSetupRequired()) {
@@ -90,6 +90,7 @@ public class StandardTuner implements IElasticsearchTuner {
 
                 map.put("tribe.t" + i + ".cluster.name", clusterNameAndPort[0]);
                 map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterNameAndPort[1]));
+                map.put("tribe.t" + i + ".network.publish_host", config.getHostIP());
                 map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
                 logger.info("Adding cluster [{}:{}]", clusterNameAndPort[0], clusterNameAndPort[1]);
             }
