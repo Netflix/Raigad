@@ -1,18 +1,19 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2016 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.configuration;
 
 import com.amazonaws.services.ec2.AmazonEC2;
@@ -33,16 +34,17 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 @Singleton
-public class RaigadConfiguration implements IConfiguration
-{
+public class RaigadConfiguration implements IConfiguration {
+    private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
+
     public static final String MY_WEBAPP_NAME = "Raigad";
 
     private static final String CONFIG_CLUSTER_NAME = MY_WEBAPP_NAME + ".es.clustername";
     private static final String CONFIG_AVAILABILITY_ZONES = MY_WEBAPP_NAME + ".zones.available";
     private static final String CONFIG_DATA_LOCATION = MY_WEBAPP_NAME + ".es.data.location";
     private static final String CONFIG_LOG_LOCATION = MY_WEBAPP_NAME + ".es.log.location";
-    private static final String CONFIG_ES_START_SCRIPT = MY_WEBAPP_NAME + ".es.startscript";
     private static final String CONFIG_YAML_LOCATION = MY_WEBAPP_NAME + ".es.yamlLocation";
+    private static final String CONFIG_ES_START_SCRIPT = MY_WEBAPP_NAME + ".es.startscript";
     private static final String CONFIG_ES_STOP_SCRIPT = MY_WEBAPP_NAME + ".es.stopscript";
     private static final String CONFIG_ES_HOME = MY_WEBAPP_NAME + ".es.home";
     private static final String CONFIG_FD_PING_INTERVAL = MY_WEBAPP_NAME + ".es.fd.pinginterval";
@@ -124,28 +126,40 @@ public class RaigadConfiguration implements IConfiguration
     private static final String CONFIG_ACL_GROUP_NAME_FOR_VPC = MY_WEBAPP_NAME + ".acl.groupname.vpc";
 
     private static Boolean IS_DEPLOYED_IN_VPC = false;
+    private static Boolean IS_VPC_EXTERNAL = false;
     private static final String MAC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/mac");
-    private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/"+MAC_ID+"/vpc-id").trim();
+    private static String VPC_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/network/interfaces/macs/" + MAC_ID + "/vpc-id").trim();
 
     private static String PUBLIC_HOSTNAME, PUBLIC_IP, ACL_GROUP_ID_FOR_VPC;
 
     {
-        if (VPC_ID.equals(SystemUtils.NOT_FOUND_STR)) {
+        if (StringUtils.equals(VPC_ID, SystemUtils.NOT_FOUND_STR)) {
             PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
             PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-        } else {
+        }
+        else {
             IS_DEPLOYED_IN_VPC = true;
-            // Following is a HACK : Need to come up with a better solution
-            // If Deployed in VPC internal then there is no concept of PUBLIC_HOSTNAME or PUBLIC_IP
-            // Hence, Storing LOCAL_HOSTNAME and LOCAL_IP instead
-            PUBLIC_HOSTNAME =  SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+            IS_VPC_EXTERNAL = true;
+
+            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
+            if (StringUtils.equals(PUBLIC_HOSTNAME, SystemUtils.NOT_FOUND_STR)) {
+                // Looks like this is VPC internal, trying local hostname
+                PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
+                IS_VPC_EXTERNAL = false;
+            }
+            logger.info("Node host name initialized with {}", PUBLIC_HOSTNAME);
+
+            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
+            if (StringUtils.equals(PUBLIC_IP, SystemUtils.NOT_FOUND_STR)) {
+                // Looks like this is VPC internal, trying local IP
+                PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
+                IS_VPC_EXTERNAL = false;
+            }
+            logger.info("Node IP initialized with {}", PUBLIC_IP);
         }
     }
 
     private static final String RAC = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/placement/availability-zone");
-//    private static final String PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-//    private static final String PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
     private static final String LOCAL_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-hostname").trim();
     private static final String LOCAL_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/local-ipv4").trim();
     private static final String INSTANCE_ID = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/instance-id").trim();
@@ -168,8 +182,8 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_ES_STOP_SCRIPT = "/etc/init.d/elasticsearch stop";
 
     private static final String DEFAULT_ES_HOME = "/apps/elasticsearch";
-    private static final String DEFAULT_FD_PING_INTERVAL = "60s";
-    private static final String DEFAULT_FD_PING_TIMEOUT = "60s";
+    private static final String DEFAULT_FD_PING_INTERVAL = "30s";
+    private static final String DEFAULT_FD_PING_TIMEOUT = "30s";
     private static final int DEFAULT_HTTP_PORT = 7104;
     private static final int DEFAULT_TRANSPORT_TCP_PORT = 7102;
     private static final int DEFAULT_MIN_MASTER_NODES = 1;
@@ -240,7 +254,6 @@ public class RaigadConfiguration implements IConfiguration
     private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster-vpc";
 
     private final IConfigSource config;
-    private static final Logger logger = LoggerFactory.getLogger(RaigadConfiguration.class);
     private final ICredential provider;
 
     private final DynamicStringProperty CREDENTIAL_PROVIDER = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_CREDENTIAL_PROVIDER, DEFAULT_CREDENTIAL_PROVIDER);
@@ -250,8 +263,8 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty LOG_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_LOG_LOCATION, DEFAULT_LOG_LOCATION);
     private final DynamicStringProperty YAML_LOCATION = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_YAML_LOCATION, DEFAULT_YAML_LOCATION);
     private final DynamicStringProperty ES_HOME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_HOME, DEFAULT_ES_HOME);
-    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL,DEFAULT_FD_PING_INTERVAL);
-    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT,DEFAULT_FD_PING_TIMEOUT);
+    private final DynamicStringProperty FD_PING_INTERVAL = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_INTERVAL, DEFAULT_FD_PING_INTERVAL);
+    private final DynamicStringProperty FD_PING_TIMEOUT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_FD_PING_TIMEOUT, DEFAULT_FD_PING_TIMEOUT);
     private final DynamicIntProperty ES_HTTP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_HTTP_PORT, DEFAULT_HTTP_PORT);
     private final DynamicIntProperty ES_TRANSPORT_TCP_PORT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_TRANSPORT_TCP_PORT, DEFAULT_TRANSPORT_TCP_PORT);
     private final DynamicIntProperty MINIMUM_MASTER_NODES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_MIN_MASTER_NODES, DEFAULT_MIN_MASTER_NODES);
@@ -276,7 +289,7 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty INDEX_METADATA = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_INDEX_METADATA, DEFAULT_INDEX_METADATA);
     private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
     private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
-    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS,DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
+    private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
     private final DynamicIntProperty AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
     private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
     private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
@@ -322,30 +335,21 @@ public class RaigadConfiguration implements IConfiguration
     private final DynamicStringProperty ACL_GROUP_NAME_FOR_VPC = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ACL_GROUP_NAME_FOR_VPC, DEFAULT_ACL_GROUP_NAME_FOR_VPC);
 
     @Inject
-    public RaigadConfiguration(ICredential provider, IConfigSource config)
-    {
+    public RaigadConfiguration(ICredential provider, IConfigSource config) {
         this.provider = provider;
         this.config = config;
     }
 
     @Override
-    public void initialize()
-    {
+    public void initialize() {
         setupEnvVars();
         this.config.initialize(ASG_NAME, REGION);
         setDefaultRACList(REGION);
         populateProps();
         SystemUtils.createDirs(getDataFileLocation());
-        //Following is a HACK : Need to come up with better solution
-        //IF Multi-Region VPC mode then Set PUBLIC_HOSTNAME and PUBLIC_IP to correct values
-        if (IS_DEPLOYED_IN_VPC && isMultiDC()) {
-            PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
-            PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-        }
     }
 
-    private void setupEnvVars()
-    {
+    private void setupEnvVars() {
         // Search in java opt properties
         REGION = StringUtils.isBlank(REGION) ? System.getProperty("EC2_REGION") : REGION;
         // Infer from zone
@@ -361,10 +365,9 @@ public class RaigadConfiguration implements IConfiguration
      * Query amazon to get ASG name. Currently not available as part of instance
      * info api.
      */
-    private String populateASGName(String region, String instanceId)
-    {
+    private String populateASGName(String region, String instanceId) {
         GetASGName getASGName = new GetASGName(region, instanceId);
-        
+
         try {
             return getASGName.call();
         } catch (Exception e) {
@@ -373,14 +376,13 @@ public class RaigadConfiguration implements IConfiguration
         }
     }
 
-    private class GetASGName extends RetriableCallable<String>
-    {
+    private class GetASGName extends RetriableCallable<String> {
         private static final int NUMBER_OF_RETRIES = 15;
         private static final long WAIT_TIME = 30000;
         private final String region;
         private final String instanceId;
         private final AmazonEC2 client;
-        
+
         public GetASGName(String region, String instanceId) {
             super(NUMBER_OF_RETRIES, WAIT_TIME);
             this.region = region;
@@ -388,24 +390,21 @@ public class RaigadConfiguration implements IConfiguration
             client = new AmazonEC2Client(provider.getAwsCredentialProvider());
             client.setEndpoint("ec2." + region + ".amazonaws.com");
         }
-        
+
         @Override
         public String retriableCall() throws IllegalStateException {
             DescribeInstancesRequest desc = new DescribeInstancesRequest().withInstanceIds(instanceId);
             DescribeInstancesResult res = client.describeInstances(desc);
-    
-            for (Reservation resr : res.getReservations())
-            {
-                for (Instance ins : resr.getInstances())
-                {
-                    for (com.amazonaws.services.ec2.model.Tag tag : ins.getTags())
-                    {
+
+            for (Reservation resr : res.getReservations()) {
+                for (Instance ins : resr.getInstances()) {
+                    for (com.amazonaws.services.ec2.model.Tag tag : ins.getTags()) {
                         if (tag.getKey().equals("aws:autoscaling:groupName"))
                             return tag.getValue();
                     }
                 }
             }
-            
+
             logger.warn("Couldn't determine ASG name");
             throw new IllegalStateException("Couldn't determine ASG name");
         }
@@ -414,57 +413,51 @@ public class RaigadConfiguration implements IConfiguration
     /**
      * Get the fist 3 available zones in the region
      */
-    public void setDefaultRACList(String region){
+    public void setDefaultRACList(String region) {
         AmazonEC2 client = new AmazonEC2Client(provider.getAwsCredentialProvider());
         client.setEndpoint("ec2." + region + ".amazonaws.com");
         DescribeAvailabilityZonesResult res = client.describeAvailabilityZones();
         List<String> zone = Lists.newArrayList();
-        for(AvailabilityZone reg : res.getAvailabilityZones()){
-            if( reg.getState().equals("available") )
+        for (AvailabilityZone reg : res.getAvailabilityZones()) {
+            if (reg.getState().equals("available"))
                 zone.add(reg.getZoneName());
-            if( zone.size() == 3)
+            if (zone.size() == 3)
                 break;
         }
 //        DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
-      DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
+        DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
     }
 
-    private void populateProps()
-    {
+    private void populateProps() {
         config.set(CONFIG_ASG_NAME, ASG_NAME);
         config.set(CONFIG_REGION_NAME, REGION);
     }
 
     @Override
-    public List<String> getRacs()
-    {
+    public List<String> getRacs() {
         return config.getList(CONFIG_AVAILABILITY_ZONES, DEFAULT_AVAILABILITY_ZONES);
     }
-   
+
 
     @Override
-    public String getDC()
-    {
+    public String getDC() {
         return config.get(CONFIG_REGION_NAME, "");
     }
 
     @Override
-    public void setDC(String region)
-    {
+    public void setDC(String region) {
         config.set(CONFIG_REGION_NAME, region);
     }
 
-    
+
     @Override
-    public String getASGName()
-    {
+    public String getASGName() {
         return config.get(CONFIG_ASG_NAME, ASG_NAME);
     }
 
     @Override
-    public String getACLGroupName()
-    {
-    	return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
+    public String getACLGroupName() {
+        return config.get(CONFIG_ACL_GROUP_NAME, this.getAppName());
     }
 
     @Override
@@ -483,8 +476,7 @@ public class RaigadConfiguration implements IConfiguration
     }
 
     @Override
-    public String getYamlLocation()
-    {
+    public String getYamlLocation() {
         return YAML_LOCATION.get();
     }
 
@@ -631,8 +623,7 @@ public class RaigadConfiguration implements IConfiguration
     /**
      * @return Elasticsearch Index Refresh Interval
      */
-    public String getIndexRefreshInterval()
-    {
+    public String getIndexRefreshInterval() {
         return INDEX_REFRESH_INTERVAL.get();
     }
 
@@ -702,7 +693,7 @@ public class RaigadConfiguration implements IConfiguration
         return BACKUP_HOUR.get();
     }
 
-    public boolean isSnapshotBackupEnabled(){
+    public boolean isSnapshotBackupEnabled() {
         return IS_SNAPSHOT_BACKUP_ENABLED.get();
     }
 
@@ -902,8 +893,12 @@ public class RaigadConfiguration implements IConfiguration
     }
 
     @Override
-    public String getACLGroupNameForVPC()
-    {
+    public boolean isVPCExternal() {
+        return IS_VPC_EXTERNAL;
+    }
+
+    @Override
+    public String getACLGroupNameForVPC() {
         return ACL_GROUP_NAME_FOR_VPC.get();
     }
 
@@ -914,7 +909,7 @@ public class RaigadConfiguration implements IConfiguration
 
     @Override
     public void setACLGroupIdForVPC(String aclGroupIdForVPC) {
-        ACL_GROUP_ID_FOR_VPC =  aclGroupIdForVPC;
+        ACL_GROUP_ID_FOR_VPC = aclGroupIdForVPC;
     }
 
     @Override

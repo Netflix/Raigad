@@ -18,9 +18,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
-public class TestElasticsearchConfig
-{
-
+public class TestElasticsearchConfig {
     private
     @Mocked
     RaigadServer raigadServer;
@@ -30,23 +28,29 @@ public class TestElasticsearchConfig
 
     @Before
     public void setUp() {
-        resource = new ElasticsearchConfig(raigadServer,tribeUtils);
+        resource = new ElasticsearchConfig(raigadServer, tribeUtils);
     }
 
     @Test
     public void getNodes() throws Exception {
+        RaigadInstance es1 = new RaigadInstance();
+        es1.setApp("fake-app1");
 
-        RaigadInstance es1 = new RaigadInstance();es1.setApp("fake-app1");
-        RaigadInstance es2 = new RaigadInstance();es2.setApp("fake-app2");
-        RaigadInstance es3 = new RaigadInstance();es3.setApp("fake-app3");
+        RaigadInstance es2 = new RaigadInstance();
+        es2.setApp("fake-app2");
+
+        RaigadInstance es3 = new RaigadInstance();
+        es3.setApp("fake-app3");
+
         final List<RaigadInstance> nodes = asList(es1, es2, es3);
+
         new NonStrictExpectations() {
             InstanceManager instanceManager;
-
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
                 times = 1;
+
                 instanceManager.getAllInstances();
                 result = nodes;
                 times = 1;
@@ -60,13 +64,35 @@ public class TestElasticsearchConfig
     @Test
     public void getNodes_notFound() throws Exception {
         final List<String> nodes = ImmutableList.of();
+
         new NonStrictExpectations() {
             InstanceManager instanceManager;
-
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
                 times = 1;
+
+                instanceManager.getAllInstances();
+                result = nodes;
+                times = 1;
+            }
+        };
+
+        Response response = resource.getNodes();
+        assertEquals(200, response.getStatus());
+    }
+
+    @Test
+    public void getNodes_Error() throws Exception {
+        final List<String> nodes = null;
+
+        new NonStrictExpectations() {
+            InstanceManager instanceManager;
+            {
+                raigadServer.getInstanceManager();
+                result = instanceManager;
+                times = 1;
+
                 instanceManager.getAllInstances();
                 result = nodes;
                 times = 1;

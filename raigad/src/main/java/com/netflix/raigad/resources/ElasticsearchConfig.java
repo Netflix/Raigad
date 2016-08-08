@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.raigad.resources;
 
 import com.google.inject.Inject;
@@ -20,7 +21,6 @@ import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.EsUtils;
 import com.netflix.raigad.utils.TribeUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -55,51 +55,55 @@ public class ElasticsearchConfig {
     @Path("/get_nodes")
     public Response getNodes() {
         try {
-            logger.info("getNodes - fetching nodes");
+            logger.info("Getting cluster nodes");
             final List<RaigadInstance> instances = raigadServer.getInstanceManager().getAllInstances();
 
-            if (!CollectionUtils.isEmpty(instances)) {
-                logger.info("getNodes - got {} instances", instances.size());
-                JSONObject raigadJson = EsUtils.transformRaigadInstanceToJson(instances);
-                return Response.ok(raigadJson.toString()).build();
+            if (instances == null) {
+                logger.error("Error getting cluster nodes");
+                return Response.serverError().build();
             }
+
+            logger.info("Got {} instances", instances.size());
+            JSONObject raigadJson = EsUtils.transformRaigadInstanceToJson(instances);
+            return Response.ok(raigadJson.toString()).build();
         }
         catch (Exception e) {
             logger.error("Error getting nodes (getNodes)", e);
             return Response.serverError().build();
         }
-
-        return Response.status(500).build();
     }
 
     @GET
     @Path("/get_tribe_nodes/{id}")
     public Response getTribeNodes(@PathParam("id") String id) {
         try {
-            logger.info("getTribeNodes - fetching nodes for tribe ID = {}", id);
+            logger.info("Getting nodes for the source tribe cluster [{}]", id);
 
             // Find source cluster name from the tribe ID by reading YAML file
-            String tribeSourceClusterName = tribeUtils.getTribeClusterNameFromId(id);
+            String sourceTribeClusterName = tribeUtils.getTribeClusterNameFromId(id);
 
-            if (StringUtils.isEmpty(tribeSourceClusterName)) {
-                throw new RuntimeException("Tribe source cluster name is null or empty," +
-                        "check if the field exists in elasticsearch.yml");
+            if (StringUtils.isEmpty(sourceTribeClusterName)) {
+                logger.error("Source tribe cluster name is null or empty, check configuration");
+                return Response.serverError().build();
             }
+
+            logger.info("Found source tribe cluster {} with ID [{}]", sourceTribeClusterName, id);
 
             final List<RaigadInstance> instances =
-                    raigadServer.getInstanceManager().getAllInstancesPerCluster(tribeSourceClusterName);
+                    raigadServer.getInstanceManager().getAllInstancesPerCluster(sourceTribeClusterName);
 
-            if (!CollectionUtils.isEmpty(instances)) {
-                logger.info("getTribeNodes - got {} instances", instances.size());
-                JSONObject raigadJson = EsUtils.transformRaigadInstanceToJson(instances);
-                return Response.ok(raigadJson.toString()).build();
+            if (instances == null) {
+                logger.error("Error getting source tribe cluster nodes for {}", sourceTribeClusterName);
+                return Response.serverError().build();
             }
+
+            logger.info("Got {} instances for {}", instances.size(), sourceTribeClusterName);
+            JSONObject raigadJson = EsUtils.transformRaigadInstanceToJson(instances);
+            return Response.ok(raigadJson.toString()).build();
         }
         catch (Exception e) {
-            logger.error("Error getting nodes (getTribeNodes)", e);
+            logger.error("Exception getting nodes (getTribeNodes)", e);
             return Response.serverError().build();
         }
-
-        return Response.status(500).build();
     }
 }
