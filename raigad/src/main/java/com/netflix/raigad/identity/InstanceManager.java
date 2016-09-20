@@ -95,13 +95,15 @@ public class InstanceManager {
 		logger.info("Known instances: {}", allInstances);
 		logger.info("Known ASG's: {}", StringUtils.join(asgNames, ","));
 
-		Map<String, List<String>> asgInstances = membership.getRacMembership(asgNames);
+		Map<String, List<String>> instancesPerAsg = membership.getRacMembership(asgNames);
+
+		logger.info("Known instances per ASG: {}", instancesPerAsg);
 
 		for (RaigadInstance knownInstance : allInstances) {
 			// Test same region and if it is alive.
 			// TODO: Provide a config property to choose same DC/Region
 
-			if (asgInstances.containsKey(knownInstance.getAsg())) {
+			if (instancesPerAsg.containsKey(knownInstance.getAsg())) {
 				if (!knownInstance.getAsg().equals(config.getASGName())) {
 					logger.info("Skipping {} - different ASG", knownInstance.getInstanceId());
 					continue;
@@ -110,14 +112,23 @@ public class InstanceManager {
 					logger.info("Skipping {} - different AZ", knownInstance.getInstanceId());
 					continue;
 				}
-				if (asgInstances.get(config.getASGName()).contains(knownInstance.getInstanceId())) {
+				if (instancesPerAsg.get(config.getASGName()).contains(knownInstance.getInstanceId())) {
 					logger.info("Skipping {} - legitimate node", knownInstance.getInstanceId());
 					continue;
 				}
-			}
 
-			logger.info("Found dead instance: " + knownInstance.getInstanceId());
-			instanceFactory.delete(knownInstance);
+				logger.info("Found dead instance: " + knownInstance.getInstanceId());
+				instanceFactory.delete(knownInstance);
+			}
+			else {
+				logger.info("Found dead instance: " + knownInstance.getInstanceId());
+				if (config.isVPCMigrationModeEnabled()) {
+					logger.info("VPC migration mode enabled, skipping cleanup for " + knownInstance.getInstanceId());
+				}
+				else {
+					instanceFactory.delete(knownInstance);
+				}
+			}
 		}
 	}
 

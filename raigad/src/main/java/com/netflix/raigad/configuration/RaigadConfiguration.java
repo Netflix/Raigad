@@ -251,7 +251,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
     private static final String DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = "t0";
     private static final boolean DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED = false;
-    private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster-vpc";
+    private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster";
 
     private final IConfigSource config;
     private final ICredential provider;
