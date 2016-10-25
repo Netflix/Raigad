@@ -250,7 +250,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
     private static final String DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = "t0";
     private static final boolean DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED = false;
-    private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster-vpc";
+    private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster";
 
     private final IConfigSource config;
     private final ICredential provider;
@@ -368,7 +368,8 @@ public class RaigadConfiguration implements IConfiguration {
 
         try {
             return getASGName.call();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error("Failed to determine ASG name.", e);
             return null;
         }
@@ -416,13 +417,14 @@ public class RaigadConfiguration implements IConfiguration {
         client.setEndpoint("ec2." + region + ".amazonaws.com");
         DescribeAvailabilityZonesResult res = client.describeAvailabilityZones();
         List<String> zone = Lists.newArrayList();
+
         for (AvailabilityZone reg : res.getAvailabilityZones()) {
             if (reg.getState().equals("available"))
                 zone.add(reg.getZoneName());
             if (zone.size() == 3)
                 break;
         }
-//        DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
+        //DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
         DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
     }
 
@@ -436,7 +438,6 @@ public class RaigadConfiguration implements IConfiguration {
         return config.getList(CONFIG_AVAILABILITY_ZONES, DEFAULT_AVAILABILITY_ZONES);
     }
 
-
     @Override
     public String getDC() {
         return config.get(CONFIG_REGION_NAME, "");
@@ -446,7 +447,6 @@ public class RaigadConfiguration implements IConfiguration {
     public void setDC(String region) {
         config.set(CONFIG_REGION_NAME, region);
     }
-
 
     @Override
     public String getASGName() {
