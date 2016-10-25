@@ -116,6 +116,7 @@ public class RaigadServer {
                     logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
+                        /*
                         if (config.isVPCMigrationModeEnabled()) {
                             logger.info("VPC migration mode: updating security settings");
 
@@ -131,6 +132,7 @@ public class RaigadServer {
                                     UpdateSecuritySettings.class,
                                     UpdateSecuritySettings.getTimer(instanceManager));
                         }
+                        */
 
                         logger.info("Setting Security Group ID (VPC)");
                         setVPCSecurityGroupID.execute();
