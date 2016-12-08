@@ -120,6 +120,12 @@ public class InstanceManager {
 				logger.info("Found dead instance: " + knownInstance.getInstanceId());
 				instanceFactory.delete(knownInstance);
 			}
+			else if (config.isMultiDC()) {
+				logger.info("Multi DC setup, skipping unknown instances (" + knownInstance.getInstanceId() + ")");
+			}
+			else if (config.amISourceClusterForTribeNode()) {
+				logger.info("Tribe setup, skipping unknown instances (" + knownInstance.getInstanceId() + ")");
+			}
 			else {
 				logger.info("Found dead instance: " + knownInstance.getInstanceId());
 				if (config.isVPCMigrationModeEnabled()) {
