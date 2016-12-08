@@ -159,12 +159,15 @@ public class InstanceManager {
 
 			List<String> sourceClusters = new ArrayList<String>();
 
+			// Adding current cluster
+			sourceClusters.add(config.getAppName());
+
 			// Common settings
 			for (int i = 0; i < clusters.length; i ++) {
-				String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
-				assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
-				sourceClusters.add(clusterPort[0]);
-				logger.info("Adding cluster = <{}> ", clusterPort[0]);
+				String[] clusterAndPort = clusters[i].split(PARAM_SEPARATOR);
+				assert (clusterAndPort.length != 2) : "Cluster name or transport port is missing in configuration";
+				sourceClusters.add(clusterAndPort[0]);
+				logger.info("Adding cluster = <{}> ", clusterAndPort[0]);
 			}
 
 			for (String sourceClusterName : sourceClusters) {
