@@ -179,15 +179,15 @@ public class StandardTuner implements IElasticsearchTuner {
         String extraConfigParams = config.getExtraConfigParams();
 
         if (extraConfigParams == null) {
-            logger.info("Updating YAML: no extra ES params");
+            logger.info("Updating elasticsearch.yml: no extra parameters");
             return;
         }
 
         String[] pairs = extraConfigParams.trim().split(COMMA_SEPARATOR);
-        logger.info("Updating YAML: adding extra ES params");
+        logger.info("Updating elasticsearch.yml: adding extra parameters");
 
-        for (String pair1 : pairs) {
-            String[] keyValue = pair1.trim().split(PARAM_SEPARATOR);
+        for (String pair : pairs) {
+            String[] keyValue = pair.trim().split(PARAM_SEPARATOR);
 
             String raigadKey = keyValue[0].trim();
             String esKey = keyValue[1].trim();

@@ -115,10 +115,20 @@ public class InstanceManager {
 					logger.info("Skipping {} - legitimate node", knownInstance.getInstanceId());
 					continue;
 				}
-			}
 
-			logger.info("Found dead instance: " + knownInstance.getInstanceId());
-			instanceFactory.delete(knownInstance);
+				logger.info("Found dead instance: " + knownInstance.getInstanceId());
+				instanceFactory.delete(knownInstance);
+			}
+			else if (config.isMultiDC()) {
+				logger.info("Multi DC setup, skipping unknown instances (" + knownInstance.getInstanceId() + ")");
+			}
+			else if (config.amISourceClusterForTribeNode()) {
+				logger.info("Tribe setup, skipping unknown instances (" + knownInstance.getInstanceId() + ")");
+			}
+			else {
+				logger.info("Found dead instance: " + knownInstance.getInstanceId());
+				instanceFactory.delete(knownInstance);
+			}
 		}
 	}
 
@@ -141,14 +151,17 @@ public class InstanceManager {
 			String[] clusters = StringUtils.split(clusterParams, COMMA_SEPARATOR);
 			assert (clusters.length != 0) : "One or more clusters needed";
 
-			List<String> sourceClusters = new ArrayList<String>();
+			List<String> sourceClusters = new ArrayList<>();
+
+			// Adding current cluster
+			sourceClusters.add(config.getAppName());
 
 			// Common settings
 			for (int i = 0; i < clusters.length; i ++) {
-				String[] clusterPort = clusters[i].split(PARAM_SEPARATOR);
-				assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
-				sourceClusters.add(clusterPort[0]);
-				logger.info("Adding cluster = <{}> ", clusterPort[0]);
+				String[] clusterAndPort = clusters[i].split(PARAM_SEPARATOR);
+				assert (clusterAndPort.length != 2) : "Cluster name or transport port is missing in configuration";
+				sourceClusters.add(clusterAndPort[0]);
+				logger.info("Adding cluster = <{}> ", clusterAndPort[0]);
 			}
 
 			for (String sourceClusterName : sourceClusters) {
