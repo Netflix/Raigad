@@ -116,8 +116,7 @@ public class TestIndexManagement extends ESIntegTestCase {
          */
         if (indexMetadataList.get(0).isPreCreate()) {
             assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
-        }
-        else {
+        } else {
             assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
         }
     }
@@ -127,7 +126,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     public static void createOldIndices(String indexPrefix, int numDays) {
-        for (int i = numDays; i > 0; i --) {
+        for (int i = numDays; i > 0; i--) {
             String indexName = indexPrefix + getFormattedDate(i);
             client0.admin().indices().prepareCreate(indexName).execute().actionGet();
         }
