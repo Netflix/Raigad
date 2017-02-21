@@ -105,34 +105,40 @@ public class ElasticSearchIndexManager extends Task {
             }
         }
         catch (Exception e) {
-            logger.warn("Exception while doing index maintenance", e);
+            logger.warn("Exception while performing index maintenance", e);
         }
     }
 
     public void runIndexManagement() throws Exception {
-        logger.info("Starting index maintenance ...");
+        logger.info("Starting index maintenance");
 
-        List<IndexMetadata> infoList;
+        String serializedIndexMetadata = config.getIndexMetadata();
+        List<IndexMetadata> indexMetadataList;
         try {
-            infoList = buildInfo(config.getIndexMetadata());
+            indexMetadataList = buildInfo(serializedIndexMetadata);
         }
         catch (Exception e) {
             //TODO: Add Servo monitoring so that it can be verified from dashboard
-            logger.error("Caught an exception while building index metadata information from configuration property");
+            logger.error("Failed to build index metadata information from configuration property: {}", serializedIndexMetadata);
             return;
         }
 
         Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
 
-        //TODO: Need to fix unnecessary extra loops
-        for (IndexMetadata indexMetadata : infoList) {
-            try {
-                if (esTransportClient != null) {
-                    checkIndexRetention(indexMetadata, esTransportClient);
+        for (IndexMetadata indexMetadata : indexMetadataList) {
+            if (!indexMetadata.isActionable()) {
+                continue;
+            }
 
-                    if (indexMetadata.isPreCreate()) {
-                        preCreateIndex(indexMetadata, esTransportClient);
-                    }
+            if (esTransportClient == null) {
+                continue;
+            }
+
+            try {
+                checkIndexRetention(indexMetadata, esTransportClient);
+
+                if (indexMetadata.isPreCreate()) {
+                    preCreateIndex(indexMetadata, esTransportClient);
                 }
             }
             catch (Exception e) {
@@ -155,17 +161,23 @@ public class ElasticSearchIndexManager extends Task {
 
     /**
      * Convert the JSON String of parameters to IndexMetadata objects
-     * @param infoStr : JSON String with Parameters
+     * @param serializedIndexMetadata : JSON string with parameters
      * @return list of IndexMetadata objects
      * @throws IOException
      */
-    public static List<IndexMetadata> buildInfo(String infoStr) throws IOException {
+    public static List<IndexMetadata> buildInfo(String serializedIndexMetadata) throws IOException {
         ObjectMapper jsonMapper = new DefaultIndexMapper();
         TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {};
-        return jsonMapper.readValue(infoStr, typeRef);
+        return jsonMapper.readValue(serializedIndexMetadata, typeRef);
     }
 
     private void checkIndexRetention(IndexMetadata indexMetadata, Client esTransportClient) throws UnsupportedAutoIndexException {
+
+        if (indexMetadata.getRetentionPeriod() == null) {
+            logger.info("Retention period not set for Cluster is empty, no indices found");
+            return;
+        }
+
         // Calculate the past retention date
         int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
         logger.info("Deleting indices that are older than {}", pastRetentionCutoffDateDate);
@@ -218,14 +230,12 @@ public class ElasticSearchIndexManager extends Task {
         Map<String, IndexStats> indexStatsMap = indicesStatsResponse.getIndices();
 
         if (indexStatsMap == null || indexStatsMap.isEmpty()) {
-            logger.info("No existing indices, no need to pre-create any indices");
+            logger.info("No existing indices, no need to pre-create");
             return;
         }
 
         for (String indexNameWithDateSuffix : indexStatsMap.keySet()) {
-            if (config.isDebugEnabled()) {
-                logger.debug("Index name: <{}>", indexNameWithDateSuffix);
-            }
+            logger.debug("Processing pre-creation for index {}", indexNameWithDateSuffix);
 
             if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                     indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {

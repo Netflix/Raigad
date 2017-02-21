@@ -22,9 +22,7 @@ import com.netflix.raigad.indexmanagement.indexfilters.YearlyIndexNameFilter;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-/**
- * Courtesy: Jae Bae
- */
+
 public class IndexMetadata {
 
     public enum RETENTION_TYPE {
@@ -33,7 +31,7 @@ public class IndexMetadata {
 
     private final String indexName;
     private final RETENTION_TYPE retentionType;
-    private final int retentionPeriod;
+    private final Integer retentionPeriod;
     private final IIndexNameFilter indexNameFilter;
     private final boolean preCreate;
 
@@ -41,13 +39,14 @@ public class IndexMetadata {
     public IndexMetadata(
             @JsonProperty("indexName") String indexName,
             @JsonProperty("retentionType") String retentionType,
-            @JsonProperty("retentionPeriod") int retentionPeriod,
-            @JsonProperty("preCreate") boolean preCreate) throws UnsupportedAutoIndexException {
+            @JsonProperty("retentionPeriod") Integer retentionPeriod,
+            @JsonProperty("preCreate") Boolean preCreate) throws UnsupportedAutoIndexException {
 
         this.indexName = indexName;
 
-        if(retentionType == null)
-           retentionType = "DAILY";
+        if (retentionType == null) {
+            retentionType = "DAILY";
+        }
 
         this.retentionType = RETENTION_TYPE.valueOf(retentionType.toUpperCase());
 
@@ -55,27 +54,33 @@ public class IndexMetadata {
             case DAILY:
                 this.indexNameFilter = new DailyIndexNameFilter();
                 break;
+
             case MONTHLY:
                 this.indexNameFilter = new MonthlyIndexNameFilter();
                 break;
+
             case YEARLY:
                 this.indexNameFilter = new YearlyIndexNameFilter();
                 break;
+
             default:
                 this.indexNameFilter = null;
-                throw new UnsupportedAutoIndexException("Given index is not (DAILY or MONTHLY or YEARLY), please check your configuration.");
+                throw new UnsupportedAutoIndexException("Unsupported or invalid retention type (DAILY or MONTHLY or YEARLY), please check your configuration");
         }
+
         this.retentionPeriod = retentionPeriod;
-        this.preCreate = preCreate;
+
+        if (preCreate == null) {
+            this.preCreate = false;
+        } else {
+            this.preCreate = preCreate;
+        }
     }
 
     @Override
     public String toString() {
-        return "IndexMetadata{" +
-                "indexName='" + indexName + '\'' +
-                ", retentionType=" + retentionType +
-                ", retentionPeriod=" + retentionPeriod +
-                '}';
+        return String.format("{\"indexName\":\"%s\",\"retentionType\":\"%s\",\"retentionPeriod\":%n,\"preCreate\":%b}",
+                indexName, retentionType, retentionPeriod, preCreate);
     }
 
     public String getIndexName() {
@@ -86,7 +91,7 @@ public class IndexMetadata {
         return retentionType;
     }
 
-    public int getRetentionPeriod() {
+    public Integer getRetentionPeriod() {
         return retentionPeriod;
     }
 
@@ -98,4 +103,7 @@ public class IndexMetadata {
         return preCreate;
     }
 
+    public boolean isActionable() {
+        return indexName != null && retentionPeriod != null;
+    }
 }
