@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.configuration.UnitTestModule;
-import com.netflix.raigad.utils.ESTransportClient;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import mockit.Mock;
 import mockit.Mocked;
 import mockit.Mockit;
@@ -66,7 +66,7 @@ public class TestBackupRestore extends ESIntegTestCase {
     public static Client client0;
 
     @Mocked
-    private static ESTransportClient esTransportClient;
+    private static ElasticsearchTransportClient esTransportClient;
 
     private static IConfiguration conf;
     private static S3RepositorySettingsParams s3RepositorySettingsParams;
@@ -84,8 +84,8 @@ public class TestBackupRestore extends ESIntegTestCase {
         conf = injector.getInstance(IConfiguration.class);
         s3RepositorySettingsParams = injector.getInstance(S3RepositorySettingsParams.class);
 
-        Mockit.setUpMock(ESTransportClient.class, MockESTransportClient.class);
-        esTransportClient = injector.getInstance(ESTransportClient.class);
+        Mockit.setUpMock(ElasticsearchTransportClient.class, MockElasticsearchTransportClient.class);
+        esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
 
         Mockit.setUpMock(S3Repository.class, MockS3Repository.class);
         s3Repository = injector.getInstance(S3Repository.class);
@@ -170,9 +170,9 @@ public class TestBackupRestore extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockESTransportClient {
+    public static class MockElasticsearchTransportClient {
         @Mock
-        public static ESTransportClient instance(IConfiguration config) {
+        public static ElasticsearchTransportClient instance(IConfiguration config) {
             return esTransportClient;
         }
 

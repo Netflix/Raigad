@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.configuration.UnitTestModule;
-import com.netflix.raigad.utils.ESTransportClient;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import mockit.Mock;
 import mockit.Mocked;
 import mockit.Mockit;
@@ -37,23 +37,23 @@ public class TestIndexManagement extends ESIntegTestCase {
     public static Client client0;
 
     @Mocked
-    private static ESTransportClient esTransportClient;
+    private static ElasticsearchTransportClient esTransportClient;
 
     private static IConfiguration conf;
     @Mocked
-    private static ElasticSearchIndexManager elasticSearchIndexManager;
+    private static ESIndexManager esIndexManager;
 
     @BeforeClass
     public static void setup() throws InterruptedException, IOException {
         injector = Guice.createInjector(new UnitTestModule());
         conf = injector.getInstance(IConfiguration.class);
 
-        Mockit.setUpMock(ESTransportClient.class, MockESTransportClient.class);
-        esTransportClient = injector.getInstance(ESTransportClient.class);
+        Mockit.setUpMock(ElasticsearchTransportClient.class, MockElasticsearchTransportClient.class);
+        esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
 
-        Mockit.setUpMock(ElasticSearchIndexManager.class, MockElasticSearchIndexManager.class);
-        if (elasticSearchIndexManager == null) {
-            elasticSearchIndexManager = injector.getInstance(ElasticSearchIndexManager.class);
+        Mockit.setUpMock(ESIndexManager.class, MockESIndexManager.class);
+        if (esIndexManager == null) {
+            esIndexManager = injector.getInstance(ESIndexManager.class);
         }
     }
 
@@ -63,13 +63,13 @@ public class TestIndexManagement extends ESIntegTestCase {
         client0 = null;
         esTransportClient = null;
         conf = null;
-        elasticSearchIndexManager = null;
+        esIndexManager = null;
     }
 
     @Ignore
-    public static class MockESTransportClient {
+    public static class MockElasticsearchTransportClient {
         @Mock
-        public static ESTransportClient instance(IConfiguration config) {
+        public static ElasticsearchTransportClient instance(IConfiguration config) {
             return esTransportClient;
         }
 
@@ -80,7 +80,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockElasticSearchIndexManager {
+    public static class MockESIndexManager {
         @Mock
         public IndicesStatsResponse getIndicesStatusResponse(Client esTransportClient) {
             return getLocalIndicesStatusResponse();
@@ -105,11 +105,11 @@ public class TestIndexManagement extends ESIntegTestCase {
         Map<String, IndexStats> afterIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
         assertEquals(numDays, afterIndexStatusMap.size());
 
-        elasticSearchIndexManager.runIndexManagement();
+        esIndexManager.runIndexManagement();
 
         Map<String, IndexStats> finalIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
 
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(conf.getIndexMetadata());
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(conf.getIndexMetadata());
 
         /**
          * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days

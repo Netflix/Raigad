@@ -16,7 +16,7 @@ public class TestIndexMetadata {
     @Test
     public void testDailyRetention() throws IOException {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("a20141233"));
@@ -31,7 +31,7 @@ public class TestIndexMetadata {
     @Test
     public void testMonthlyRetention() throws IOException {
         String str = "[{\"retentionType\": \"monthly\", \"retentionPeriod\": 20, \"indexName\": \"nf_errors_log\"}]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
@@ -47,7 +47,7 @@ public class TestIndexMetadata {
     @Test
     public void testBadInputNoIndexName() throws IOException {
         String str = "[{\"retentionType\": \"monthly\",\"retentionPeriod\": 20}]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
@@ -64,7 +64,7 @@ public class TestIndexMetadata {
     @Test
     public void testBadInputNoRetention() throws IOException {
         String str = "[{\"retentionType\": \"monthly\", \"indexName\": \"nf_errors_log\"}]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
@@ -80,7 +80,7 @@ public class TestIndexMetadata {
     @Test
     public void testBadInputInvalidSymbols() throws IOException {
         String str = "[{\"retentionType\":\"monthly\",\"indexName\":\"nf_errors_log\",\"retentionPeriod?:6,?preCreate\":false}]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
@@ -96,19 +96,19 @@ public class TestIndexMetadata {
     @Test(expected = JsonMappingException.class)
     public void testBadInputInvalidRetention() throws IOException {
         String str = "[{\"retentionType\": \"monthly\", \"indexName\": \"nf_errors_log\",\"retentionPeriod\":\"A\"}]";
-        ElasticSearchIndexManager.buildInfo(str);
+        ESIndexManager.buildInfo(str);
     }
 
     @Test(expected = JsonParseException.class)
     public void testBadInputBadJson() throws IOException {
         String str = "[{\"retentionType\": \"monthly\", \"indexName\": \"nf_errors_log\",";
-        ElasticSearchIndexManager.buildInfo(str);
+        ESIndexManager.buildInfo(str);
     }
 
     @Test
     public void testYearlyRetention() throws IOException {
         String str = "[{\"retentionType\": \"yearly\", \"retentionPeriod\": 20, \"indexName\": \"nf_errors_log\"}]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index2013"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
@@ -128,7 +128,7 @@ public class TestIndexMetadata {
                 "{        \"retentionType\": \"monthly\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }," +
                 "{        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
 
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 3);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index2013"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index201312"));
@@ -164,7 +164,7 @@ public class TestIndexMetadata {
     @Test
     public void testPreCreate() throws IOException {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\", \"preCreate\": \"true\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
         assertTrue(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("a20141233"));
@@ -174,7 +174,7 @@ public class TestIndexMetadata {
     @Test
     public void testBackupRepo() throws IOException {
         String str = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 20,    \"indexName\": \"nf_errors_log\"     }]";
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
         assertEquals(indexMetadataList.size(), 1);
     }
 
@@ -185,7 +185,7 @@ public class TestIndexMetadata {
                 "{        \"retentionType\": \"monthly\",        \"retentionPeriod\": 3,    \"indexName\": \"monthlyindex\", \"preCreate\": \"true\"     }," +
                 "{        \"retentionType\": \"yearly\",        \"retentionPeriod\": 3,    \"indexName\": \"yearlyindex\", \"preCreate\": \"true\"     }]";
 
-        List<IndexMetadata> indexMetadataList = ElasticSearchIndexManager.buildInfo(str);
+        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(str);
 
         for (IndexMetadata indexMetadata : indexMetadataList) {
             System.out.println("Retention period : " + indexMetadata.getRetentionPeriod());

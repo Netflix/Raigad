@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.netflix.raigad.backup.SnapshotBackupManager;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.defaultimpl.IElasticsearchProcess;
 import com.netflix.raigad.identity.InstanceManager;
-import com.netflix.raigad.indexmanagement.ElasticSearchIndexManager;
+import com.netflix.raigad.indexmanagement.ESIndexManager;
 import com.netflix.raigad.monitoring.*;
 import com.netflix.raigad.scheduler.RaigadScheduler;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
@@ -53,7 +53,7 @@ public class RaigadServer {
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
-    private final ElasticSearchIndexManager esIndexManager;
+    private final ESIndexManager esIndexManager;
     private final SnapshotBackupManager snapshotBackupManager;
     private final HttpModule httpModule;
     private final SetVPCSecurityGroupID setVPCSecurityGroupID;
@@ -65,7 +65,7 @@ public class RaigadServer {
                         IElasticsearchProcess esProcess,
                         Sleeper sleeper,
                         InstanceManager instanceManager,
-                        ElasticSearchIndexManager esIndexManager,
+                        ESIndexManager esIndexManager,
                         SnapshotBackupManager snapshotBackupManager,
                         SetVPCSecurityGroupID setVPCSecurityGroupID) {
         this.config = config;
@@ -188,7 +188,7 @@ public class RaigadServer {
                 // Run Snapshot task only on Master Nodes
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
-                scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+                scheduler.addTaskWithDelay(ESIndexManager.JOB_NAME, ESIndexManager.class, ESIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
                 scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
             }
             else if (!config.reportMetricsFromMasterOnly()) {
@@ -197,7 +197,7 @@ public class RaigadServer {
         }
         else {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
-            scheduler.addTaskWithDelay(ElasticSearchIndexManager.JOB_NAME, ElasticSearchIndexManager.class, ElasticSearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            scheduler.addTaskWithDelay(ESIndexManager.JOB_NAME, ESIndexManager.class, ESIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
             scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
         }
 

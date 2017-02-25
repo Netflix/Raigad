@@ -1,5 +1,5 @@
 /**
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.netflix.raigad.resources;
 import com.google.inject.Inject;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.defaultimpl.IElasticsearchProcess;
-import com.netflix.raigad.indexmanagement.ElasticSearchIndexManager;
+import com.netflix.raigad.indexmanagement.ESIndexManager;
 import com.netflix.raigad.utils.SystemUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.json.simple.JSONObject;
@@ -44,11 +44,11 @@ public class ElasticsearchAdmin
     private static final String REST_REPOSITORY_TYPE = "type";
     private final IConfiguration config;
     private final IElasticsearchProcess esProcess;
-    private final ElasticSearchIndexManager esIndexManager;
+    private final ESIndexManager esIndexManager;
     private static final String SHARD_REALLOCATION_PROPERTY = "cluster.routing.allocation.enable";
 
     @Inject
-    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess,ElasticSearchIndexManager esIndexManager)
+    public ElasticsearchAdmin(IConfiguration config, IElasticsearchProcess esProcess,ESIndexManager esIndexManager)
     {
         this.config = config;
         this.esProcess = esProcess;

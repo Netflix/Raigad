@@ -1,12 +1,12 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2017 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,8 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Singleton
-public class SnapshotBackupManager extends Task
-{
+public class SnapshotBackupManager extends Task {
     private static final Logger logger = LoggerFactory.getLogger(SnapshotBackupManager.class);
     public static String JOBNAME = "SnapshotBackupManager";
     private final AbstractRepository repository;
@@ -52,25 +51,24 @@ public class SnapshotBackupManager extends Task
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_FOLDER_DATE_FORMAT = "yyyyMMddHHmm";
     private static final String COMMA_SEPARATOR = ",";
-    private static Timer snapshotDuration = new BasicTimer(MonitorConfig.builder("snapshotDuration").withTag("class","Elasticsearch_SnapshotBackupReporter").build(), TimeUnit.SECONDS);
+    private static Timer snapshotDuration = new BasicTimer(MonitorConfig.builder("snapshotDuration").withTag("class", "Elasticsearch_SnapshotBackupReporter").build(), TimeUnit.SECONDS);
 
     static {
         Monitors.registerObject(snapshotDuration);
     }
+
     @Inject
-    public SnapshotBackupManager(IConfiguration config, @Named("s3")AbstractRepository repository, HttpModule httpModule) {
+    public SnapshotBackupManager(IConfiguration config, @Named("s3") AbstractRepository repository, HttpModule httpModule) {
         super(config);
         this.repository = repository;
         this.httpModule = httpModule;
     }
 
     @Override
-    public void execute()
-    {
+    public void execute() {
         try {
             //Confirm if Current Node is a Master Node
-            if (EsUtils.amIMasterNode(config,httpModule))
-            {
+            if (ElasticsearchUtils.amIMasterNode(config, httpModule)) {
                 // If Elasticsearch is started then only start Snapshot Backup
                 if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
                     String exceptionMsg = "Elasticsearch is not yet started, hence not Starting Snapshot Operation";
@@ -87,10 +85,8 @@ public class SnapshotBackupManager extends Task
 
                 //Run Snapshot Backup
                 runSnapshotBackup();
-            }
-            else
-            {
-                if(config.isDebugEnabled())
+            } else {
+                if (config.isDebugEnabled())
                     logger.debug("Current node is not a Master Node yet, hence not running a Snapshot");
             }
         } catch (Exception e) {
@@ -99,29 +95,26 @@ public class SnapshotBackupManager extends Task
         }
     }
 
-    public void runSnapshotBackup() throws Exception
-    {
+    public void runSnapshotBackup() throws Exception {
         // Create or Get Repository
         String repositoryName = repository.createOrGetSnapshotRepository();
 
         // StartBackup
         String snapshotName = getSnapshotName(config.getCommaSeparatedIndicesToBackup(), config.includeIndexNameInSnapshot());
-        logger.info("Repository Name : <"+repositoryName+"> Snapshot Name : <"+snapshotName+"> Indices : <"+config.getCommaSeparatedIndicesToBackup()+"> \nRunning Snapshot now ... ");
+        logger.info("Repository Name : <" + repositoryName + "> Snapshot Name : <" + snapshotName + "> Indices : <" + config.getCommaSeparatedIndicesToBackup() + "> \nRunning Snapshot now ... ");
 
-        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        Client esTransportClient = ElasticsearchTransportClient.instance(config).getTransportClient();
 
         Stopwatch snapshotTimer = snapshotDuration.start();
         //This is a blocking call. It'll wait until Snapshot is finished.
-        CreateSnapshotResponse createSnapshotResponse =  getCreateSnapshotResponse(esTransportClient,repositoryName,snapshotName);
+        CreateSnapshotResponse createSnapshotResponse = getCreateSnapshotResponse(esTransportClient, repositoryName, snapshotName);
 
-        logger.info("Snapshot Status = "+createSnapshotResponse.status().toString());
-        if(createSnapshotResponse.status() == RestStatus.OK)
-        {
+        logger.info("Snapshot Status = " + createSnapshotResponse.status().toString());
+        if (createSnapshotResponse.status() == RestStatus.OK) {
             //TODO Add Servo Monitoring so that it can be verified from dashboard
             printSnapshotDetails(createSnapshotResponse);
             snapshotSuccess.incrementAndGet();
-        }
-        else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
+        } else if (createSnapshotResponse.status() == RestStatus.INTERNAL_SERVER_ERROR) {
             //TODO Add Servo Monitoring so that it can be verified from dashboard
             logger.info("Snapshot Completely Failed");
             snapshotFailure.incrementAndGet();
@@ -131,58 +124,50 @@ public class SnapshotBackupManager extends Task
     }
 
     //TODO: Map to Java Class and Create JSON
-    public void printSnapshotDetails(CreateSnapshotResponse createSnapshotResponse)
-    {
+    public void printSnapshotDetails(CreateSnapshotResponse createSnapshotResponse) {
         StringBuilder builder = new StringBuilder();
         builder.append("Snapshot Details:");
-        builder.append("\n\t Name = "+createSnapshotResponse.getSnapshotInfo().name());
+        builder.append("\n\t Name = " + createSnapshotResponse.getSnapshotInfo().name());
         builder.append("\n\t Indices : ");
-        for(String index:createSnapshotResponse.getSnapshotInfo().indices())
-        {
-            builder.append("\n\t\t Index = "+index);
+        for (String index : createSnapshotResponse.getSnapshotInfo().indices()) {
+            builder.append("\n\t\t Index = " + index);
         }
-        builder.append("\n\t Start Time = "+createSnapshotResponse.getSnapshotInfo().startTime());
-        builder.append("\n\t End Time = "+createSnapshotResponse.getSnapshotInfo().endTime());
-        long minuteDuration =  (createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime())/(1000*60);
+        builder.append("\n\t Start Time = " + createSnapshotResponse.getSnapshotInfo().startTime());
+        builder.append("\n\t End Time = " + createSnapshotResponse.getSnapshotInfo().endTime());
+        long minuteDuration = (createSnapshotResponse.getSnapshotInfo().endTime() - createSnapshotResponse.getSnapshotInfo().startTime()) / (1000 * 60);
         builder.append("\n\t Total Time Taken = " + minuteDuration + " Minutes");
-        builder.append("\n\t Total Shards = "+createSnapshotResponse.getSnapshotInfo().totalShards());
-        builder.append("\n\t Successful Shards = "+createSnapshotResponse.getSnapshotInfo().successfulShards());
-        builder.append("\n\t Total Failed Shards = "+createSnapshotResponse.getSnapshotInfo().failedShards());
+        builder.append("\n\t Total Shards = " + createSnapshotResponse.getSnapshotInfo().totalShards());
+        builder.append("\n\t Successful Shards = " + createSnapshotResponse.getSnapshotInfo().successfulShards());
+        builder.append("\n\t Total Failed Shards = " + createSnapshotResponse.getSnapshotInfo().failedShards());
 
-        if(createSnapshotResponse.getSnapshotInfo().failedShards() > 0)
-        {
-            for(SnapshotShardFailure failedShard:createSnapshotResponse.getSnapshotInfo().shardFailures())
-            {
+        if (createSnapshotResponse.getSnapshotInfo().failedShards() > 0) {
+            for (SnapshotShardFailure failedShard : createSnapshotResponse.getSnapshotInfo().shardFailures()) {
                 builder.append("\n\t Failed Shards : ");
                 builder.append("\n\t\t Index = " + failedShard.index());
-                builder.append("\n\t\t Shard Id = "+failedShard.shardId());
-                builder.append("\n\t\t Node Id = "+failedShard.nodeId());
-                builder.append("\n\t\t Reason = "+failedShard.reason());
+                builder.append("\n\t\t Shard Id = " + failedShard.shardId());
+                builder.append("\n\t\t Node Id = " + failedShard.nodeId());
+                builder.append("\n\t\t Reason = " + failedShard.reason());
             }
         }
 
         logger.info(builder.toString());
     }
 
-    public static TaskTimer getTimer(IConfiguration config)
-    {
-        if(config.isHourlySnapshotEnabled())
-        {
-           return new SimpleTimer(JOBNAME, config.getBackupCronTimerInSeconds() * 1000);
-        }
-        else {
-           int hour = config.getBackupHour();
-           return new CronTimer(hour, 1, 0);
+    public static TaskTimer getTimer(IConfiguration config) {
+        if (config.isHourlySnapshotEnabled()) {
+            return new SimpleTimer(JOBNAME, config.getBackupCronTimerInSeconds() * 1000);
+        } else {
+            int hour = config.getBackupHour();
+            return new CronTimer(hour, 1, 0);
         }
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return JOBNAME;
     }
 
-    public String getSnapshotName(String indices,boolean includeIndexNameInSnapshot) {
+    public String getSnapshotName(String indices, boolean includeIndexNameInSnapshot) {
         StringBuilder snapshotName = new StringBuilder();
         if (includeIndexNameInSnapshot) {
             String indexName;
@@ -200,21 +185,20 @@ public class SnapshotBackupManager extends Task
         return snapshotName.toString();
     }
 
-    public int getNumSnapshotSuccess(){
+    public int getNumSnapshotSuccess() {
         return snapshotSuccess.get();
     }
 
-    public int getNumSnapshotFailure(){
+    public int getNumSnapshotFailure() {
         return snapshotFailure.get();
     }
 
-    public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient,String repositoryName, String snapshotName)
-    {
-       return esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
-               .setWaitForCompletion(config.waitForCompletionOfBackup())
-               .setIndices(config.getCommaSeparatedIndicesToBackup().split(COMMA_SEPARATOR))
-               .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
-               .setPartial(config.partiallyBackupIndices()).get();
+    public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient, String repositoryName, String snapshotName) {
+        return esTransportClient.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
+                .setWaitForCompletion(config.waitForCompletionOfBackup())
+                .setIndices(config.getCommaSeparatedIndicesToBackup().split(COMMA_SEPARATOR))
+                .setIncludeGlobalState(config.includeGlobalStateDuringBackup())
+                .setPartial(config.partiallyBackupIndices()).get();
     }
     //                (esTransportClient.admin().cluster().prepareGetSnapshots("test-repo").setSnapshots("test-snap").get().getSnapshots().get(0).state());//, equalTo(SnapshotState.SUCCESS));
 

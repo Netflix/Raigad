@@ -2,19 +2,17 @@ package com.netflix.raigad.utils;
 
 import java.io.IOException;
 
-public class ESHttpException extends IOException
+public class ElasticsearchHttpException extends IOException
 {
-
     private static final long serialVersionUID = 444L;
 
-    public ESHttpException(String message)
+    public ElasticsearchHttpException(String message)
     {
         super(message);
     }
 
-    public ESHttpException(String message, Exception e)
+    public ElasticsearchHttpException(String message, Exception e)
     {
         super(message, e);
     }
-
 }

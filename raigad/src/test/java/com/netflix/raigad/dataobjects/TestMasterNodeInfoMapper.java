@@ -30,12 +30,12 @@ public class TestMasterNodeInfoMapper {
     public void testMasterNodeInformationObject() throws IOException {
         String masterNodeInfo = "[{\"id\":\"8sZZWYmmQaeNUKMq1S1uow\",\"host\":\"es-test-useast1d-master-i-9e112345\",\"ip\":\"10.111.22.333\",\"node\":\"us-east-1d.i-9e112345\"}]";
         try {
-            List<MasterNodeInformationDO> myObjs = mapper.readValue(masterNodeInfo, new TypeReference<ArrayList<MasterNodeInformationDO>>() {
+            List<MasterNodeInformation> myObjs = mapper.readValue(masterNodeInfo, new TypeReference<ArrayList<MasterNodeInformation>>() {
             });
 
             assertEquals(1,myObjs.size());
 
-            for (MasterNodeInformationDO key : myObjs) {
+            for (MasterNodeInformation key : myObjs) {
                 assertEquals("8sZZWYmmQaeNUKMq1S1uow",key.getId());
                 assertEquals("es-test-useast1d-master-i-9e112345",key.getHost());
                 assertEquals("10.111.22.333",key.getIp());

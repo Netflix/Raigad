@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
@@ -61,7 +61,7 @@ public class FsStatsMonitor extends Task {
         FsStatsBean fsStatsBean = new FsStatsBean();
 
         try {
-            NodesStatsResponse nodesStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
 
             NodeStats nodeStats = null;
 
@@ -93,8 +93,7 @@ public class FsStatsMonitor extends Task {
             //fsStatsBean.diskServiceTime = fsInfo.getTotal().getDiskServiceTime();
 
             fsStatsBean.availableDiskPercent = (fsStatsBean.available * 100) / fsStatsBean.total;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to load FS stats data", e);
         }
 

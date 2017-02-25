@@ -1,12 +1,12 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2017 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,14 +15,13 @@
  */
 package com.netflix.raigad.utils;
 
-import java.util.concurrent.CancellationException;
-
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallable<T>
-{    
+import java.util.concurrent.CancellationException;
+
+public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallable<T> {
     public final static long MAX_SLEEP = 10000;
     public final static long MIN_SLEEP = 1000;
     public final static int MAX_RETRIES = 10;
@@ -32,60 +31,44 @@ public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallab
     private long min;
     private int maxRetries;
     private final ThreadSleeper sleeper = new ThreadSleeper();
-    
-    public BoundedExponentialRetryCallable()
-    {
+
+    public BoundedExponentialRetryCallable() {
         this.max = MAX_SLEEP;
         this.min = MIN_SLEEP;
         this.maxRetries = MAX_RETRIES;
     }
 
-    public BoundedExponentialRetryCallable(long minSleep, long maxSleep, int maxNumRetries)
-    {
+    public BoundedExponentialRetryCallable(long minSleep, long maxSleep, int maxNumRetries) {
         this.max = maxSleep;
         this.min = minSleep;
         this.maxRetries = maxNumRetries;
     }
 
-    public T call() throws Exception
-    {
+    public T call() throws Exception {
         long delay = min;// ms
         int retry = 0;
         int logCounter = 0;
-        while (true)
-        {
-            try
-            {
+        while (true) {
+            try {
                 return retriableCall();
-            }
-            catch (CancellationException e)
-            {
+            } catch (CancellationException e) {
                 throw e;
-            }
-            catch (Exception e)
-            {                
-            		retry++;
-            		
-            		if (delay < max && retry <= maxRetries)
-                {
-            			delay *= 2;
-                    logger.error(String.format("Retry #%d for: %s",retry, e.getMessage()));
-                    if(++logCounter == 1)
-                       logger.info("Exception --> "+ExceptionUtils.getFullStackTrace(e));
-                    sleeper.sleep(delay);            			
+            } catch (Exception e) {
+                retry++;
+
+                if (delay < max && retry <= maxRetries) {
+                    delay *= 2;
+                    logger.error(String.format("Retry #%d for: %s", retry, e.getMessage()));
+                    if (++logCounter == 1)
+                        logger.info("Exception --> " + ExceptionUtils.getFullStackTrace(e));
+                    sleeper.sleep(delay);
+                } else if (delay >= max && retry <= maxRetries) {
+                    logger.error(String.format("Retry #%d for: %s", retry, ExceptionUtils.getFullStackTrace(e)));
+                    sleeper.sleep(max);
+                } else {
+                    throw e;
                 }
-            		else if(delay >= max && retry <= maxRetries)
-            		{
-            			logger.error(String.format("Retry #%d for: %s",retry, ExceptionUtils.getFullStackTrace(e)));
-            			sleeper.sleep(max); 
-            		}
-            		else
-            		{
-            			throw e;
-            		}
-            }
-            finally
-            {
+            } finally {
                 forEachExecution();
             }
         }

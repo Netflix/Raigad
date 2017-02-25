@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,13 +110,13 @@ public class SystemUtils {
             HttpResponse resp = client.execute(getRequest);
 
             if (resp == null || resp.getEntity() == null) {
-                throw new ESHttpException("Unable to execute GET URL (" + url + "), exception Message: < Null Response or Null HttpEntity >");
+                throw new ElasticsearchHttpException("Unable to execute GET URL (" + url + "), exception Message: < Null Response or Null HttpEntity >");
             }
 
             isStream = resp.getEntity().getContent();
 
             if (resp.getStatusLine().getStatusCode() != 200) {
-                throw new ESHttpException("Unable to execute GET URL (" + url + "), exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
+                throw new ElasticsearchHttpException("Unable to execute GET URL (" + url + "), exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
             String requestResult = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
@@ -125,7 +125,7 @@ public class SystemUtils {
             return requestResult;
         }
         catch (Exception e) {
-            throw new ESHttpException("Caught an exception during execution of URL (" + url + "), exception Message: (" + e + ")");
+            throw new ElasticsearchHttpException("Caught an exception during execution of URL (" + url + "), exception Message: (" + e + ")");
         }
         finally {
             if (isStream != null) {
@@ -154,13 +154,13 @@ public class SystemUtils {
             HttpResponse resp = client.execute(putRequest);
 
             if (resp == null || resp.getEntity() == null) {
-                throw new ESHttpException("Unable to execute PUT URL (" + url + "), exception message: < Null Response or Null HttpEntity >");
+                throw new ElasticsearchHttpException("Unable to execute PUT URL (" + url + "), exception message: < Null Response or Null HttpEntity >");
             }
 
             isStream = resp.getEntity().getContent();
 
             if (resp.getStatusLine().getStatusCode() != 200) {
-                throw new ESHttpException("Unable to execute PUT URL (" + url + "), exception message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
+                throw new ElasticsearchHttpException("Unable to execute PUT URL (" + url + "), exception message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
             String requestResult = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
@@ -169,7 +169,7 @@ public class SystemUtils {
             return requestResult;
         }
         catch (Exception e) {
-            throw new ESHttpException("Caught an exception during execution of URL (" + url + "), exception message: (" + e + ")");
+            throw new ElasticsearchHttpException("Caught an exception during execution of URL (" + url + "), exception message: (" + e + ")");
         }
         finally {
             if (isStream != null) {
@@ -198,20 +198,20 @@ public class SystemUtils {
             HttpResponse resp = client.execute(postRequest);
 
             if (resp == null || resp.getEntity() == null) {
-                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
+                throw new ElasticsearchHttpException("Unable to execute POST URL (" + url + ") Exception Message: < Null Response or Null HttpEntity >");
             }
 
             isStream = resp.getEntity().getContent();
 
             if (resp.getStatusLine().getStatusCode() != 200) {
 
-                throw new ESHttpException("Unable to execute POST URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
+                throw new ElasticsearchHttpException("Unable to execute POST URL (" + url + ") Exception Message: (" + IOUtils.toString(isStream, StandardCharsets.UTF_8.toString()) + ")");
             }
 
             return_ = IOUtils.toString(isStream, StandardCharsets.UTF_8.toString());
             logger.debug("POST URL API: {} with JSONBody {} returns: {}", url, jsonBody, return_);
         } catch (Exception e) {
-            throw new ESHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
+            throw new ElasticsearchHttpException("Caught an exception during execution of URL (" + url + ")Exception Message: (" + e + ")");
         } finally {
             if (isStream != null)
                 isStream.close();

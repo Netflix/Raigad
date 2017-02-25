@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Note: percentiles over average latencies
- *
+ * <p>
  * Currently ES provides only cumulative query & index time along with cumulative query & index count.
  * Hence percentile values are calculated based on the average between consecutive time
  * (t1 & t2, t2 & t3, ... , tn-1 & tn) of metrics collection.
@@ -107,7 +107,7 @@ public class NodeIndicesStatsMonitor extends Task {
         NodeIndicesStatsBean nodeIndicesStatsBean = new NodeIndicesStatsBean();
 
         try {
-            NodesStatsResponse nodesStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
 
             NodeIndicesStats nodeIndicesStats = null;
             NodeStats nodeStats = null;
@@ -134,8 +134,7 @@ public class NodeIndicesStatsMonitor extends Task {
             updateSearch(nodeIndicesStatsBean, nodeIndicesStats);
             updateGet(nodeIndicesStatsBean, nodeIndicesStats);
             updateIndexing(nodeIndicesStatsBean, nodeIndicesStats);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to load indices stats data", e);
         }
 
@@ -198,8 +197,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordSearchQueryLatencies(searchQueryDeltaTimeInMillis / nodeIndicesStatsBean.searchQueryDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencySearchQuery95 = latencySearchQuery95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencySearchQuery99 = latencySearchQuery99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencySearchQuery95 = 0;
             nodeIndicesStatsBean.latencySearchQuery99 = 0;
         }
@@ -213,8 +211,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordSearchFetchLatencies(searchFetchDeltaTimeInMillis / nodeIndicesStatsBean.searchFetchDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencySearchFetch95 = latencySearchFetch95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencySearchFetch99 = latencySearchFetch99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencySearchFetch95 = 0;
             nodeIndicesStatsBean.latencySearchFetch99 = 0;
         }
@@ -251,8 +248,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordGetLatencies(getDeltaTimeInMillis / nodeIndicesStatsBean.getTotalDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGet95 = latencyGet95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGet99 = latencyGet99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencyGet95 = 0;
             nodeIndicesStatsBean.latencyGet99 = 0;
         }
@@ -266,8 +262,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordGetExistsLatencies(getExistsDeltaTimeInMillies / nodeIndicesStatsBean.getExistsDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGetExists95 = latencyGetExists95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGetExists99 = latencyGetExists99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencyGetExists95 = 0;
             nodeIndicesStatsBean.latencyGetExists99 = 0;
         }
@@ -280,8 +275,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordGetMissingLatencies(getMissingDeltaTimeInMillies / nodeIndicesStatsBean.getMissingDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyGetMissing95 = latencyGetMissing95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyGetMissing99 = latencyGetMissing99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencyGetMissing95 = 0;
             nodeIndicesStatsBean.latencyGetMissing99 = 0;
         }
@@ -316,8 +310,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordIndexingLatencies(indexingTimeInMillis / nodeIndicesStatsBean.indexingIndexDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyIndexing95 = latencyIndexing95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyIndexing99 = latencyIndexing99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencyIndexing95 = 0;
             nodeIndicesStatsBean.latencyIndexing99 = 0;
         }
@@ -331,8 +324,7 @@ public class NodeIndicesStatsMonitor extends Task {
             recordIndexDeleteLatencies(indexDeleteTimeInMillis / nodeIndicesStatsBean.indexingDeleteDelta, TimeUnit.MILLISECONDS);
             nodeIndicesStatsBean.latencyIndexDelete95 = latencyIndexDelete95Histo.percentile(PERCENTILE_95);
             nodeIndicesStatsBean.latencyIndexDelete99 = latencyIndexDelete99Histo.percentile(PERCENTILE_99);
-        }
-        else {
+        } else {
             nodeIndicesStatsBean.latencyIndexDelete95 = 0;
             nodeIndicesStatsBean.latencyIndexDelete99 = 0;
         }
