@@ -41,7 +41,7 @@ public class TestIndexManagement extends ESIntegTestCase {
 
     private static IConfiguration conf;
     @Mocked
-    private static ESIndexManager esIndexManager;
+    private static ElasticsearchIndexManager esIndexManager;
 
     @BeforeClass
     public static void setup() throws InterruptedException, IOException {
@@ -51,9 +51,9 @@ public class TestIndexManagement extends ESIntegTestCase {
         Mockit.setUpMock(ElasticsearchTransportClient.class, MockElasticsearchTransportClient.class);
         esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
 
-        Mockit.setUpMock(ESIndexManager.class, MockESIndexManager.class);
+        Mockit.setUpMock(ElasticsearchIndexManager.class, MockElasticsearchIndexManager.class);
         if (esIndexManager == null) {
-            esIndexManager = injector.getInstance(ESIndexManager.class);
+            esIndexManager = injector.getInstance(ElasticsearchIndexManager.class);
         }
     }
 
@@ -80,7 +80,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockESIndexManager {
+    public static class MockElasticsearchIndexManager {
         @Mock
         public IndicesStatsResponse getIndicesStatusResponse(Client esTransportClient) {
             return getLocalIndicesStatusResponse();
@@ -109,7 +109,7 @@ public class TestIndexManagement extends ESIntegTestCase {
 
         Map<String, IndexStats> finalIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
 
-        List<IndexMetadata> indexMetadataList = ESIndexManager.buildInfo(conf.getIndexMetadata());
+        List<IndexMetadata> indexMetadataList = ElasticsearchIndexManager.buildInfo(conf.getIndexMetadata());
 
         /**
          * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days

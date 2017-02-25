@@ -22,8 +22,9 @@ import java.io.IOException;
 /**
  * Interface to aid in starting and stopping Elasticsearch.
  */
-@ImplementedBy(ESProcessManager.class)
+@ImplementedBy(ElasticsearchProcessManager.class)
 public interface IElasticsearchProcess {
     void start(boolean join_ring) throws IOException;
+
     void stop() throws IOException;
 }

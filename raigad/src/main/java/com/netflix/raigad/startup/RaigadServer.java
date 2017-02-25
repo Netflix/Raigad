@@ -1,12 +1,12 @@
 /**
  * Copyright 2017 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,7 @@ import com.netflix.raigad.backup.SnapshotBackupManager;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.defaultimpl.IElasticsearchProcess;
 import com.netflix.raigad.identity.InstanceManager;
-import com.netflix.raigad.indexmanagement.ESIndexManager;
+import com.netflix.raigad.indexmanagement.ElasticsearchIndexManager;
 import com.netflix.raigad.monitoring.*;
 import com.netflix.raigad.scheduler.RaigadScheduler;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
@@ -53,7 +53,7 @@ public class RaigadServer {
     private final Sleeper sleeper;
     private final IElasticsearchProcess esProcess;
     private final InstanceManager instanceManager;
-    private final ESIndexManager esIndexManager;
+    private final ElasticsearchIndexManager esIndexManager;
     private final SnapshotBackupManager snapshotBackupManager;
     private final HttpModule httpModule;
     private final SetVPCSecurityGroupID setVPCSecurityGroupID;
@@ -65,7 +65,7 @@ public class RaigadServer {
                         IElasticsearchProcess esProcess,
                         Sleeper sleeper,
                         InstanceManager instanceManager,
-                        ESIndexManager esIndexManager,
+                        ElasticsearchIndexManager esIndexManager,
                         SnapshotBackupManager snapshotBackupManager,
                         SetVPCSecurityGroupID setVPCSecurityGroupID) {
         this.config = config;
@@ -110,8 +110,7 @@ public class RaigadServer {
                 scheduler.addTask(UpdateTribeSecuritySettings.JOB_NAME,
                         UpdateTribeSecuritySettings.class,
                         UpdateTribeSecuritySettings.getTimer(instanceManager));
-            }
-            else {
+            } else {
                 if (config.isSecutrityGroupInMultiDC()) {
                     logger.info("Updating security setting");
 
@@ -168,8 +167,7 @@ public class RaigadServer {
                         RestoreBackupManager.getTimer(config),
                         config.getRestoreTaskInitialDelayInSeconds());
             }
-        }
-        else {
+        } else {
             logger.info("config.doesElasticsearchStartManually() is set to True," +
                     "hence Elasticsearch needs to be started manually. " +
                     "Restore task needs to be started manually as well (if needed).");
@@ -178,7 +176,7 @@ public class RaigadServer {
         /*
          *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process
          */
-        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME,ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
+        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME, ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
         /*
          *  Run Snapshot Backup task
@@ -188,17 +186,15 @@ public class RaigadServer {
                 // Run Snapshot task only on Master Nodes
                 scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
                 // Run Index Management task only on Master Nodes
-                scheduler.addTaskWithDelay(ESIndexManager.JOB_NAME, ESIndexManager.class, ESIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
-                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+                scheduler.addTaskWithDelay(ElasticsearchIndexManager.JOB_NAME, ElasticsearchIndexManager.class, ElasticsearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"), ES_HEALTH_MONITOR_DELAY);
+            } else if (!config.reportMetricsFromMasterOnly()) {
+                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"), ES_HEALTH_MONITOR_DELAY);
             }
-            else if (!config.reportMetricsFromMasterOnly()) {
-                scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
-            }
-        }
-        else {
+        } else {
             scheduler.addTaskWithDelay(SnapshotBackupManager.JOBNAME, SnapshotBackupManager.class, SnapshotBackupManager.getTimer(config), ES_SNAPSHOT_INITIAL_DELAY);
-            scheduler.addTaskWithDelay(ESIndexManager.JOB_NAME, ESIndexManager.class, ESIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
-            scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"),ES_HEALTH_MONITOR_DELAY);
+            scheduler.addTaskWithDelay(ElasticsearchIndexManager.JOB_NAME, ElasticsearchIndexManager.class, ElasticsearchIndexManager.getTimer(config), config.getAutoCreateIndexInitialStartDelaySeconds());
+            scheduler.addTaskWithDelay(HealthMonitor.METRIC_NAME, HealthMonitor.class, HealthMonitor.getTimer("HealthMonitor"), ES_HEALTH_MONITOR_DELAY);
         }
 
         /*
@@ -218,7 +214,7 @@ public class RaigadServer {
         scheduler.addTask(HttpStatsMonitor.METRIC_NAME, HttpStatsMonitor.class, HttpStatsMonitor.getTimer("HttpStatsMonitor"));
         scheduler.addTask(AllCircuitBreakerStatsMonitor.METRIC_NAME, AllCircuitBreakerStatsMonitor.class, AllCircuitBreakerStatsMonitor.getTimer("AllCircuitBreakerStatsMonitor"));
         scheduler.addTask(SnapshotBackupMonitor.METRIC_NAME, SnapshotBackupMonitor.class, SnapshotBackupMonitor.getTimer("SnapshotBackupMonitor"));
-        scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"),ES_NODE_HEALTH_MONITOR_DELAY);
+        scheduler.addTaskWithDelay(NodeHealthMonitor.METRIC_NAME, NodeHealthMonitor.class, NodeHealthMonitor.getTimer("NodeHealthMonitor"), ES_NODE_HEALTH_MONITOR_DELAY);
     }
 
     public InstanceManager getInstanceManager() {
