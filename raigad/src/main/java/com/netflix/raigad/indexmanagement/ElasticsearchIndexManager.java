@@ -64,14 +64,14 @@ import java.util.Map;
  * Index Name = <test_index20141102>
  */
 @Singleton
-public class ESIndexManager extends Task {
-    private static final Logger logger = LoggerFactory.getLogger(ESIndexManager.class);
+public class ElasticsearchIndexManager extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchIndexManager.class);
 
-    public static String JOB_NAME = "ESIndexManager";
+    public static String JOB_NAME = "ElasticsearchIndexManager";
     private final HttpModule httpModule;
 
     @Inject
-    protected ESIndexManager(IConfiguration config, HttpModule httpModule) {
+    protected ElasticsearchIndexManager(IConfiguration config, HttpModule httpModule) {
         super(config);
         this.httpModule = httpModule;
     }

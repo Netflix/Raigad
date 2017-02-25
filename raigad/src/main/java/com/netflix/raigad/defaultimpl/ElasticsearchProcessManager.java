@@ -31,21 +31,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-public class ESProcessManager implements IElasticsearchProcess {
-    private static final Logger logger = LoggerFactory.getLogger(ESProcessManager.class);
+public class ElasticsearchProcessManager implements IElasticsearchProcess {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessManager.class);
     private static final String SUDO_STRING = "/usr/bin/sudo";
     private static final int SCRIPT_EXECUTE_WAIT_TIME_MS = 5000;
     private final IConfiguration config;
     private final Sleeper sleeper;
 
     @Inject
-    public ESProcessManager(IConfiguration config, Sleeper sleeper) {
+    public ElasticsearchProcessManager(IConfiguration config, Sleeper sleeper) {
         this.config = config;
         this.sleeper = sleeper;
     }
 
     public void start(boolean join_ring) throws IOException {
-        logger.info("Starting elasticsearch server");
+        logger.info("Starting Elasticsearch server");
 
         List<String> command = Lists.newArrayList();
         if (!"root".equals(System.getProperty("user.name"))) {
@@ -135,7 +135,7 @@ public class ESProcessManager implements IElasticsearchProcess {
                 logProcessOutput(stopper);
             }
         } catch (Exception e) {
-            logger.warn("couldn't shut down Elasticsearch correctly", e);
+            logger.warn("Couldn't shut down Elasticsearch correctly", e);
         }
     }
 }
