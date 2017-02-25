@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Netflix, Inc.
- *
+ * Copyright 2017 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,9 +24,9 @@ import com.netflix.raigad.objectmapper.DefaultIndexMapper;
 import com.netflix.raigad.scheduler.CronTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
-import com.netflix.raigad.utils.EsUtils;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
+import com.netflix.raigad.utils.ElasticsearchUtils;
 import com.netflix.raigad.utils.HttpModule;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -43,35 +43,35 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Index retention will get rid of (Retention Period in Days - 1)day indices for past days
- * eg. Retention period = 5
- *     Index Name = <test_index20141024>
- *     Index Name = <test_index20141025>
- *     Index Name = <test_index20141026>
- *     Index Name = <test_index20141027>
- *     Index Name = <test_index20141028>
- *
- *     Index to be deleted = test_index20141024
- *
+ * Index retention will get rid of (Retention Period in Days - 1) day indices for past days
+ * e.g. Retention period = 5
+ * Index Name = <test_index20141024>
+ * Index Name = <test_index20141025>
+ * Index Name = <test_index20141026>
+ * Index Name = <test_index20141027>
+ * Index Name = <test_index20141028>
+ * <p>
+ * Index to be deleted = test_index20141024
+ * <p>
  * If Pre-Create is Enabled, it will create Today's Index + (Retention Period in Days - 1)day indices for future days
- *
+ * <p>
  * eg. for above example, following indices will be created with default settings:
- *
- *     Index Name = <test_index20141029>
- *     Index Name = <test_index20141030>
- *     Index Name = <test_index20141031>
- *     Index Name = <test_index20141101>
- *     Index Name = <test_index20141102>
+ * <p>
+ * Index Name = <test_index20141029>
+ * Index Name = <test_index20141030>
+ * Index Name = <test_index20141031>
+ * Index Name = <test_index20141101>
+ * Index Name = <test_index20141102>
  */
 @Singleton
-public class ElasticSearchIndexManager extends Task {
-    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchIndexManager.class);
+public class ESIndexManager extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(ESIndexManager.class);
 
-    public static String JOB_NAME = "ElasticSearchIndexManager";
+    public static String JOB_NAME = "ESIndexManager";
     private final HttpModule httpModule;
 
     @Inject
-    protected ElasticSearchIndexManager(IConfiguration config, HttpModule httpModule) {
+    protected ESIndexManager(IConfiguration config, HttpModule httpModule) {
         super(config);
         this.httpModule = httpModule;
     }
@@ -80,7 +80,7 @@ public class ElasticSearchIndexManager extends Task {
     public void execute() {
         try {
             //Confirm if Current Node is a Master Node
-            if (EsUtils.amIMasterNode(config, httpModule)) {
+            if (ElasticsearchUtils.amIMasterNode(config, httpModule)) {
                 // If Elasticsearch is started then only start Snapshot Backup
                 if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
                     String exceptionMsg = "Elasticsearch is not yet started, not starting Index Management yet";
@@ -96,15 +96,13 @@ public class ElasticSearchIndexManager extends Task {
                 }
 
                 runIndexManagement();
-            }
-            else {
+            } else {
                 //TODO: Update config property
                 if (config.isDebugEnabled()) {
                     logger.debug("Current node is not a master node yet, sleeping for " + config.getAutoCreateIndexPeriodicScheduledHour() + " seconds");
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Exception while performing index maintenance", e);
         }
     }
@@ -116,14 +114,13 @@ public class ElasticSearchIndexManager extends Task {
         List<IndexMetadata> indexMetadataList;
         try {
             indexMetadataList = buildInfo(serializedIndexMetadata);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             //TODO: Add Servo monitoring so that it can be verified from dashboard
             logger.error("Failed to build index metadata information from configuration property: {}", serializedIndexMetadata);
             return;
         }
 
-        Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
+        Client esTransportClient = ElasticsearchTransportClient.instance(config).getTransportClient();
 
         for (IndexMetadata indexMetadata : indexMetadataList) {
             if (!indexMetadata.isActionable()) {
@@ -140,8 +137,7 @@ public class ElasticSearchIndexManager extends Task {
                 if (indexMetadata.isPreCreate()) {
                     preCreateIndex(indexMetadata, esTransportClient);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 //TODO: Add Servo monitoring so that it can be verified from dashboard
                 logger.error("Caught an exception while building index metadata information from configuration property");
                 return;
@@ -161,13 +157,15 @@ public class ElasticSearchIndexManager extends Task {
 
     /**
      * Convert the JSON String of parameters to IndexMetadata objects
+     *
      * @param serializedIndexMetadata : JSON string with parameters
      * @return list of IndexMetadata objects
      * @throws IOException
      */
     public static List<IndexMetadata> buildInfo(String serializedIndexMetadata) throws IOException {
         ObjectMapper jsonMapper = new DefaultIndexMapper();
-        TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {};
+        TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {
+        };
         return jsonMapper.readValue(serializedIndexMetadata, typeRef);
     }
 
@@ -217,8 +215,7 @@ public class ElasticSearchIndexManager extends Task {
 
         if (!deleteIndexResponse.isAcknowledged()) {
             throw new RuntimeException("Failed to delete " + indexName);
-        }
-        else {
+        } else {
             logger.info(indexName + " deleted");
         }
     }
@@ -240,7 +237,7 @@ public class ElasticSearchIndexManager extends Task {
             if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                     indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
-                for (int i = 0; i < indexMetadata.getRetentionPeriod(); ++ i) {
+                for (int i = 0; i < indexMetadata.getRetentionPeriod(); ++i) {
                     DateTime dateTime = new DateTime();
                     int addedDate;
 
@@ -275,8 +272,7 @@ public class ElasticSearchIndexManager extends Task {
                     if (!esTransportClient.admin().indices().prepareExists(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
                         esTransportClient.admin().indices().prepareCreate(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout());
                         logger.info(newIndexName + " has been created");
-                    }
-                    else {
+                    } else {
                         //TODO: Change to debug after testing
                         logger.warn(newIndexName + " already exists");
                     }
@@ -287,12 +283,12 @@ public class ElasticSearchIndexManager extends Task {
 
     /**
      * Following method is isolated so that it helps in Unit Testing for Mocking
+     *
      * @param esTransportClient
      * @return
      */
-    private IndicesStatsResponse getIndicesStatsResponse(Client esTransportClient)
-    {
-       return esTransportClient.admin().indices().prepareStats("_all").execute().actionGet(config.getAutoCreateIndexTimeout());
+    private IndicesStatsResponse getIndicesStatsResponse(Client esTransportClient) {
+        return esTransportClient.admin().indices().prepareStats("_all").execute().actionGet(config.getAutoCreateIndexTimeout());
     }
 
 }

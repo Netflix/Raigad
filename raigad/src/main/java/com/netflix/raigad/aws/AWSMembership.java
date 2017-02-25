@@ -1,12 +1,12 @@
 /**
- * Copyright 2016 Netflix, Inc.
- *
+ * Copyright 2017 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,6 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.IMembership;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.lucene.util.CollectionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +81,7 @@ public class AWSMembership implements IMembership {
             }
 
             return asgs;
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -110,8 +108,7 @@ public class AWSMembership implements IMembership {
             logger.info(String.format("Query on ASG returning %d instances", size));
 
             return size;
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -143,15 +140,13 @@ public class AWSMembership implements IMembership {
                         new AuthorizeSecurityGroupIngressRequest()
                                 .withGroupId(config.getACLGroupIdForVPC())
                                 .withIpPermissions(ipPermissions));
-            }
-            else {
+            } else {
                 client.authorizeSecurityGroupIngress(
                         new AuthorizeSecurityGroupIngressRequest(config.getACLGroupName(), ipPermissions));
             }
 
             logger.info("Added " + StringUtils.join(listIPs, ",") + " to ACL");
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -178,15 +173,13 @@ public class AWSMembership implements IMembership {
                         new RevokeSecurityGroupIngressRequest()
                                 .withGroupId(config.getACLGroupIdForVPC())
                                 .withIpPermissions(ipPermissions));
-            }
-            else {
+            } else {
                 client.revokeSecurityGroupIngress(
                         new RevokeSecurityGroupIngressRequest(config.getACLGroupName(), ipPermissions));
             }
 
             logger.info("Removed " + StringUtils.join(listIPs, ",") + " from ACL");
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -211,8 +204,7 @@ public class AWSMembership implements IMembership {
                 DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupIds(config.getACLGroupIdForVPC());
                 result = client.describeSecurityGroups(describeSecurityGroupsRequest);
-            }
-            else {
+            } else {
                 DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
                 result = client.describeSecurityGroups(describeSecurityGroupsRequest);
@@ -227,8 +219,7 @@ public class AWSMembership implements IMembership {
             }
 
             return ipPermissions;
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -237,7 +228,7 @@ public class AWSMembership implements IMembership {
 
     public Map<String, List<Integer>> getACLPortMap(String acl) {
         AmazonEC2 client = null;
-        Map<String, List<Integer>> aclPortMap = new HashMap<String,List<Integer>>();
+        Map<String, List<Integer>> aclPortMap = new HashMap<String, List<Integer>>();
 
         try {
             client = getEc2Client();
@@ -250,8 +241,7 @@ public class AWSMembership implements IMembership {
                 DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupIds(config.getACLGroupIdForVPC());
                 result = client.describeSecurityGroups(describeSecurityGroupsRequest);
-            }
-            else {
+            } else {
                 DescribeSecurityGroupsRequest describeSecurityGroupsRequest =
                         new DescribeSecurityGroupsRequest().withGroupNames(Arrays.asList(config.getACLGroupName()));
                 result = client.describeSecurityGroups(describeSecurityGroupsRequest);
@@ -273,8 +263,7 @@ public class AWSMembership implements IMembership {
             }
 
             return aclPortMap;
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }
@@ -296,8 +285,7 @@ public class AWSMembership implements IMembership {
             ureq.setMaxSize(asg.getMinSize() + 1);
             ureq.setDesiredCapacity(asg.getMinSize() + 1);
             client.updateAutoScalingGroup(ureq);
-        }
-        finally {
+        } finally {
             if (client != null) {
                 client.shutdown();
             }

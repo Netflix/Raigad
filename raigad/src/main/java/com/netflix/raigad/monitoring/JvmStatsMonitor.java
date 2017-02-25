@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
@@ -66,7 +66,7 @@ public class JvmStatsMonitor extends Task {
         JvmStatsBean jvmStatsBean = new JvmStatsBean();
 
         try {
-            NodesStatsResponse nodesStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
             JvmStats jvmStats;
             NodeStats nodeStats = null;
 
@@ -102,14 +102,12 @@ public class JvmStatsMonitor extends Task {
                     jvmStatsBean.youngUsedInBytes = memoryPoolStats.getUsed().getBytes();
                     jvmStatsBean.youngPeakUsedInBytes = memoryPoolStats.getPeakUsed().getBytes();
                     jvmStatsBean.youngPeakMaxInBytes = memoryPoolStats.getPeakMax().getBytes();
-                }
-                else if (memoryPoolStats.getName().equalsIgnoreCase(GC_SURVIVOR_TAG)) {
+                } else if (memoryPoolStats.getName().equalsIgnoreCase(GC_SURVIVOR_TAG)) {
                     jvmStatsBean.survivorMaxInBytes = memoryPoolStats.getMax().getBytes();
                     jvmStatsBean.survivorUsedInBytes = memoryPoolStats.getUsed().getBytes();
                     jvmStatsBean.survivorPeakUsedInBytes = memoryPoolStats.getPeakUsed().getBytes();
                     jvmStatsBean.survivorPeakMaxInBytes = memoryPoolStats.getPeakMax().getBytes();
-                }
-                else if (memoryPoolStats.getName().equalsIgnoreCase(GC_OLD_TAG)) {
+                } else if (memoryPoolStats.getName().equalsIgnoreCase(GC_OLD_TAG)) {
                     jvmStatsBean.oldMaxInBytes = memoryPoolStats.getMax().getBytes();
                     jvmStatsBean.oldUsedInBytes = memoryPoolStats.getUsed().getBytes();
                     jvmStatsBean.oldPeakUsedInBytes = memoryPoolStats.getPeakUsed().getBytes();
@@ -154,8 +152,7 @@ public class JvmStatsMonitor extends Task {
                     */
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to load JVM stats data", e);
         }
 

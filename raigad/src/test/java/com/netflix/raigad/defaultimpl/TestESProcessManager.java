@@ -12,15 +12,15 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
-public class TestElasticSearchProcessManager
+public class TestESProcessManager
 {
-    ElasticSearchProcessManager elasticSearchProcessManager;
+    ESProcessManager elasticSearchProcessManager;
 
     @Before
     public void setup()
     {
         IConfiguration config = new FakeConfiguration("us-east-1", "test_cluster", "us-east-1a", "i-1234afd3");
-        elasticSearchProcessManager = new ElasticSearchProcessManager(config, new FakeSleeper());
+        elasticSearchProcessManager = new ESProcessManager(config, new FakeSleeper());
     }
 
     @Test

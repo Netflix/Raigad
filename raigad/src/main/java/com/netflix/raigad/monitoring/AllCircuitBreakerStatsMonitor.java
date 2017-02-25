@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
 import com.netflix.servo.monitor.Monitors;
@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicReference;
+
 
 @Singleton
 public class AllCircuitBreakerStatsMonitor extends Task {
@@ -63,7 +64,7 @@ public class AllCircuitBreakerStatsMonitor extends Task {
         AllCircuitBreakerStatsBean allCircuitBreakerStatsBean = new AllCircuitBreakerStatsBean();
 
         try {
-            NodesStatsResponse nodesStatsResponse = ESTransportClient.getNodesStatsResponse(config);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
             NodeStats nodeStats = null;
 
             if (nodesStatsResponse.getNodes().length > 0) {
@@ -102,8 +103,7 @@ public class AllCircuitBreakerStatsMonitor extends Task {
                     allCircuitBreakerStatsBean.requestTrippedCount = circuitBreakerStat.getTrippedCount();
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.warn("Failed to load circuit breaker stats data", e);
         }
 

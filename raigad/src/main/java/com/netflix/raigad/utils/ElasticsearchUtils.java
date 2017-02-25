@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.netflix.raigad.utils;
 import com.netflix.raigad.backup.exception.MultipleMasterNodesException;
 import com.netflix.raigad.backup.exception.NoMasterNodeException;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.dataobjects.MasterNodeInformationDO;
+import com.netflix.raigad.dataobjects.MasterNodeInformation;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.objectmapper.DefaultMasterNodeInfoMapper;
 import org.apache.commons.lang.StringUtils;
@@ -40,8 +40,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EsUtils {
-    private static final Logger logger = LoggerFactory.getLogger(EsUtils.class);
+public class ElasticsearchUtils {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchUtils.class);
 
     private static final String HOST_NAME = "host_name";
     private static final String ID = "id";
@@ -138,19 +138,20 @@ public class EsUtils {
         }
 
         // Map MasterNodeInfo response to DO
-        TypeReference<List<MasterNodeInformationDO>> typeRef = new TypeReference<List<MasterNodeInformationDO>>() {};
-        List<MasterNodeInformationDO> masterNodeInformationDOList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
+        TypeReference<List<MasterNodeInformation>> typeRef = new TypeReference<List<MasterNodeInformation>>() {};
 
-        if (masterNodeInformationDOList.size() == 0) {
+        List<MasterNodeInformation> masterNodeInformationList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
+
+        if (masterNodeInformationList.size() == 0) {
             throw new NoMasterNodeException("NO MASTER NODE FOUND - something went wrong");
         }
 
-        if (masterNodeInformationDOList.size() > 1) {
+        if (masterNodeInformationList.size() > 1) {
             throw new MultipleMasterNodesException("MULTIPLE MASTER NODES FOUND - something went wrong");
         }
 
         //Get MasterNode Ip
-        String ip = masterNodeInformationDOList.get(0).getIp();
+        String ip = masterNodeInformationList.get(0).getIp();
         if (StringUtils.isEmpty(ip)) {
             logger.error("IP from URL <" + URL + "> is null or empty, hence can not run Snapshot Backup");
             return iAmTheMaster;
@@ -184,6 +185,7 @@ public class EsUtils {
 
     /**
      * Repository Name is Today's Date in yyyyMMdd format eg. 20140630
+     *
      * @return Repository Name
      */
     public static String getS3RepositoryName() {

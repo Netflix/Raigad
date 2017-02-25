@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,9 @@ import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
-import com.netflix.raigad.utils.ESTransportClient;
 import com.netflix.raigad.utils.ElasticsearchProcessMonitor;
-import com.netflix.raigad.utils.EsUtils;
+import com.netflix.raigad.utils.ElasticsearchTransportClient;
+import com.netflix.raigad.utils.ElasticsearchUtils;
 import com.netflix.raigad.utils.HttpModule;
 import com.netflix.servo.annotations.DataSourceType;
 import com.netflix.servo.annotations.Monitor;
@@ -72,13 +72,13 @@ public class HealthMonitor extends Task {
         }
 
         // In case we configured only the master node to report metrics and this node is not a master - bail out
-        if (config.reportMetricsFromMasterOnly() && !EsUtils.amIMasterNode(config, httpModule)) {
+        if (config.reportMetricsFromMasterOnly() && !ElasticsearchUtils.amIMasterNode(config, httpModule)) {
             return;
         }
 
         HealthBean healthBean = new HealthBean();
         try {
-            Client esTransportClient = ESTransportClient.instance(config).getTransportClient();
+            Client esTransportClient = ElasticsearchTransportClient.instance(config).getTransportClient();
             ClusterHealthStatus clusterHealthStatus = esTransportClient.admin().cluster().prepareHealth().setTimeout(MASTER_NODE_TIMEOUT).execute().get().getStatus();
             ClusterHealthResponse clusterHealthResponse = esTransportClient.admin().cluster().prepareHealth().execute().actionGet(MASTER_NODE_TIMEOUT);
 
@@ -92,12 +92,10 @@ public class HealthMonitor extends Task {
             if (clusterHealthStatus.name().equalsIgnoreCase("GREEN")) {
                 healthBean.greenorredstatus = 0;
                 healthBean.greenoryellowstatus = 0;
-            }
-            else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
+            } else if (clusterHealthStatus.name().equalsIgnoreCase("YELLOW")) {
                 healthBean.greenoryellowstatus = 1;
                 healthBean.greenorredstatus = 0;
-            }
-            else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
+            } else if (clusterHealthStatus.name().equalsIgnoreCase("RED")) {
                 healthBean.greenorredstatus = 1;
                 healthBean.greenoryellowstatus = 0;
             }
@@ -105,16 +103,14 @@ public class HealthMonitor extends Task {
             if (config.isNodeMismatchWithDiscoveryEnabled()) {
                 // Check if there is node mismatch between discovery and ES
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == instanceManager.getAllInstances().size()) ? 0 : 1;
-            }
-            else {
+            } else {
                 healthBean.nodematch = (clusterHealthResponse.getNumberOfNodes() == config.getDesiredNumberOfNodesInCluster()) ? 0 : 1;
             }
 
             if (config.isEurekaHealthCheckEnabled()) {
                 healthBean.eurekanodematch = (clusterHealthResponse.getNumberOfNodes() == discoveryClient.getApplication(config.getAppName()).getInstances().size()) ? 0 : 1;
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             resetHealthStats(healthBean);
             logger.warn("Failed to load cluster health status", e);
         }
