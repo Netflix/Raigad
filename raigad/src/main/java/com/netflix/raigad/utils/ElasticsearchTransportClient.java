@@ -36,21 +36,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class ElasticsearchTransportClient {
-    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
+    protected static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
 
-    private static AtomicReference<ElasticsearchTransportClient> esTransportClient = new AtomicReference<>(null);
-    private NodesStatsRequestBuilder nodeStatsRequestBuilder;
-    private final TransportClient client;
+    protected static AtomicReference<ElasticsearchTransportClient> esTransportClient = new AtomicReference<>(null);
+
+    protected NodesStatsRequestBuilder nodeStatsRequestBuilder;
+    protected final TransportClient client;
 
     /**
-     * Hostname and Port to talk to will be same server for now optionally we might want the ip to poll.
+     * Hostname and port to talk to will be same server for now optionally we might want the IP to poll.
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
     public ElasticsearchTransportClient(InetAddress host, int port, String clusterName, String nodeName) throws IOException, InterruptedException {
         Settings settings = Settings.settingsBuilder()
                 .put("cluster.name", clusterName)
-                //.put("client.transport.sniff", true)
                 .build();
 
         client = TransportClient.builder().settings(settings).build();
@@ -87,7 +87,7 @@ public class ElasticsearchTransportClient {
         return null;
     }
 
-    private static synchronized ElasticsearchTransportClient connect(final IConfiguration config) throws ElasticsearchTransportClientConnectionException {
+    protected static synchronized ElasticsearchTransportClient connect(final IConfiguration config) throws ElasticsearchTransportClientConnectionException {
         ElasticsearchTransportClient transportClient;
 
         // If Elasticsearch is started then only start the monitoring
@@ -118,7 +118,7 @@ public class ElasticsearchTransportClient {
         return transportClient;
     }
 
-    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
+    protected JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
                                   String state, String load, String owns, String token) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("endpoint", primaryEndpoint);
