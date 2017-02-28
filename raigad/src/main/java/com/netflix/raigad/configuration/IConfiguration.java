@@ -117,8 +117,7 @@ public interface IConfiguration {
     String getDC();
 
     /**
-     * @param dc
-     *            Set the current data center
+     * @param dc Set the current data center
      */
     void setDC(String dc);
 
@@ -288,6 +287,7 @@ public interface IConfiguration {
 
     /**
      * To prefer the index from a specific tribe
+     *
      * @return tribe id
      */
     String getTribePreferredClusterIdOnConflict();
@@ -305,12 +305,14 @@ public interface IConfiguration {
 
     /**
      * Check if instance is deployed in VPC
+     *
      * @return true or false
      */
     boolean isDeployedInVPC();
 
     /**
      * Check if instance is deployed in VPC external
+     *
      * @return true or false
      */
     boolean isVPCExternal();
