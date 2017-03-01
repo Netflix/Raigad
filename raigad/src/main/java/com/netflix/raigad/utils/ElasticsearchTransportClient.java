@@ -32,16 +32,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
 public class ElasticsearchTransportClient {
-    protected static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
 
-    protected static AtomicReference<ElasticsearchTransportClient> esTransportClient = new AtomicReference<>(null);
+    private static AtomicReference<ElasticsearchTransportClient> esTransportClient = new AtomicReference<>(null);
 
-    protected NodesStatsRequestBuilder nodeStatsRequestBuilder;
-    protected final TransportClient client;
+    private NodesStatsRequestBuilder nodeStatsRequestBuilder;
+    private final TransportClient client;
 
     /**
      * Hostname and port to talk to will be same server for now optionally we might want the IP to poll.
@@ -49,14 +51,33 @@ public class ElasticsearchTransportClient {
      * This will work only if Elasticsearch runs.
      */
     public ElasticsearchTransportClient(InetAddress host, int port, String clusterName, String nodeName) throws IOException, InterruptedException {
-        Settings settings = Settings.settingsBuilder()
-                .put("cluster.name", clusterName)
-                .build();
+        Map<String, String> transportClientSettings = new HashMap<>();
+        transportClientSettings.put("cluster.name", clusterName);
+        customizeSettings(transportClientSettings);
+        Settings settings = Settings.settingsBuilder().put(transportClientSettings).build();
 
-        client = TransportClient.builder().settings(settings).build();
+        TransportClient.Builder transportClientBuilder = TransportClient.builder().settings(settings);
+        customizeTransportClientBuilder(transportClientBuilder);
+        client = transportClientBuilder.build();
         client.addTransportAddress(new InetSocketTransportAddress(host, port));
 
         nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(nodeName).all();
+    }
+
+    /**
+     * Override this method if extra settings are needed
+     * @param settings
+     */
+    protected void customizeSettings(Map<String, String> settings) {
+        return;
+    }
+
+    /**
+     * Override this method if extra transport client configuration is needed
+     * @param builder
+     */
+    protected void customizeTransportClientBuilder(TransportClient.Builder builder) {
+        return;
     }
 
     @Inject
