@@ -28,10 +28,12 @@ import com.netflix.raigad.aws.ICredential;
 import com.netflix.raigad.utils.RetriableCallable;
 import com.netflix.raigad.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
+import org.elasticsearch.client.transport.TransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 @Singleton
 public class RaigadConfiguration implements IConfiguration {
@@ -913,5 +915,13 @@ public class RaigadConfiguration implements IConfiguration {
     @Override
     public String getMacIdForInstance() {
         return MAC_ID;
+    }
+
+    @Override
+    public void customizeSettings(Map<String, String> settings) {
+    }
+
+    @Override
+    public void customizeTransportClientBuilder(TransportClient.Builder builder) {
     }
 }

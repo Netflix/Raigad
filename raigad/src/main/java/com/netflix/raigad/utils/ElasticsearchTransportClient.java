@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ElasticsearchTransportClient {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchTransportClient.class);
 
-    private static AtomicReference<ElasticsearchTransportClient> esTransportClient = new AtomicReference<>(null);
+    private static AtomicReference<ElasticsearchTransportClient> elasticsearchTransportClientAtomicReference = new AtomicReference<>(null);
 
     private NodesStatsRequestBuilder nodeStatsRequestBuilder;
     private final TransportClient client;
@@ -50,39 +50,24 @@ public class ElasticsearchTransportClient {
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    public ElasticsearchTransportClient(InetAddress host, int port, String clusterName, String nodeName) throws IOException, InterruptedException {
+    public ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
+            throws IOException, InterruptedException {
         Map<String, String> transportClientSettings = new HashMap<>();
-        transportClientSettings.put("cluster.name", clusterName);
-        customizeSettings(transportClientSettings);
+        transportClientSettings.put("cluster.name", configuration.getAppName());
+        configuration.customizeSettings(transportClientSettings);
         Settings settings = Settings.settingsBuilder().put(transportClientSettings).build();
 
         TransportClient.Builder transportClientBuilder = TransportClient.builder().settings(settings);
-        customizeTransportClientBuilder(transportClientBuilder);
+        configuration.customizeTransportClientBuilder(transportClientBuilder);
         client = transportClientBuilder.build();
-        client.addTransportAddress(new InetSocketTransportAddress(host, port));
+        client.addTransportAddress(new InetSocketTransportAddress(host, configuration.getTransportTcpPort()));
 
-        nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(nodeName).all();
-    }
-
-    /**
-     * Override this method if extra settings are needed
-     * @param settings
-     */
-    protected void customizeSettings(Map<String, String> settings) {
-        return;
-    }
-
-    /**
-     * Override this method if extra transport client configuration is needed
-     * @param builder
-     */
-    protected void customizeTransportClientBuilder(TransportClient.Builder builder) {
-        return;
+        nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(configuration.getEsNodeName()).all();
     }
 
     @Inject
-    public ElasticsearchTransportClient(IConfiguration config) throws IOException, InterruptedException {
-        this(InetAddress.getLocalHost(), config.getTransportTcpPort(), config.getAppName(), config.getEsNodeName());
+    public ElasticsearchTransportClient(IConfiguration configuration) throws IOException, InterruptedException {
+        this(InetAddress.getLocalHost(), configuration);
     }
 
     /**
@@ -90,17 +75,17 @@ public class ElasticsearchTransportClient {
      *
      * @throws IOException
      */
-    public static ElasticsearchTransportClient instance(IConfiguration config) throws ElasticsearchTransportClientConnectionException {
-        if (esTransportClient.get() == null) {
-            esTransportClient.set(connect(config));
+    public static ElasticsearchTransportClient instance(IConfiguration configuration) throws ElasticsearchTransportClientConnectionException {
+        if (elasticsearchTransportClientAtomicReference.get() == null) {
+            elasticsearchTransportClientAtomicReference.set(connect(configuration));
         }
 
-        return esTransportClient.get();
+        return elasticsearchTransportClientAtomicReference.get();
     }
 
     public static NodesStatsResponse getNodesStatsResponse(IConfiguration config) {
         try {
-            return ElasticsearchTransportClient.instance(config).nodeStatsRequestBuilder.execute().actionGet();
+            return ElasticsearchTransportClient.instance(config).getNodeStatsRequestBuilder().execute().actionGet();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
@@ -108,7 +93,7 @@ public class ElasticsearchTransportClient {
         return null;
     }
 
-    protected static synchronized ElasticsearchTransportClient connect(final IConfiguration config) throws ElasticsearchTransportClientConnectionException {
+    private static synchronized ElasticsearchTransportClient connect(final IConfiguration configuration) throws ElasticsearchTransportClientConnectionException {
         ElasticsearchTransportClient transportClient;
 
         // If Elasticsearch is started then only start the monitoring
@@ -122,13 +107,7 @@ public class ElasticsearchTransportClient {
             transportClient = new BoundedExponentialRetryCallable<ElasticsearchTransportClient>() {
                 @Override
                 public ElasticsearchTransportClient retriableCall() throws Exception {
-                    ElasticsearchTransportClient transportClientLocal = new ElasticsearchTransportClient(
-                            InetAddress.getLocalHost(),
-                            config.getTransportTcpPort(),
-                            config.getAppName(),
-                            config.getEsNodeName());
-
-                    return transportClientLocal;
+                    return new ElasticsearchTransportClient(InetAddress.getLocalHost(), configuration);
                 }
             }.call();
         } catch (Exception e) {
@@ -139,7 +118,11 @@ public class ElasticsearchTransportClient {
         return transportClient;
     }
 
-    protected JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
+    private NodesStatsRequestBuilder getNodeStatsRequestBuilder() {
+        return nodeStatsRequestBuilder;
+    }
+
+    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
                                   String state, String load, String owns, String token) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("endpoint", primaryEndpoint);

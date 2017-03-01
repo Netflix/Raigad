@@ -1,6 +1,9 @@
 package com.netflix.raigad.configuration;
 
+import org.elasticsearch.client.transport.TransportClient;
+
 import java.util.List;
+import java.util.Map;
 
 public class FakeConfiguration implements IConfiguration {
 
@@ -508,4 +511,11 @@ public class FakeConfiguration implements IConfiguration {
         return null;
     }
 
+    @Override
+    public void customizeSettings(Map<String, String> settings) {
+    }
+
+    @Override
+    public void customizeTransportClientBuilder(TransportClient.Builder builder) {
+    }
 }
