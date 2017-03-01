@@ -17,8 +17,10 @@
 package com.netflix.raigad.configuration;
 
 import com.google.inject.ImplementedBy;
+import org.elasticsearch.client.transport.TransportClient;
 
 import java.util.List;
+import java.util.Map;
 
 @ImplementedBy(RaigadConfiguration.class)
 public interface IConfiguration {
@@ -336,4 +338,18 @@ public interface IConfiguration {
      * Get the MAC id for an instance
      */
     String getMacIdForInstance();
+
+    /**
+     * Implement this method if extra settings are needed
+     *
+     * @param settings
+     */
+    void customizeSettings(Map<String, String> settings);
+
+    /**
+     * Implement this method if extra transport client configuration is needed
+     *
+     * @param builder
+     */
+    void customizeTransportClientBuilder(TransportClient.Builder builder);
 }
