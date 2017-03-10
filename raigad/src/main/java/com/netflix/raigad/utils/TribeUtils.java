@@ -42,10 +42,11 @@ public class TribeUtils {
     public String getTribeClusterNameFromId(String tribeId) throws FileNotFoundException {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+
         Yaml yaml = new Yaml(options);
         File yamlFile = new File(config.getYamlLocation());
-        Map map = (Map) yaml.load(new FileInputStream(yamlFile));
 
+        Map map = (Map) yaml.load(new FileInputStream(yamlFile));
         String sourceClusterName = (String) map.get("tribe." + tribeId + ".cluster.name");
 
         logger.info("Source cluster associated with tribe ID {} is {}", tribeId, sourceClusterName);

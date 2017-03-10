@@ -33,13 +33,13 @@ public class TestMasterNodeInfoMapper {
             List<MasterNodeInformation> myObjs = mapper.readValue(masterNodeInfo, new TypeReference<ArrayList<MasterNodeInformation>>() {
             });
 
-            assertEquals(1,myObjs.size());
+            assertEquals(1, myObjs.size());
 
             for (MasterNodeInformation key : myObjs) {
-                assertEquals("8sZZWYmmQaeNUKMq1S1uow",key.getId());
-                assertEquals("es-test-useast1d-master-i-9e112345",key.getHost());
-                assertEquals("10.111.22.333",key.getIp());
-                assertEquals("us-east-1d.i-9e112345",key.getNode());
+                assertEquals("8sZZWYmmQaeNUKMq1S1uow", key.getId());
+                assertEquals("es-test-useast1d-master-i-9e112345", key.getHost());
+                assertEquals("10.111.22.333", key.getIp());
+                assertEquals("us-east-1d.i-9e112345", key.getNode());
             }
         } catch (JsonGenerationException e) {
             e.printStackTrace();

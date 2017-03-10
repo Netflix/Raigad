@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 
 
 public class TestElasticsearchProcessManager {
-    ElasticsearchProcessManager elasticSearchProcessManager;
+    private ElasticsearchProcessManager elasticSearchProcessManager;
 
     @Before
     public void setup() {
@@ -30,13 +30,14 @@ public class TestElasticsearchProcessManager {
             assertTrue(0 != exitValue);
             elasticSearchProcessManager.logProcessOutput(p);
         } catch (IOException ioe) {
-            if (p != null)
+            if (p != null) {
                 elasticSearchProcessManager.logProcessOutput(p);
+            }
         }
     }
 
     /**
-     * note: this will succeed on a *nix machine, unclear about anything else...
+     * Note: this will succeed on a *nix machine, unclear about anything else...
      */
     @Test
     public void logProcessOutput_GoodApp() throws IOException, InterruptedException {

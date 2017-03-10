@@ -6,8 +6,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.configuration.UnitTestModule;
 import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
-import mockit.Mockit;
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
@@ -17,16 +17,11 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.repositories.RepositoryMissingException;
 import org.elasticsearch.snapshots.SnapshotState;
 import org.elasticsearch.test.ESIntegTestCase;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Reference:https://github.com/elasticsearch/elasticsearch-cloud-aws/blob/es-1.1/src/test/java/org/elasticsearch/repositories/s3/S3SnapshotRestoreTest.java
@@ -58,6 +53,7 @@ import static org.hamcrest.Matchers.equalTo;
 @ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST, numDataNodes = 2)
 public class TestBackupRestore extends ESIntegTestCase {
     private static final char PATH_SEP = File.separatorChar;
+
     public static String repositoryName = "";
     public static String repositoryLocation = "";
     public static String LOCAL_DIR = "data";
@@ -68,37 +64,38 @@ public class TestBackupRestore extends ESIntegTestCase {
     @Mocked
     private static ElasticsearchTransportClient esTransportClient;
 
-    private static IConfiguration conf;
+    private static IConfiguration configuration;
     private static S3RepositorySettingsParams s3RepositorySettingsParams;
     private static S3Repository s3Repository;
+
     @Mocked
     private static SnapshotBackupManager snapshotBackupManager;
+
     @Mocked
     private static RestoreBackupManager restoreBackupManager;
 
 
     @Before
     public final void setup() throws IOException {
-        System.out.println("Running setup now ...");
+        System.out.println("Running setup now...");
+
         injector = Guice.createInjector(new UnitTestModule());
-        conf = injector.getInstance(IConfiguration.class);
+
+        configuration = injector.getInstance(IConfiguration.class);
         s3RepositorySettingsParams = injector.getInstance(S3RepositorySettingsParams.class);
-
-        Mockit.setUpMock(ElasticsearchTransportClient.class, MockElasticsearchTransportClient.class);
         esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
-
-        Mockit.setUpMock(S3Repository.class, MockS3Repository.class);
         s3Repository = injector.getInstance(S3Repository.class);
 
-        Mockit.setUpMock(SnapshotBackupManager.class, MockSnapshotBackupManager.class);
-        if (snapshotBackupManager == null)
+        if (snapshotBackupManager == null) {
             snapshotBackupManager = injector.getInstance(SnapshotBackupManager.class);
+        }
 
-        Mockit.setUpMock(RestoreBackupManager.class, MockRestoreBackupManager.class);
-        if (restoreBackupManager == null)
+        if (restoreBackupManager == null) {
             restoreBackupManager = injector.getInstance(RestoreBackupManager.class);
+        }
 
         wipeRepositories();
+
         cleanupDir(LOCAL_DIR, null);
     }
 
@@ -107,7 +104,7 @@ public class TestBackupRestore extends ESIntegTestCase {
         System.out.println("Running wipeAfter ...");
         wipeRepositories();
         injector = null;
-        conf = null;
+        configuration = null;
         s3RepositorySettingsParams = null;
         s3Repository = null;
         esTransportClient = null;
@@ -121,7 +118,7 @@ public class TestBackupRestore extends ESIntegTestCase {
         repositoryName = s3Repository.getRemoteRepositoryName();
 
         //Create S3 Repository
-        assertFalse(s3Repository.createOrGetSnapshotRepository() == null);
+        Assert.assertFalse(s3Repository.createOrGetSnapshotRepository() == null);
 
         createIndex("test-idx-1", "test-idx-3");
         ensureGreen();
@@ -132,14 +129,17 @@ public class TestBackupRestore extends ESIntegTestCase {
             index("test-idx-3", "doc", Integer.toString(i), "foo", "baz" + i);
         }
         refresh();
-        assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(100L));
-        assertThat(client0.prepareCount("test-idx-3").get().getCount(), equalTo(100L));
+
+        Assert.assertEquals(client0.prepareSearch("test-idx-1").setSize(0).get().getHits().getTotalHits(), 100L);
+        Assert.assertEquals(client0.prepareSearch("test-idx-3").setSize(0).get().getHits().getTotalHits(), 100L);
 
         //Run backup
         snapshotBackupManager.runSnapshotBackup();
 
-        assertThat(client0.admin().cluster().prepareGetSnapshots(repositoryName)
-                .setSnapshots(snapshotBackupManager.getSnapshotName("_all", false)).get().getSnapshots().get(0).state(), equalTo(SnapshotState.SUCCESS));
+        Assert.assertEquals(
+                client0.admin().cluster().prepareGetSnapshots(repositoryName).setSnapshots(
+                        snapshotBackupManager.getSnapshotName("_all", false))
+                        .get().getSnapshots().get(0).state(), SnapshotState.SUCCESS);
 
         logger.info("--> delete some data");
 
@@ -153,8 +153,8 @@ public class TestBackupRestore extends ESIntegTestCase {
 
         refresh();
 
-        assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(50L));
-        assertThat(client0.prepareCount("test-idx-3").get().getCount(), equalTo(50L));
+        Assert.assertEquals(client0.prepareSearch("test-idx-1").setSize(0).get().getHits().getTotalHits(), 50L);
+        Assert.assertEquals(client0.prepareSearch("test-idx-3").setSize(0).get().getHits().getTotalHits(), 50L);
 
         logger.info("--> close indices");
         client0.admin().indices().prepareClose("test-idx-1", "test-idx-3").get();
@@ -164,13 +164,12 @@ public class TestBackupRestore extends ESIntegTestCase {
 
         ensureGreen();
 
-        assertThat(client0.prepareCount("test-idx-1").get().getCount(), equalTo(100L));
-        assertThat(client0.prepareCount("test-idx-3").get().getCount(), equalTo(100L));
-
+        Assert.assertEquals(client0.prepareSearch("test-idx-1").setSize(0).get().getHits().getTotalHits(), 100L);
+        Assert.assertEquals(client0.prepareSearch("test-idx-3").setSize(0).get().getHits().getTotalHits(), 100L);
     }
 
     @Ignore
-    public static class MockElasticsearchTransportClient {
+    public static class MockElasticsearchTransportClient extends MockUp<ElasticsearchTransportClient>{
         @Mock
         public static ElasticsearchTransportClient instance(IConfiguration config) {
             return esTransportClient;
@@ -183,7 +182,7 @@ public class TestBackupRestore extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockS3Repository {
+    public static class MockS3Repository extends MockUp<S3Repository> {
         @Mock
         public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient, String s3RepoName) {
             String localRepositoryLocation = LOCAL_DIR + PATH_SEP + s3RepositorySettingsParams.getBase_path();
@@ -204,19 +203,19 @@ public class TestBackupRestore extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockSnapshotBackupManager {
+    public static class MockSnapshotBackupManager extends MockUp<SnapshotBackupManager> {
         @Mock
         public CreateSnapshotResponse getCreateSnapshotResponse(Client esTransportClient, String repositoryName, String snapshotName) {
             return client0.admin().cluster().prepareCreateSnapshot(repositoryName, snapshotName)
-                    .setWaitForCompletion(conf.waitForCompletionOfBackup())
-                    .setIndices(conf.getCommaSeparatedIndicesToBackup())
-                    .setIncludeGlobalState(conf.includeGlobalStateDuringBackup())
-                    .setPartial(conf.partiallyBackupIndices()).get();
+                    .setWaitForCompletion(configuration.waitForCompletionOfBackup())
+                    .setIndices(configuration.getCommaSeparatedIndicesToBackup())
+                    .setIncludeGlobalState(configuration.includeGlobalStateDuringBackup())
+                    .setPartial(configuration.partiallyBackupIndices()).get();
         }
     }
 
     @Ignore
-    public static class MockRestoreBackupManager {
+    public static class MockRestoreBackupManager extends MockUp<RestoreBackupManager> {
         @Mock
         public RestoreSnapshotResponse getRestoreSnapshotResponse(
                 Client esTransportClient, String commaSeparatedIndices, String restoreRepositoryName, String snapshotN) {
@@ -232,8 +231,7 @@ public class TestBackupRestore extends ESIntegTestCase {
     public static void cleanupDir(String dirPath, List<String> childDirs) throws IOException {
         if (childDirs == null || childDirs.size() == 0) {
             FileUtils.cleanDirectory(new File(dirPath));
-        }
-        else {
+        } else {
             for (String childDir : childDirs) {
                 FileUtils.cleanDirectory(new File(dirPath + "/" + childDir));
             }
@@ -251,8 +249,7 @@ public class TestBackupRestore extends ESIntegTestCase {
         for (String repository : repositories) {
             try {
                 client().admin().cluster().prepareDeleteRepository(repository).execute().actionGet();
-            }
-            catch (RepositoryMissingException ex) {
+            } catch (RepositoryMissingException ex) {
                 // ignore
             }
         }

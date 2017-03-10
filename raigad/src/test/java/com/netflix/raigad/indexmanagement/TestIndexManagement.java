@@ -6,8 +6,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.configuration.UnitTestModule;
 import com.netflix.raigad.utils.ElasticsearchTransportClient;
 import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
-import mockit.Mockit;
 import org.elasticsearch.action.admin.indices.stats.IndexStats;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.client.Client;
@@ -16,10 +16,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,12 +31,13 @@ public class TestIndexManagement extends ESIntegTestCase {
     private static final int numDays = 5;
 
     private static Injector injector;
-    public static Client client0;
+    private static Client client0;
+
+    private static IConfiguration conf;
 
     @Mocked
     private static ElasticsearchTransportClient esTransportClient;
 
-    private static IConfiguration conf;
     @Mocked
     private static ElasticsearchIndexManager esIndexManager;
 
@@ -48,10 +46,8 @@ public class TestIndexManagement extends ESIntegTestCase {
         injector = Guice.createInjector(new UnitTestModule());
         conf = injector.getInstance(IConfiguration.class);
 
-        Mockit.setUpMock(ElasticsearchTransportClient.class, MockElasticsearchTransportClient.class);
         esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
 
-        Mockit.setUpMock(ElasticsearchIndexManager.class, MockElasticsearchIndexManager.class);
         if (esIndexManager == null) {
             esIndexManager = injector.getInstance(ElasticsearchIndexManager.class);
         }
@@ -67,7 +63,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockElasticsearchTransportClient {
+    public static class MockElasticsearchTransportClient extends MockUp<ElasticsearchTransportClient> {
         @Mock
         public static ElasticsearchTransportClient instance(IConfiguration config) {
             return esTransportClient;
@@ -80,7 +76,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockElasticsearchIndexManager {
+    public static class MockElasticsearchIndexManager extends MockUp<ElasticsearchIndexManager> {
         @Mock
         public IndicesStatsResponse getIndicesStatusResponse(Client esTransportClient) {
             return getLocalIndicesStatusResponse();
@@ -97,13 +93,13 @@ public class TestIndexManagement extends ESIntegTestCase {
         client0 = client();
 
         Map<String, IndexStats> beforeIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        assertEquals(0, beforeIndexStatusMap.size());
+        Assert.assertEquals(0, beforeIndexStatusMap.size());
 
         //Create Old indices for {numDays}
         createOldIndices(indexPrefix, numDays);
 
         Map<String, IndexStats> afterIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        assertEquals(numDays, afterIndexStatusMap.size());
+        Assert.assertEquals(numDays, afterIndexStatusMap.size());
 
         esIndexManager.runIndexManagement();
 
@@ -115,9 +111,9 @@ public class TestIndexManagement extends ESIntegTestCase {
          * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days
          */
         if (indexMetadataList.get(0).isPreCreate()) {
-            assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
+            Assert.assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
         } else {
-            assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
+            Assert.assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
         }
     }
 
