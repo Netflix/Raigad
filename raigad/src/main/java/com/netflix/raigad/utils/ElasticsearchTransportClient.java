@@ -71,15 +71,12 @@ public class ElasticsearchTransportClient {
     }
 
     /**
-     * Try to create if it is null.
+     * Try to create if it is null
      *
-     * @throws IOException
+     * @throws ElasticsearchTransportClientConnectionException
      */
     public static ElasticsearchTransportClient instance(IConfiguration configuration) throws ElasticsearchTransportClientConnectionException {
-        if (elasticsearchTransportClientAtomicReference.get() == null) {
-            elasticsearchTransportClientAtomicReference.set(connect(configuration));
-        }
-
+        elasticsearchTransportClientAtomicReference.compareAndSet(null, connect(configuration));
         return elasticsearchTransportClientAtomicReference.get();
     }
 
