@@ -1,7 +1,11 @@
 <!--
 # Raigad
 -->
-![](images/raigad-type-lg.png?raw=true =150x150) </br>
+2.4.4 status: [![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.4)](https://travis-ci.org/Netflix/Raigad)
+
+2.4.1 status: [![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.1)](https://travis-ci.org/Netflix/Raigad)
+
+![](images/raigad-type-lg.png?raw=true=150x150) </br>
 
 **Raigad** is a process/tool that runs alongside Elasticsearch to automate the following:
 - Snapshot backup and restore.
