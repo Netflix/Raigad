@@ -19,8 +19,6 @@ package com.netflix.raigad.utils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilder;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.client.Client;
@@ -52,6 +50,9 @@ public class ElasticsearchTransportClient {
      */
     public ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
             throws IOException, InterruptedException {
+
+        logger.info("Initializing client connection to {}", host.toString());
+
         Map<String, String> transportClientSettings = new HashMap<>();
         transportClientSettings.put("cluster.name", configuration.getAppName());
         configuration.customizeSettings(transportClientSettings);
@@ -76,7 +77,10 @@ public class ElasticsearchTransportClient {
      * @throws ElasticsearchTransportClientConnectionException
      */
     public static ElasticsearchTransportClient instance(IConfiguration configuration) throws ElasticsearchTransportClientConnectionException {
-        elasticsearchTransportClientAtomicReference.compareAndSet(null, connect(configuration));
+        if (elasticsearchTransportClientAtomicReference.get() == null) {
+            elasticsearchTransportClientAtomicReference.set(connect(configuration));
+        }
+
         return elasticsearchTransportClientAtomicReference.get();
     }
 
@@ -117,20 +121,6 @@ public class ElasticsearchTransportClient {
 
     private NodesStatsRequestBuilder getNodeStatsRequestBuilder() {
         return nodeStatsRequestBuilder;
-    }
-
-    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
-                                  String state, String load, String owns, String token) throws JSONException {
-        JSONObject object = new JSONObject();
-        object.put("endpoint", primaryEndpoint);
-        object.put("dc", dataCenter);
-        object.put("rack", rack);
-        object.put("status", status);
-        object.put("state", state);
-        object.put("load", load);
-        object.put("owns", owns);
-        object.put("token", token.toString());
-        return object;
     }
 
     public Client getTransportClient() {
