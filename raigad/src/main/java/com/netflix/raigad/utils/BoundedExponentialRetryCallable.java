@@ -27,9 +27,11 @@ public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallab
     public final static int MAX_RETRIES = 10;
 
     private static final Logger logger = LoggerFactory.getLogger(BoundedExponentialRetryCallable.class);
+
     private long max;
     private long min;
     private int maxRetries;
+
     private final ThreadSleeper sleeper = new ThreadSleeper();
 
     public BoundedExponentialRetryCallable() {
@@ -45,7 +47,7 @@ public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallab
     }
 
     public T call() throws Exception {
-        long delay = min;// ms
+        long delay = min; // ms
         int retry = 0;
         int logCounter = 0;
         while (true) {
@@ -58,9 +60,12 @@ public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallab
 
                 if (delay < max && retry <= maxRetries) {
                     delay *= 2;
+
                     logger.error(String.format("Retry #%d for: %s", retry, e.getMessage()));
-                    if (++logCounter == 1)
+
+                    if (++logCounter == 1) {
                         logger.info("Exception --> " + ExceptionUtils.getFullStackTrace(e));
+                    }
                     sleeper.sleep(delay);
                 } else if (delay >= max && retry <= maxRetries) {
                     logger.error(String.format("Retry #%d for: %s", retry, ExceptionUtils.getFullStackTrace(e)));
@@ -73,5 +78,4 @@ public abstract class BoundedExponentialRetryCallable<T> extends RetriableCallab
             }
         }
     }
-
 }
