@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 public class RaigadInstance implements Serializable {
     private static final long serialVersionUID = 5606412386974488659L;
+
     private String hostname;
     private long updatetime;
     private boolean outOfService;
@@ -31,6 +32,14 @@ public class RaigadInstance implements Serializable {
     private String publicip;
     private String dc;
     private String asgName;
+
+    @Override
+    public String toString() {
+        return String
+                .format("Host name: %s, instance ID: %s, app: %s, AZ: %s, ID: %s, public IP: %s, DC: %s, ASG: %s, update time: %s",
+                        getHostName(), getInstanceId(), getApp(),
+                        getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
+    }
 
     public String getId() {
         return Id;
@@ -80,14 +89,6 @@ public class RaigadInstance implements Serializable {
         this.publicip = publicip;
     }
 
-    @Override
-    public String toString() {
-        return String
-                .format("Hostname: %s, InstanceId: %s, App: %s, AvailabilityZone : %s, Id : %s, PublicIp : %s, DC : %s, ASG : %s, UpdateTime : %s",
-                        getHostName(), getInstanceId(), getApp(),
-                        getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
-    }
-
     public String getDC() {
         return dc;
     }
@@ -103,7 +104,6 @@ public class RaigadInstance implements Serializable {
     public void setAsg(String asgName) {
         this.asgName = asgName;
     }
-
 
     public long getUpdatetime() {
         return updatetime;

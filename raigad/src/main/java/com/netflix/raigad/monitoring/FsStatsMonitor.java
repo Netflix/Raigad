@@ -33,6 +33,7 @@ import org.elasticsearch.monitor.fs.FsInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -62,39 +63,31 @@ public class FsStatsMonitor extends Task {
 
         try {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
-                logger.info("FS info is not available (node stats is not available)");
+                logger.info("File system info is not available (node stats are not available)");
                 return;
             }
 
             FsInfo fsInfo = nodeStats.getFs();
             if (fsInfo == null) {
-                logger.info("FS info is not available");
+                logger.info("File system info is not available");
                 return;
             }
 
             fsStatsBean.total = fsInfo.getTotal().getTotal().getBytes();
             fsStatsBean.free = fsInfo.getTotal().getFree().getBytes();
             fsStatsBean.available = fsInfo.getTotal().getAvailable().getBytes();
-
-            // TODO: 2X: Determine if this is necessary and if yes find an alternative
-            //fsStatsBean.diskReads = fsInfo.getTotal().getDiskReads();
-            //fsStatsBean.diskWrites = fsInfo.getTotal().getDiskWrites();
-            //fsStatsBean.diskReadBytes = fsInfo.getTotal().getDiskReadSizeInBytes();
-            //fsStatsBean.diskWriteBytes = fsInfo.getTotal().getDiskWriteSizeInBytes();
-            //fsStatsBean.diskQueue = fsInfo.getTotal().getDiskQueue();
-            //fsStatsBean.diskServiceTime = fsInfo.getTotal().getDiskServiceTime();
-
             fsStatsBean.availableDiskPercent = (fsStatsBean.available * 100) / fsStatsBean.total;
         } catch (Exception e) {
-            logger.warn("Failed to load FS stats data", e);
+            logger.warn("Failed to load file system stats data", e);
         }
 
         fsStatsReporter.fsStatsBean.set(fsStatsBean);

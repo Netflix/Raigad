@@ -25,11 +25,15 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,12 +59,14 @@ public class ElasticsearchTransportClient {
 
         Map<String, String> transportClientSettings = new HashMap<>();
         transportClientSettings.put("cluster.name", configuration.getAppName());
-        configuration.customizeSettings(transportClientSettings);
-        Settings settings = Settings.settingsBuilder().put(transportClientSettings).build();
+        Settings settings = Settings.builder().put(transportClientSettings).build();
 
-        TransportClient.Builder transportClientBuilder = TransportClient.builder().settings(settings);
-        configuration.customizeTransportClientBuilder(transportClientBuilder);
-        client = transportClientBuilder.build();
+        Collection<Class<? extends Plugin>> elasticsearchPlugins = new ArrayList<>();
+
+        configuration.customizeSettings(transportClientSettings);
+        configuration.customizePlugins(elasticsearchPlugins);
+
+        client = new PreBuiltTransportClient(settings, elasticsearchPlugins);
         client.addTransportAddress(new InetSocketTransportAddress(host, configuration.getTransportTcpPort()));
 
         nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(configuration.getEsNodeName()).all();

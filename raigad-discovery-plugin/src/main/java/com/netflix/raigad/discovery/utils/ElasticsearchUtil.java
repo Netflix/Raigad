@@ -17,7 +17,10 @@
 package com.netflix.raigad.discovery.utils;
 
 import com.netflix.raigad.discovery.RaigadInstance;
-import org.elasticsearch.common.logging.ESLogger;
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.common.xcontent.NamedXContentRegistry;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.json.JsonXContent;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ import java.util.Map;
 
 public class ElasticsearchUtil {
     private static final String TOP_LEVEL_ELEMENT = "instances";
+
     private static final String HOST_NAME = "host_name";
     private static final String ID = "id";
     private static final String APP_NAME = "app_name";
@@ -36,12 +40,11 @@ public class ElasticsearchUtil {
     private static final String UPDATE_TIME = "update_time";
 
     @SuppressWarnings("unchecked")
-    public static List<RaigadInstance> getRaigadInstancesFromJsonString(String jsonInstances, ESLogger logger) {
+    public static List<RaigadInstance> getRaigadInstancesFromJsonString(String jsonInstances, Logger logger) {
         List<RaigadInstance> raigadInstances = new ArrayList<RaigadInstance>();
 
         try {
-            JsonPath jsonPath = new JsonPath(jsonInstances);
-            Map<String, Object> topLevelInstanceMap = (Map<String, Object>) jsonPath.jsonMap.get(TOP_LEVEL_ELEMENT);
+            Map<String, Object> topLevelInstanceMap = (Map<String, Object>) jsonToMap(jsonInstances).get(TOP_LEVEL_ELEMENT);
 
             for (String instanceKey : topLevelInstanceMap.keySet()) {
                 Map<String, Object> instParamMap = (Map<String, Object>) topLevelInstanceMap.get(instanceKey);
@@ -54,17 +57,21 @@ public class ElasticsearchUtil {
                 raigadInstance.setId((String) instParamMap.get(ID));
                 raigadInstance.setInstanceId((String) instParamMap.get(INSTANCE_ID));
                 raigadInstance.setUpdatetime((Long) instParamMap.get(UPDATE_TIME));
-                logger.info("ES Instance: {}", raigadInstance.toString());
+                logger.info("Raigad instance: {}", raigadInstance.toString());
 
                 //Add to the list
                 raigadInstances.add(raigadInstance);
             }
-
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("Error caught while parsing JSON", e);
         }
 
         return raigadInstances;
+    }
+
+    private static Map<String, Object> jsonToMap(String jsonString) throws IOException {
+        try (XContentParser parser = JsonXContent.jsonXContent.createParser(NamedXContentRegistry.EMPTY, jsonString)) {
+            return parser.mapOrdered();
+        }
     }
 }

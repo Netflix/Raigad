@@ -33,6 +33,7 @@ import org.elasticsearch.indices.NodeIndicesStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -108,12 +109,12 @@ public class NodeIndicesStatsMonitor extends Task {
 
         try {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-
-            NodeIndicesStats nodeIndicesStats = null;
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
@@ -121,7 +122,7 @@ public class NodeIndicesStatsMonitor extends Task {
                 return;
             }
 
-            nodeIndicesStats = nodeStats.getIndices();
+            NodeIndicesStats nodeIndicesStats = nodeStats.getIndices();
             if (nodeIndicesStats == null) {
                 logger.info("Node indices stats is not available");
                 return;
@@ -174,9 +175,6 @@ public class NodeIndicesStatsMonitor extends Task {
     private void updateCache(NodeIndicesStatsBean nodeIndicesStatsBean, NodeIndicesStats nodeIndicesStats) {
         nodeIndicesStatsBean.cacheFieldEvictions = nodeIndicesStats.getFieldData().getEvictions();
         nodeIndicesStatsBean.cacheFieldSize = nodeIndicesStats.getFieldData().getMemorySizeInBytes();
-        // TODO: 2X: Determine if this is necessary and if yes find an alternative
-        //nodeIndicesStatsBean.cacheFilterEvictions = nodeIndicesStats.getFilterCache().getEvictions();
-        //nodeIndicesStatsBean.cacheFilterSize = nodeIndicesStats.getFilterCache().getMemorySizeInBytes();
     }
 
     private void updateSearch(NodeIndicesStatsBean nodeIndicesStatsBean, NodeIndicesStats nodeIndicesStats) {
@@ -302,8 +300,8 @@ public class NodeIndicesStatsMonitor extends Task {
         long tmpIndexingDeleteDelta = (nodeIndicesStatsBean.indexingDeleteTotal - cachedIndexingDeleteTotal);
         nodeIndicesStatsBean.indexingDeleteDelta = tmpIndexingDeleteDelta < 0 ? 0 : tmpIndexingDeleteDelta;
 
-        nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTimeInMillis();
-        nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTimeInMillis();
+        nodeIndicesStatsBean.indexingIndexTimeInMillis = nodeIndicesStats.getIndexing().getTotal().getIndexTime().getMillis();
+        nodeIndicesStatsBean.indexingDeleteTime = nodeIndicesStats.getIndexing().getTotal().getDeleteTime().getMillis();
 
         long indexingTimeInMillis = (nodeIndicesStatsBean.indexingIndexTimeInMillis - cachedIndexingTime);
         if (nodeIndicesStatsBean.indexingIndexDelta != 0) {

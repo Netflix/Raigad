@@ -138,7 +138,8 @@ public class ElasticsearchUtils {
         }
 
         // Map MasterNodeInfo response to DO
-        TypeReference<List<MasterNodeInformation>> typeRef = new TypeReference<List<MasterNodeInformation>>() {};
+        TypeReference<List<MasterNodeInformation>> typeRef = new TypeReference<List<MasterNodeInformation>>() {
+        };
 
         List<MasterNodeInformation> masterNodeInformationList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
 
@@ -177,7 +178,7 @@ public class ElasticsearchUtils {
                 .get();
 
         for (SnapshotInfo snapshotInfo : getSnapshotsResponse.getSnapshots()) {
-            snapshots.add(snapshotInfo.name());
+            snapshots.add(snapshotInfo.snapshotId().getName());
         }
 
         return snapshots;

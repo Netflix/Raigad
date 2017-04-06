@@ -16,7 +16,7 @@
 
 package com.netflix.raigad.discovery.utils;
 
-import org.elasticsearch.common.logging.ESLogger;
+import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -26,23 +26,23 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class DataFetcher {
-    public static String fetchData(String url, ESLogger logger) {
+    public static String fetchData(String url, Logger logger) {
         DataInputStream responseStream = null;
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-            conn.setConnectTimeout(1000);
-            conn.setReadTimeout(10000);
-            conn.setRequestMethod("GET");
+            HttpURLConnection httpConnection = (HttpURLConnection) new URL(url).openConnection();
+            httpConnection.setConnectTimeout(1000);
+            httpConnection.setReadTimeout(10000);
+            httpConnection.setRequestMethod("GET");
 
-            if (conn.getResponseCode() != 200) {
-                logger.error("Unable to get data from URL " + url);
+            if (httpConnection.getResponseCode() != 200) {
+                logger.error("Unable to get data from URL [" + url + "]");
                 throw new RuntimeException("Unable to fetch data from Raigad API");
             }
 
             byte[] b = new byte[2048];
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            responseStream = new DataInputStream((FilterInputStream) conn.getContent());
+            responseStream = new DataInputStream((FilterInputStream) httpConnection.getContent());
 
             int c;
             while ((c = responseStream.read(b, 0, b.length)) != -1) {
@@ -50,22 +50,19 @@ public class DataFetcher {
             }
 
             String result = new String(bos.toByteArray(), StandardCharsets.UTF_8);
-            logger.info("Calling Raigad API ({}) returns {}", url, result);
-            conn.disconnect();
+            logger.info("Raigad API ({}) returns {}", url, result);
+
+            httpConnection.disconnect();
 
             return result;
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
-        }
-        finally {
-            try
-            {
+        } finally {
+            try {
                 if (responseStream != null) {
                     responseStream.close();
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 logger.warn("Failed to close response stream from Raigad", e);
             }
         }

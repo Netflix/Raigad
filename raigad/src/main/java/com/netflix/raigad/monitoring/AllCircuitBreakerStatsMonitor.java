@@ -35,6 +35,7 @@ import org.elasticsearch.indices.breaker.CircuitBreakerStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -67,8 +68,10 @@ public class AllCircuitBreakerStatsMonitor extends Task {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
@@ -89,14 +92,14 @@ public class AllCircuitBreakerStatsMonitor extends Task {
             }
 
             for (CircuitBreakerStats circuitBreakerStat : circuitBreakerStats) {
-                if (circuitBreakerStat.getName() == CircuitBreaker.FIELDDATA) {
+                if (CircuitBreaker.FIELDDATA.equals(circuitBreakerStat.getName())) {
                     allCircuitBreakerStatsBean.fieldDataEstimatedSizeInBytes = circuitBreakerStat.getEstimated();
                     allCircuitBreakerStatsBean.fieldDataLimitMaximumSizeInBytes = circuitBreakerStat.getLimit();
                     allCircuitBreakerStatsBean.fieldDataOverhead = circuitBreakerStat.getOverhead();
                     allCircuitBreakerStatsBean.fieldDataTrippedCount = circuitBreakerStat.getTrippedCount();
                 }
 
-                if (circuitBreakerStat.getName() == CircuitBreaker.REQUEST) {
+                if (CircuitBreaker.REQUEST.equals(circuitBreakerStat.getName())) {
                     allCircuitBreakerStatsBean.requestEstimatedSizeInBytes = circuitBreakerStat.getEstimated();
                     allCircuitBreakerStatsBean.requestLimitMaximumSizeInBytes = circuitBreakerStat.getLimit();
                     allCircuitBreakerStatsBean.requestOverhead = circuitBreakerStat.getOverhead();

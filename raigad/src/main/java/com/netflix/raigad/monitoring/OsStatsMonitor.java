@@ -33,6 +33,7 @@ import org.elasticsearch.monitor.os.OsStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -61,11 +62,12 @@ public class OsStatsMonitor extends Task {
         OsStatsBean osStatsBean = new OsStatsBean();
         try {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            OsStats osStats = null;
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
@@ -73,7 +75,7 @@ public class OsStatsMonitor extends Task {
                 return;
             }
 
-            osStats = nodeStats.getOs();
+            OsStats osStats = nodeStats.getOs();
             if (osStats == null) {
                 logger.info("OS stats is not available");
                 return;
@@ -88,7 +90,7 @@ public class OsStatsMonitor extends Task {
             osStatsBean.usedPercent = osStats.getMem().getUsedPercent();
 
             //CPU
-            osStatsBean.cpuSys = osStats.getCpuPercent();
+            osStatsBean.cpuSys = osStats.getCpu().getPercent();
             osStatsBean.cpuUser = 0;
             osStatsBean.cpuIdle = 0;
             osStatsBean.cpuStolen = 0;

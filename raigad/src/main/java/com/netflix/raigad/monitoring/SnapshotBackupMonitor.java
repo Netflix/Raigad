@@ -58,6 +58,7 @@ public class SnapshotBackupMonitor extends Task {
         }
 
         SnapshotBackupBean snapshotBackupBean = new SnapshotBackupBean();
+
         try {
             snapshotBackupBean.snapshotSuccess = snapshotBackupManager.getNumSnapshotSuccess();
             snapshotBackupBean.snapshotFailure = snapshotBackupManager.getNumSnapshotFailure();

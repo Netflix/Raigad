@@ -28,10 +28,11 @@ import com.netflix.raigad.aws.ICredential;
 import com.netflix.raigad.utils.RetriableCallable;
 import com.netflix.raigad.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.plugins.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -137,8 +138,7 @@ public class RaigadConfiguration implements IConfiguration {
         if (StringUtils.equals(VPC_ID, SystemUtils.NOT_FOUND_STR)) {
             PUBLIC_HOSTNAME = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-hostname").trim();
             PUBLIC_IP = SystemUtils.getDataFromUrl("http://169.254.169.254/latest/meta-data/public-ipv4").trim();
-        }
-        else {
+        } else {
             IS_DEPLOYED_IN_VPC = true;
             IS_VPC_EXTERNAL = true;
 
@@ -370,8 +370,7 @@ public class RaigadConfiguration implements IConfiguration {
 
         try {
             return getASGName.call();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error("Failed to determine ASG name.", e);
             return null;
         }
@@ -922,6 +921,6 @@ public class RaigadConfiguration implements IConfiguration {
     }
 
     @Override
-    public void customizeTransportClientBuilder(TransportClient.Builder builder) {
+    public void customizePlugins(Collection<Class<? extends Plugin>> plugins) {
     }
 }
