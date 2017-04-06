@@ -139,7 +139,7 @@ public class S3Repository extends AbstractRepository {
      */
     public PutRepositoryResponse getPutRepositoryResponse(Client esTransportClient, String s3RepoName) {
         return esTransportClient.admin().cluster().preparePutRepository(s3RepoName)
-                .setType(getRepositoryType().name()).setSettings(Settings.settingsBuilder()
+                .setType(getRepositoryType().name()).setSettings(Settings.builder()
                         .put("base_path", repositorySettingsParams.getBase_path())
                         .put("region", repositorySettingsParams.getRegion())
                         .put("bucket", repositorySettingsParams.getBucket())

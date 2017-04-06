@@ -1,27 +1,26 @@
 package com.netflix.raigad.configuration;
 
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.plugins.Plugin;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class FakeConfiguration implements IConfiguration {
 
     public static final String FAKE_REGION = "us-east-1";
-    public static final String INDEX_METADATA = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 5,    \"indexName\": \"test_index\", \"preCreate\": \"true\"   }]";
+    public static final String INDEX_METADATA = "[{\"retentionType\":\"daily\",\"retentionPeriod\":5,\"indexName\":\"test_index\",\"preCreate\":\"true\"}]";
 
     public String region;
     public String appName;
     public String zone;
     public String instance_id;
 
-    public FakeConfiguration()
-    {
-        this(FAKE_REGION, "my_fake_cluster", "my_zone", "i-01234567");
+    public FakeConfiguration() {
+        this(FAKE_REGION, "my_fake_cluster", "my_zone", "i-01234567890123456");
     }
 
-    public FakeConfiguration(String region, String appName, String zone, String ins_id)
-    {
+    public FakeConfiguration(String region, String appName, String zone, String ins_id) {
         this.region = region;
         this.appName = appName;
         this.zone = zone;
@@ -30,7 +29,6 @@ public class FakeConfiguration implements IConfiguration {
 
     @Override
     public void initialize() {
-
     }
 
     @Override
@@ -516,6 +514,6 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public void customizeTransportClientBuilder(TransportClient.Builder builder) {
+    public void customizePlugins(Collection<Class<? extends Plugin>> plugins) {
     }
 }

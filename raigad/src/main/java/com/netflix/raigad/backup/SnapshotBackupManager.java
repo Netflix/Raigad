@@ -127,7 +127,7 @@ public class SnapshotBackupManager extends Task {
     public void printSnapshotDetails(CreateSnapshotResponse createSnapshotResponse) {
         StringBuilder builder = new StringBuilder();
         builder.append("Snapshot Details:");
-        builder.append("\n\t Name = " + createSnapshotResponse.getSnapshotInfo().name());
+        builder.append("\n\t Name = " + createSnapshotResponse.getSnapshotInfo().snapshotId().getName());
         builder.append("\n\t Indices : ");
         for (String index : createSnapshotResponse.getSnapshotInfo().indices()) {
             builder.append("\n\t\t Index = " + index);

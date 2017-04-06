@@ -32,6 +32,7 @@ import org.elasticsearch.http.HttpStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -49,7 +50,6 @@ public class HttpStatsMonitor extends Task {
 
     @Override
     public void execute() throws Exception {
-
         // If Elasticsearch is started then only start the monitoring
         if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
             String exceptionMsg = "Elasticsearch is not yet started, check back again later";
@@ -58,27 +58,33 @@ public class HttpStatsMonitor extends Task {
         }
 
         HttpStatsBean httpStatsBean = new HttpStatsBean();
+
         try {
-            NodesStatsResponse ndsStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            HttpStats httpStats = null;
-            NodeStats ndStat = null;
-            if (ndsStatsResponse.getNodes().length > 0) {
-                ndStat = ndsStatsResponse.getAt(0);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
+            NodeStats nodeStats = null;
+
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
-            if (ndStat == null) {
-                logger.info("NodeStats is null,hence returning (No HttpStats).");
+
+            if (nodeStats == null) {
+                logger.info("HTTP stats is not available (node stats are not available)");
                 return;
             }
-            httpStats = ndStat.getHttp();
+
+            HttpStats httpStats = nodeStats.getHttp();
+
             if (httpStats == null) {
-                logger.info("HttpStats is null,hence returning (No HttpStats).");
+                logger.info("HTTP stats is not available");
                 return;
             }
 
             httpStatsBean.serverOpen = httpStats.getServerOpen();
             httpStatsBean.totalOpen = httpStats.getTotalOpen();
         } catch (Exception e) {
-            logger.warn("failed to load Http stats data", e);
+            logger.warn("failed to load HTTP stats data", e);
         }
 
         httpStatsReporter.httpStatsBean.set(httpStatsBean);
@@ -88,7 +94,7 @@ public class HttpStatsMonitor extends Task {
         private final AtomicReference<HttpStatsBean> httpStatsBean;
 
         public Elasticsearch_HttpStatsReporter() {
-            httpStatsBean = new AtomicReference<HttpStatsBean>(new HttpStatsBean());
+            httpStatsBean = new AtomicReference<>(new HttpStatsBean());
         }
 
         @Monitor(name = "server_open", type = DataSourceType.GAUGE)

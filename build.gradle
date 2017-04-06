@@ -3,38 +3,38 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:latest.release'
+        classpath "com.netflix.nebula:gradle-extra-configurations-plugin:latest.release"
     }
 }
 
 plugins {
-    id 'nebula.netflixoss' version '3.5.2'
+    id "nebula.netflixoss" version "3.5.2"
 }
 
 allprojects {
     tasks.withType(Javadoc) {
-        options.addStringOption('Xdoclint:none', '-quiet')
+        options.addStringOption("Xdoclint:none", "-quiet")
     }
 }
 
 // Establish version and status
 ext {
-    githubProjectName = 'Raigad'
-    elasticsearchVersion = "2.4.4"
+    githubProjectName = "Raigad"
+    elasticsearchVersion = "5.3.0"
 }
 
-apply plugin: 'jetty'
-apply plugin: 'osgi'
-apply plugin: 'project-report'
+apply plugin: "jetty"
+apply plugin: "osgi"
+apply plugin: "project-report"
 
 subprojects {
-    apply plugin: 'nebula.netflixoss'
-    apply plugin: 'nebula.provided-base'
-    apply plugin: 'java'
+    apply plugin: "nebula.netflixoss"
+    apply plugin: "nebula.provided-base"
+    apply plugin: "java"
 
-    group = 'com.netflix.raigad'
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    group = "com.netflix.raigad"
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
 
     repositories {
         jcenter()
@@ -71,31 +71,28 @@ subprojects {
         compile "org.xerial.snappy:snappy-java:1.0.4.1"
         compile "org.yaml:snakeyaml:1.10"
         compile "javax.ws.rs:jsr311-api:1.1.1"
-        compile "joda-time:joda-time:2.0"
         compile "xerces:xercesImpl:2.4.0"
         compile "net.java.dev.jna:jna:3.2.3"
         compile "com.ning:compress-lzf:0.9.5"
 
-        compile "org.slf4j:slf4j-api:1.6.1"
-        compile "org.slf4j:slf4j-log4j12:1.6.1"
+        compile "org.apache.logging.log4j:log4j-to-slf4j:2.7"
+        compile "org.slf4j:slf4j-api:1.7.21"
+        compile "org.slf4j:slf4j-log4j12:1.7.21"
 
-        compile "org.elasticsearch:elasticsearch:${elasticsearchVersion}"
+        compile "org.elasticsearch.client:transport:${elasticsearchVersion}"
 
         compile "com.netflix.servo:servo-core:0.5.5"
         compile "com.netflix.eureka:eureka-client:1.4.8"
-        compile 'com.netflix.archaius:archaius-core:0.7.3'
-        compile 'com.netflix.governator:governator:1.12.10'
-        compile('com.netflix.astyanax:astyanax:2.0.1') {
-            exclude module: 'junit'
+        compile "com.netflix.archaius:archaius-core:0.7.3"
+        compile "com.netflix.governator:governator:1.12.10"
+        compile("com.netflix.astyanax:astyanax:2.0.1") {
+            exclude module: "junit"
         }
 
         provided "javax.servlet:servlet-api:2.5"
 
-        testCompile 'org.jmockit:jmockit:[1.28,)'
-        testCompile 'org.elasticsearch:elasticsearch:${elasticsearchVersion}:tests'
-        testCompile 'org.apache.lucene:lucene-test-framework:5.5.4'
-        testCompile 'com.carrotsearch.randomizedtesting:randomizedtesting-runner:2.3.2'
-        //testCompile 'org.hamcrest:hamcrest-all:1.3'
-        testCompile 'junit:junit:[4.8,5)'
+        testCompile "org.jmockit:jmockit:[1.28,)"
+        testCompile "org.elasticsearch.test:framework:${elasticsearchVersion}"
+        testCompile "junit:junit:[4.8,5)"
     }
 }

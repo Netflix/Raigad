@@ -191,7 +191,7 @@ public class TestBackupRestore extends ESIntegTestCase {
                     client0.admin().cluster()
                             .preparePutRepository(repositoryName)
                             .setType(AbstractRepository.RepositoryType.fs.name())
-                            .setSettings(Settings.settingsBuilder().put("location", localRepositoryLocation))
+                            .setSettings(Settings.builder().put("location", localRepositoryLocation))
                             .get();
 
             //Setting local repository location

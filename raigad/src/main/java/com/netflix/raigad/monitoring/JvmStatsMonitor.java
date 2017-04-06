@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -67,11 +68,12 @@ public class JvmStatsMonitor extends Task {
 
         try {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            JvmStats jvmStats;
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
@@ -79,7 +81,7 @@ public class JvmStatsMonitor extends Task {
                 return;
             }
 
-            jvmStats = nodeStats.getJvm();
+            JvmStats jvmStats = nodeStats.getJvm();
             if (jvmStats == null) {
                 logger.info("JVM stats is not available");
                 return;
@@ -125,31 +127,9 @@ public class JvmStatsMonitor extends Task {
                 if (garbageCollector.getName().equalsIgnoreCase(GC_YOUNG_TAG)) {
                     jvmStatsBean.youngCollectionCount = garbageCollector.getCollectionCount();
                     jvmStatsBean.youngCollectionTimeInMillis = garbageCollector.getCollectionTime().getMillis();
-
-                    /* TODO: 2X: Determine if last GC is necessary and if yes find an alternative
-                    if (garbageCollector.getLastGc() != null) {
-                        jvmStatsBean.youngLastGcStartTime = garbageCollector.getLastGc().getStartTime();
-                        jvmStatsBean.youngLastGcEndTime = garbageCollector.getLastGc().getEndTime();
-                        jvmStatsBean.youngLastGcDuration = garbageCollector.getLastGc().getDuration().getMillis();
-                        jvmStatsBean.youngLastGcMaxInBytes = garbageCollector.getLastGc().getMax().getBytes();
-                        jvmStatsBean.youngLastGcBeforeUsedInBytes = garbageCollector.getLastGc().getBeforeUsed().getBytes();
-                        jvmStatsBean.youngLastGcAfterUsedInBytes = garbageCollector.getLastGc().getAfterUsed().getBytes();
-                    }
-                    */
                 } else if (garbageCollector.getName().equalsIgnoreCase(GC_OLD_TAG)) {
                     jvmStatsBean.oldCollectionCount = garbageCollector.getCollectionCount();
                     jvmStatsBean.oldCollectionTimeInMillis = garbageCollector.getCollectionTime().getMillis();
-
-                    /* TODO: 2X: Determine if last GC is necessary and if yes find an alternative
-                    if (garbageCollector.getLastGc() != null) {
-                        jvmStatsBean.oldLastGcStartTime = garbageCollector.getLastGc().getStartTime();
-                        jvmStatsBean.oldLastGcEndTime = garbageCollector.getLastGc().getEndTime();
-                        jvmStatsBean.oldLastGcDuration = garbageCollector.getLastGc().getDuration().getMillis();
-                        jvmStatsBean.oldLastGcMaxInBytes = garbageCollector.getLastGc().getMax().getBytes();
-                        jvmStatsBean.oldLastGcBeforeUsedInBytes = garbageCollector.getLastGc().getBeforeUsed().getBytes();
-                        jvmStatsBean.oldLastGcAfterUsedInBytes = garbageCollector.getLastGc().getAfterUsed().getBytes();
-                    }
-                    */
                 }
             }
         } catch (Exception e) {

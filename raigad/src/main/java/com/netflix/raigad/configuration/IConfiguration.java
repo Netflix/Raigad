@@ -18,7 +18,9 @@ package com.netflix.raigad.configuration;
 
 import com.google.inject.ImplementedBy;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.plugins.Plugin;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -347,9 +349,9 @@ public interface IConfiguration {
     void customizeSettings(Map<String, String> settings);
 
     /**
-     * Implement this method if extra transport client configuration is needed
+     * Implement this method if extra plugins needed for transport client
      *
-     * @param builder
+     * @param plugins
      */
-    void customizeTransportClientBuilder(TransportClient.Builder builder);
+    void customizePlugins(Collection<Class<? extends Plugin>> plugins);
 }

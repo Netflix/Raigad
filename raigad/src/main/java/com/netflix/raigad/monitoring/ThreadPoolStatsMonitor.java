@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -50,7 +51,6 @@ public class ThreadPoolStatsMonitor extends Task {
 
     @Override
     public void execute() throws Exception {
-
         // If Elasticsearch is started then only start the monitoring
         if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
             String exceptionMsg = "Elasticsearch is not yet started, check back again later";
@@ -58,60 +58,69 @@ public class ThreadPoolStatsMonitor extends Task {
             return;
         }
 
-        ThreadPoolStatsBean tpStatsBean = new ThreadPoolStatsBean();
+        ThreadPoolStatsBean threadPoolStatsBean = new ThreadPoolStatsBean();
+
         try {
-            NodesStatsResponse ndsStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            ThreadPoolStats tpstats = null;
-            NodeStats ndStat = null;
-            if (ndsStatsResponse.getNodes().length > 0) {
-                ndStat = ndsStatsResponse.getAt(0);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
+            NodeStats nodeStats = null;
+
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
-            if (ndStat == null) {
-                logger.info("NodeStats is null,hence returning (No ThreadPoolStats).");
+
+            if (nodeStats == null) {
+                logger.info("Thread pool stats are not available (node stats is not available)");
                 return;
             }
-            tpstats = ndStat.getThreadPool();
-            if (tpstats == null) {
-                logger.info("ThreadPoolStats is null,hence returning (No ThreadPoolStats).");
+
+            ThreadPoolStats threadPoolStats = nodeStats.getThreadPool();
+
+            if (threadPoolStats == null) {
+                logger.info("Thread pool stats are not available");
                 return;
             }
-            Iterator<ThreadPoolStats.Stats> iter = tpstats.iterator();
-            while (iter.hasNext()) {
-                ThreadPoolStats.Stats stat = iter.next();
+
+            Iterator<ThreadPoolStats.Stats> threadPoolStatsIterator = threadPoolStats.iterator();
+
+            while (threadPoolStatsIterator.hasNext()) {
+                ThreadPoolStats.Stats stat = threadPoolStatsIterator.next();
                 if (stat.getName().equals("index")) {
-                    tpStatsBean.indexThreads = stat.getThreads();
-                    tpStatsBean.indexQueue = stat.getQueue();
-                    tpStatsBean.indexActive = stat.getActive();
-                    tpStatsBean.indexRejected = stat.getRejected();
-                    tpStatsBean.indexLargest = stat.getLargest();
-                    tpStatsBean.indexCompleted = stat.getCompleted();
+                    threadPoolStatsBean.indexThreads = stat.getThreads();
+                    threadPoolStatsBean.indexQueue = stat.getQueue();
+                    threadPoolStatsBean.indexActive = stat.getActive();
+                    threadPoolStatsBean.indexRejected = stat.getRejected();
+                    threadPoolStatsBean.indexLargest = stat.getLargest();
+                    threadPoolStatsBean.indexCompleted = stat.getCompleted();
                 } else if (stat.getName().equals("get")) {
-                    tpStatsBean.getThreads = stat.getThreads();
-                    tpStatsBean.getQueue = stat.getQueue();
-                    tpStatsBean.getActive = stat.getActive();
-                    tpStatsBean.getRejected = stat.getRejected();
-                    tpStatsBean.getLargest = stat.getLargest();
-                    tpStatsBean.getCompleted = stat.getCompleted();
+                    threadPoolStatsBean.getThreads = stat.getThreads();
+                    threadPoolStatsBean.getQueue = stat.getQueue();
+                    threadPoolStatsBean.getActive = stat.getActive();
+                    threadPoolStatsBean.getRejected = stat.getRejected();
+                    threadPoolStatsBean.getLargest = stat.getLargest();
+                    threadPoolStatsBean.getCompleted = stat.getCompleted();
                 } else if (stat.getName().equals("search")) {
-                    tpStatsBean.searchThreads = stat.getThreads();
-                    tpStatsBean.searchQueue = stat.getQueue();
-                    tpStatsBean.searchActive = stat.getActive();
-                    tpStatsBean.searchRejected = stat.getRejected();
-                    tpStatsBean.searchLargest = stat.getLargest();
-                    tpStatsBean.searchCompleted = stat.getCompleted();
+                    threadPoolStatsBean.searchThreads = stat.getThreads();
+                    threadPoolStatsBean.searchQueue = stat.getQueue();
+                    threadPoolStatsBean.searchActive = stat.getActive();
+                    threadPoolStatsBean.searchRejected = stat.getRejected();
+                    threadPoolStatsBean.searchLargest = stat.getLargest();
+                    threadPoolStatsBean.searchCompleted = stat.getCompleted();
                 } else if (stat.getName().equals("bulk")) {
-                    tpStatsBean.bulkThreads = stat.getThreads();
-                    tpStatsBean.bulkQueue = stat.getQueue();
-                    tpStatsBean.bulkActive = stat.getActive();
-                    tpStatsBean.bulkRejected = stat.getRejected();
-                    tpStatsBean.bulkLargest = stat.getLargest();
-                    tpStatsBean.bulkCompleted = stat.getCompleted();
+                    threadPoolStatsBean.bulkThreads = stat.getThreads();
+                    threadPoolStatsBean.bulkQueue = stat.getQueue();
+                    threadPoolStatsBean.bulkActive = stat.getActive();
+                    threadPoolStatsBean.bulkRejected = stat.getRejected();
+                    threadPoolStatsBean.bulkLargest = stat.getLargest();
+                    threadPoolStatsBean.bulkCompleted = stat.getCompleted();
                 }
             }
         } catch (Exception e) {
-            logger.warn("failed to load Thread Pool stats data", e);
+            logger.warn("Failed to load thread pool stats data", e);
         }
-        tpStatsReporter.threadPoolBean.set(tpStatsBean);
+
+        tpStatsReporter.threadPoolBean.set(threadPoolStatsBean);
     }
 
     public class Elasticsearch_ThreadPoolStatsReporter {

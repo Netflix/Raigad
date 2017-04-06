@@ -33,6 +33,7 @@ import org.elasticsearch.monitor.process.ProcessStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -62,36 +63,31 @@ public class ProcessStatsMonitor extends Task {
 
         try {
             NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            ProcessStats processStats = null;
             NodeStats nodeStats = null;
 
-            if (nodesStatsResponse.getNodes().length > 0) {
-                nodeStats = nodesStatsResponse.getAt(0);
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
 
             if (nodeStats == null) {
-                logger.info("Process stats is not available (node stats is not available)");
+                logger.info("Process stats are not available (node stats is not available)");
                 return;
             }
 
-            processStats = nodeStats.getProcess();
+            ProcessStats processStats = nodeStats.getProcess();
             if (processStats == null) {
-                logger.info("Process stats is not available");
+                logger.info("Process stats are not available");
                 return;
             }
 
             //Memory
-            // TODO: 2X: Determine if this is necessary and if yes find an alternative
-            //processStatsBean.residentInBytes = processStats.getMem().getResident().getBytes();
-            //processStatsBean.shareInBytes = processStats.getMem().getShare().getBytes();
             processStatsBean.totalVirtualInBytes = processStats.getMem().getTotalVirtual().getBytes();
 
             //CPU
             processStatsBean.cpuPercent = processStats.getCpu().getPercent();
             processStatsBean.totalInMillis = processStats.getCpu().getTotal().getMillis();
-            // TODO: 2X: Determine if this is necessary and if yes find an alternative
-            //processStatsBean.sysInMillis = processStats.getCpu().getSys().getMillis();
-            //processStatsBean.userInMillis = processStats.getCpu().getUser().getMillis();
 
             //Open file descriptors
             processStatsBean.openFileDescriptors = processStats.getOpenFileDescriptors();

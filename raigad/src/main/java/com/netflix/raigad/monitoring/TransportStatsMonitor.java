@@ -32,6 +32,7 @@ import org.elasticsearch.transport.TransportStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Singleton
@@ -49,7 +50,6 @@ public class TransportStatsMonitor extends Task {
 
     @Override
     public void execute() throws Exception {
-
         // If Elasticsearch is started then only start the monitoring
         if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
             String exceptionMsg = "Elasticsearch is not yet started, check back again later";
@@ -58,20 +58,26 @@ public class TransportStatsMonitor extends Task {
         }
 
         TransportStatsBean transportStatsBean = new TransportStatsBean();
+
         try {
-            NodesStatsResponse ndsStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
-            TransportStats transportStats = null;
-            NodeStats ndStat = null;
-            if (ndsStatsResponse.getNodes().length > 0) {
-                ndStat = ndsStatsResponse.getAt(0);
+            NodesStatsResponse nodesStatsResponse = ElasticsearchTransportClient.getNodesStatsResponse(config);
+            NodeStats nodeStats = null;
+
+            List<NodeStats> nodeStatsList = nodesStatsResponse.getNodes();
+
+            if (nodeStatsList.size() > 0) {
+                nodeStats = nodeStatsList.get(0);
             }
-            if (ndStat == null) {
-                logger.info("NodeStats is null,hence returning (No TransportStats).");
+
+            if (nodeStats == null) {
+                logger.info("Transport stats are not available (node stats is not available)");
                 return;
             }
-            transportStats = ndStat.getTransport();
+
+            TransportStats transportStats = nodeStats.getTransport();
+
             if (transportStats == null) {
-                logger.info("TransportStats is null,hence returning (No TransportStats).");
+                logger.info("Transport stats are not available");
                 return;
             }
 
@@ -83,7 +89,7 @@ public class TransportStatsMonitor extends Task {
             transportStatsBean.txSize = transportStats.getTxSize().getBytes();
             transportStatsBean.txSizeDelta = transportStats.getTxSize().getBytes() - transportStatsBean.txSize;
         } catch (Exception e) {
-            logger.warn("failed to load Transport stats data", e);
+            logger.warn("Failed to load transport stats data", e);
         }
 
         transportStatsReporter.transportStatsBean.set(transportStatsBean);
@@ -150,5 +156,4 @@ public class TransportStatsMonitor extends Task {
     public String getName() {
         return METRIC_NAME;
     }
-
 }
