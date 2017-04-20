@@ -6,8 +6,8 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.configuration.UnitTestModule;
 import com.netflix.raigad.utils.ESTransportClient;
 import mockit.Mock;
+import mockit.MockUp;
 import mockit.Mocked;
-import mockit.Mockit;
 import org.elasticsearch.action.admin.indices.stats.IndexStats;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
 import org.elasticsearch.client.Client;
@@ -16,10 +16,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -34,26 +31,25 @@ public class TestIndexManagement extends ESIntegTestCase {
     private static final int numDays = 5;
 
     private static Injector injector;
-    public static Client client0;
+    private static Client client0;
+
+    private static IConfiguration conf;
 
     @Mocked
     private static ESTransportClient esTransportClient;
 
-    private static IConfiguration conf;
     @Mocked
-    private static ElasticSearchIndexManager elasticSearchIndexManager;
+    private static ElasticSearchIndexManager esIndexManager;
 
     @BeforeClass
     public static void setup() throws InterruptedException, IOException {
         injector = Guice.createInjector(new UnitTestModule());
         conf = injector.getInstance(IConfiguration.class);
 
-        Mockit.setUpMock(ESTransportClient.class, MockESTransportClient.class);
         esTransportClient = injector.getInstance(ESTransportClient.class);
 
-        Mockit.setUpMock(ElasticSearchIndexManager.class, MockElasticSearchIndexManager.class);
-        if (elasticSearchIndexManager == null) {
-            elasticSearchIndexManager = injector.getInstance(ElasticSearchIndexManager.class);
+        if (esIndexManager == null) {
+            esIndexManager = injector.getInstance(ElasticSearchIndexManager.class);
         }
     }
 
@@ -63,11 +59,11 @@ public class TestIndexManagement extends ESIntegTestCase {
         client0 = null;
         esTransportClient = null;
         conf = null;
-        elasticSearchIndexManager = null;
+        esIndexManager = null;
     }
 
     @Ignore
-    public static class MockESTransportClient {
+    public static class MockESTransportClient extends MockUp<ESTransportClient> {
         @Mock
         public static ESTransportClient instance(IConfiguration config) {
             return esTransportClient;
@@ -80,7 +76,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     @Ignore
-    public static class MockElasticSearchIndexManager {
+    public static class MockElasticsearchIndexManager extends MockUp<ElasticSearchIndexManager> {
         @Mock
         public IndicesStatsResponse getIndicesStatusResponse(Client esTransportClient) {
             return getLocalIndicesStatusResponse();
@@ -97,15 +93,15 @@ public class TestIndexManagement extends ESIntegTestCase {
         client0 = client();
 
         Map<String, IndexStats> beforeIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        assertEquals(0, beforeIndexStatusMap.size());
+        Assert.assertEquals(0, beforeIndexStatusMap.size());
 
         //Create Old indices for {numDays}
         createOldIndices(indexPrefix, numDays);
 
         Map<String, IndexStats> afterIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        assertEquals(numDays, afterIndexStatusMap.size());
+        Assert.assertEquals(numDays, afterIndexStatusMap.size());
 
-        elasticSearchIndexManager.runIndexManagement();
+        esIndexManager.runIndexManagement();
 
         Map<String, IndexStats> finalIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
 
@@ -115,10 +111,9 @@ public class TestIndexManagement extends ESIntegTestCase {
          * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days
          */
         if (indexMetadataList.get(0).isPreCreate()) {
-            assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
-        }
-        else {
-            assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
+            Assert.assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
+        } else {
+            Assert.assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
         }
     }
 
@@ -127,7 +122,7 @@ public class TestIndexManagement extends ESIntegTestCase {
     }
 
     public static void createOldIndices(String indexPrefix, int numDays) {
-        for (int i = numDays; i > 0; i --) {
+        for (int i = numDays; i > 0; i--) {
             String indexName = indexPrefix + getFormattedDate(i);
             client0.admin().indices().prepareCreate(indexName).execute().actionGet();
         }
