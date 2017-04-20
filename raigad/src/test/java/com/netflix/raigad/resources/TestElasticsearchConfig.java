@@ -7,9 +7,9 @@ import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.TribeUtils;
 import mockit.Expectations;
 import mockit.Mocked;
-import mockit.NonStrictExpectations;
-import org.junit.Before;
+import mockit.integration.junit4.JMockit;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import javax.ws.rs.core.Response;
 import java.net.UnknownHostException;
@@ -18,34 +18,27 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+@RunWith(JMockit.class)
 public class TestElasticsearchConfig {
-    private
-    @Mocked
-    RaigadServer raigadServer;
-
-    private ElasticsearchConfig resource;
-    private TribeUtils tribeUtils;
-
-    @Before
-    public void setUp() {
-        resource = new ElasticsearchConfig(raigadServer, tribeUtils);
-    }
-
     @Test
-    public void getNodes() throws Exception {
-        RaigadInstance es1 = new RaigadInstance();
-        es1.setApp("fake-app1");
+    public void getNodes(
+            @Mocked final RaigadServer raigadServer,
+            @Mocked final TribeUtils tribeUtils,
+            @Mocked final InstanceManager instanceManager) throws Exception {
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
 
-        RaigadInstance es2 = new RaigadInstance();
-        es2.setApp("fake-app2");
+        RaigadInstance raigadInstance1 = new RaigadInstance();
+        raigadInstance1.setApp("fake-app1");
 
-        RaigadInstance es3 = new RaigadInstance();
-        es3.setApp("fake-app3");
+        RaigadInstance raigadInstance2 = new RaigadInstance();
+        raigadInstance2.setApp("fake-app2");
 
-        final List<RaigadInstance> nodes = asList(es1, es2, es3);
+        RaigadInstance raigadInstance3 = new RaigadInstance();
+        raigadInstance3.setApp("fake-app3");
 
-        new NonStrictExpectations() {
-            InstanceManager instanceManager;
+        final List<RaigadInstance> nodes = asList(raigadInstance1, raigadInstance2, raigadInstance3);
+
+        new Expectations() {
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
@@ -57,16 +50,19 @@ public class TestElasticsearchConfig {
             }
         };
 
-        Response response = resource.getNodes();
+        Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
     }
 
     @Test
-    public void getNodes_notFound() throws Exception {
+    public void getNodes_notFound(
+            @Mocked final RaigadServer raigadServer,
+            @Mocked final TribeUtils tribeUtils,
+            @Mocked final InstanceManager instanceManager) throws Exception {
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
         final List<String> nodes = ImmutableList.of();
 
-        new NonStrictExpectations() {
-            InstanceManager instanceManager;
+        new Expectations() {
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
@@ -78,16 +74,19 @@ public class TestElasticsearchConfig {
             }
         };
 
-        Response response = resource.getNodes();
+        Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
     }
 
     @Test
-    public void getNodes_Error() throws Exception {
+    public void getNodes_Error(
+            @Mocked final RaigadServer raigadServer,
+            @Mocked final TribeUtils tribeUtils,
+            @Mocked final InstanceManager instanceManager) throws Exception {
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
         final List<String> nodes = null;
 
-        new NonStrictExpectations() {
-            InstanceManager instanceManager;
+        new Expectations() {
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
@@ -99,24 +98,29 @@ public class TestElasticsearchConfig {
             }
         };
 
-        Response response = resource.getNodes();
+        Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
     }
 
     @Test
-    public void getNodes_handlesUnknownHostException() throws Exception {
-        new Expectations() {
-            InstanceManager instanceManager;
+    public void getNodes_handlesUnknownHostException(
+            @Mocked final RaigadServer raigadServer,
+            @Mocked final TribeUtils tribeUtils,
+            @Mocked final InstanceManager instanceManager) throws Exception {
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
 
+        new Expectations() {
             {
                 raigadServer.getInstanceManager();
                 result = instanceManager;
+                times = 1;
+
                 instanceManager.getAllInstances();
                 result = new UnknownHostException();
             }
         };
 
-        Response response = resource.getNodes();
+        Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
     }
 }
