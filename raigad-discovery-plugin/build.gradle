@@ -3,12 +3,14 @@ apply plugin: 'project-report'
 apply plugin: 'java'
 
 task createZip(type: Zip, dependsOn: jar) {
-    from('src/main/resources/plugin-metadata'){
-        filesMatching('plugin-descriptor.properties') {
-            expand('version': project.version, 'elasticsearchVersion': elasticsearchVersion, 'javaVersion': targetCompatibility)
+    into('elasticsearch') {
+        from('src/main/resources/plugin-metadata') {
+            filesMatching('plugin-descriptor.properties') {
+                expand('version': project.version, 'elasticsearchVersion': elasticsearchVersion, 'javaVersion': targetCompatibility)
+            }
         }
+        from jar
     }
-    from jar
 }
 
 publishing {
