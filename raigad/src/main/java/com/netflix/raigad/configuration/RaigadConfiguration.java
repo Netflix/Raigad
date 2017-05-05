@@ -123,6 +123,7 @@ public class RaigadConfiguration implements IConfiguration {
 
     // Amazon specific
     private static final String CONFIG_ASG_NAME = MY_WEBAPP_NAME + ".az.asgname";
+    private static final String CONFIG_STACK_NAME = MY_WEBAPP_NAME + ".az.stack";
     private static final String CONFIG_REGION_NAME = MY_WEBAPP_NAME + ".az.region";
     private static final String CONFIG_ACL_GROUP_NAME = MY_WEBAPP_NAME + ".acl.groupname";
     private static final String CONFIG_ACL_GROUP_NAME_FOR_VPC = MY_WEBAPP_NAME + ".acl.groupname.vpc";
@@ -168,6 +169,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String ES_NODE_NAME = RAC + "." + INSTANCE_ID;
 
     private static String ASG_NAME = System.getenv("ASG_NAME");
+    private static String STACK_NAME = System.getenv("STACK_NAME");
     private static String REGION = System.getenv("EC2_REGION");
 
     // Defaults
@@ -350,15 +352,21 @@ public class RaigadConfiguration implements IConfiguration {
     }
 
     private void setupEnvVars() {
-        // Search in java opt properties
         REGION = StringUtils.isBlank(REGION) ? System.getProperty("EC2_REGION") : REGION;
-        // Infer from zone
-        if (StringUtils.isBlank(REGION))
+
+        if (StringUtils.isBlank(REGION)) {
             REGION = RAC.substring(0, RAC.length() - 1);
+        }
+
         ASG_NAME = StringUtils.isBlank(ASG_NAME) ? System.getProperty("ASG_NAME") : ASG_NAME;
-        if (StringUtils.isBlank(ASG_NAME))
+
+        if (StringUtils.isBlank(ASG_NAME)) {
             ASG_NAME = populateASGName(REGION, INSTANCE_ID);
-        logger.info(String.format("REGION set to %s, ASG Name set to %s", REGION, ASG_NAME));
+        }
+
+        STACK_NAME = StringUtils.isBlank(STACK_NAME) ? System.getProperty("STACK_NAME") : STACK_NAME;
+
+        logger.info(String.format("REGION set to [%s], ASG Name set to [%s]", REGION, ASG_NAME));
     }
 
     /**
@@ -371,7 +379,7 @@ public class RaigadConfiguration implements IConfiguration {
         try {
             return getASGName.call();
         } catch (Exception e) {
-            logger.error("Failed to determine ASG name.", e);
+            logger.error("Failed to determine ASG name", e);
             return null;
         }
     }
@@ -420,12 +428,13 @@ public class RaigadConfiguration implements IConfiguration {
         List<String> zone = Lists.newArrayList();
 
         for (AvailabilityZone reg : res.getAvailabilityZones()) {
-            if (reg.getState().equals("available"))
+            if (reg.getState().equals("available")) {
                 zone.add(reg.getZoneName());
-            if (zone.size() == 3)
+            }
+            if (zone.size() == 3) {
                 break;
+            }
         }
-        //DEFAULT_AVAILABILITY_ZONES =  StringUtils.join(zone, ",");
         DEFAULT_AVAILABILITY_ZONES = ImmutableList.copyOf(zone);
     }
 
@@ -452,6 +461,11 @@ public class RaigadConfiguration implements IConfiguration {
     @Override
     public String getASGName() {
         return config.get(CONFIG_ASG_NAME, ASG_NAME);
+    }
+
+    @Override
+    public String getStackName() {
+        return config.get(CONFIG_STACK_NAME, STACK_NAME);
     }
 
     @Override
