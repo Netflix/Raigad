@@ -132,6 +132,11 @@ public interface IConfiguration {
     String getASGName();
 
     /**
+     * Amazon specific setting to query ASG Membership
+     */
+    String getStackName();
+
+    /**
      * Get the security group associated with nodes in this cluster
      */
     String getACLGroupName();

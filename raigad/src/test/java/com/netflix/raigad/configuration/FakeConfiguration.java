@@ -177,6 +177,11 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
+    public String getStackName() {
+        return null;
+    }
+
+    @Override
     public String getACLGroupName() {
         return null;
     }

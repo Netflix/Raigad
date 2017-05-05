@@ -57,6 +57,7 @@ public class StandardTuner implements IElasticsearchTuner {
         Map map = (Map) yaml.load(new FileInputStream(yamlFile));
         map.put("cluster.name", config.getAppName());
         map.put("node.name", config.getEsNodeName());
+
         map.put("http.port", config.getHttpPort());
         map.put("path.data", config.getDataFileLocation());
         map.put("path.logs", config.getLogFileLocation());
@@ -92,7 +93,6 @@ public class StandardTuner implements IElasticsearchTuner {
 
                 map.put("tribe.t" + i + ".cluster.name", clusterNameAndPort[0]);
                 map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterNameAndPort[1]));
-                map.put("tribe.t" + i + ".discovery.type", config.getElasticsearchDiscoveryType());
                 map.put("tribe.t" + i + ".network.host", "_global_");
                 logger.info("Adding cluster [{}:{}]", clusterNameAndPort[0], clusterNameAndPort[1]);
 
@@ -128,11 +128,7 @@ public class StandardTuner implements IElasticsearchTuner {
         else {
             map.put("transport.tcp.port", config.getTransportTcpPort());
 
-            map.put("discovery.type", config.getElasticsearchDiscoveryType());
             map.put("discovery.zen.minimum_master_nodes", config.getMinimumMasterNodes());
-            map.put("index.number_of_shards", config.getNumOfShards());
-            map.put("index.number_of_replicas", config.getNumOfReplicas());
-            map.put("index.refresh_interval", config.getIndexRefreshInterval());
 
             /**
             NOTE: When using awareness attributes, shards will not be allocated to nodes that
@@ -141,28 +137,26 @@ public class StandardTuner implements IElasticsearchTuner {
             map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
 
             if (config.isShardPerNodeEnabled()) {
-                map.put("index.routing.allocation.total_shards_per_node", config.getTotalShardsPerNode());
+                map.put("cluster.routing.allocation.total_shards_per_node", config.getTotalShardsPerNode());
             }
 
             if (config.isMultiDC()) {
-                map.put("node.rack_id", config.getDC());
+                map.put("node.attr.rack_id", config.getDC());
             }
             else {
-                map.put("node.rack_id", config.getRac());
+                map.put("node.attr.rack_id", config.getRac());
             }
 
-            // TODO: Create new tuner for ASG-based deployment
-            // TODO: Need to come up with better algorithm for non-ASG based deployments
             if (config.isAsgBasedDedicatedDeployment()) {
-                if (config.getASGName().toLowerCase().contains("master")) {
+                if ("master".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", true);
                     map.put("node.data", false);
                 }
-                else if (config.getASGName().toLowerCase().contains("data")) {
+                else if ("data".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", false);
                     map.put("node.data", true);
                 }
-                else if (config.getASGName().toLowerCase().contains("search")) {
+                else if ("search".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", false);
                     map.put("node.data", false);
                 }
