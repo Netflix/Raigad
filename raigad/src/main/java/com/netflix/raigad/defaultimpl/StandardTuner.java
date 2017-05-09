@@ -85,7 +85,7 @@ public class StandardTuner implements IElasticsearchTuner {
             List<Integer> tribePorts = new ArrayList<>();
             tribePorts.add(config.getTransportTcpPort());
 
-            //Common settings
+            // Common settings
             for (int i = 0; i < clusters.length; i++) {
                 String[] clusterNameAndPort = clusters[i].split(PARAM_SEPARATOR);
                 assert (clusterNameAndPort.length != 2) : "Cluster name or transport port is missing in configuration";
@@ -93,6 +93,7 @@ public class StandardTuner implements IElasticsearchTuner {
 
                 map.put("tribe.t" + i + ".cluster.name", clusterNameAndPort[0]);
                 map.put("tribe.t" + i + ".transport.tcp.port", Integer.parseInt(clusterNameAndPort[1]));
+                map.put("tribe.t" + i + ".discovery.zen.hosts_provider", config.getElasticsearchDiscoveryType());
                 map.put("tribe.t" + i + ".network.host", "_global_");
                 logger.info("Adding cluster [{}:{}]", clusterNameAndPort[0], clusterNameAndPort[1]);
 
@@ -127,13 +128,12 @@ public class StandardTuner implements IElasticsearchTuner {
         }
         else {
             map.put("transport.tcp.port", config.getTransportTcpPort());
-
+            map.put("discovery.zen.hosts_provider", config.getElasticsearchDiscoveryType());
             map.put("discovery.zen.minimum_master_nodes", config.getMinimumMasterNodes());
 
-            /**
-            NOTE: When using awareness attributes, shards will not be allocated to nodes that
-            do not have values set for those attributes. Important in dedicated master nodes deployment
-             */
+            // NOTE: When using awareness attributes, shards will not be allocated to nodes that
+            // do not have values set for those attributes. Important in dedicated master nodes deployment
+
             map.put("cluster.routing.allocation.awareness.attributes", config.getClusterRoutingAttributes());
 
             if (config.isShardPerNodeEnabled()) {
