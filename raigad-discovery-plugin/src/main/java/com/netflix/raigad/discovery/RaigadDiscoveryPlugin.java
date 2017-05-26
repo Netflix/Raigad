@@ -36,7 +36,7 @@ public class RaigadDiscoveryPlugin extends Plugin implements DiscoveryPlugin {
 
     public RaigadDiscoveryPlugin(Settings settings) {
         this.settings = settings;
-        logger.info("Starting Raigad custom discovery");
+        logger.info("Starting Raigad discovery");
     }
 
     @Override

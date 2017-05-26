@@ -27,10 +27,11 @@ import java.nio.charset.StandardCharsets;
 
 public class DataFetcher {
     public static String fetchData(String url, Logger logger) {
+        HttpURLConnection httpConnection = null;
         DataInputStream responseStream = null;
 
         try {
-            HttpURLConnection httpConnection = (HttpURLConnection) new URL(url).openConnection();
+            httpConnection = (HttpURLConnection) new URL(url).openConnection();
             httpConnection.setConnectTimeout(1000);
             httpConnection.setReadTimeout(10000);
             httpConnection.setRequestMethod("GET");
@@ -40,21 +41,20 @@ public class DataFetcher {
                 throw new RuntimeException("Unable to fetch data from Raigad API");
             }
 
-            byte[] b = new byte[2048];
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] bytes = new byte[2048];
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             responseStream = new DataInputStream((FilterInputStream) httpConnection.getContent());
 
-            int c;
-            while ((c = responseStream.read(b, 0, b.length)) != -1) {
-                bos.write(b, 0, c);
+            int bytesRead;
+            while ((bytesRead = responseStream.read(bytes, 0, bytes.length)) != -1) {
+                byteArrayOutputStream.write(bytes, 0, bytesRead);
             }
 
-            String result = new String(bos.toByteArray(), StandardCharsets.UTF_8);
-            logger.info("Raigad API ({}) returns {}", url, result);
-
-            httpConnection.disconnect();
+            String result = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
+            logger.info("Raigad ({}) returned {}", url, result);
 
             return result;
+
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
@@ -65,6 +65,9 @@ public class DataFetcher {
             } catch (Exception e) {
                 logger.warn("Failed to close response stream from Raigad", e);
             }
+
+            if (httpConnection != null)
+                httpConnection.disconnect();
         }
     }
 }
