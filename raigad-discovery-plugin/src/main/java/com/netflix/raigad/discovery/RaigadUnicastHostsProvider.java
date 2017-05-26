@@ -66,20 +66,19 @@ public class RaigadUnicastHostsProvider extends AbstractComponent implements Uni
                     TransportAddress[] addresses = transportService.addressesFromString(instance.getHostIP(), 1);
 
                     if (addresses != null && addresses.length > 0) {
-                        logger.info("[raigad-discovery] Adding instance [{}] (address [{}], transport address [{}])",
+                        logger.info("[raigad-discovery] Adding instance [{}], address [{}], transport address [{}]",
                                 instance.getId(), instance.getHostIP(), addresses[0]);
 
                         discoveryNodes.add(new DiscoveryNode(instance.getId(), addresses[0], Version.CURRENT.minimumCompatibilityVersion()));
                     }
                 } catch (Exception e) {
-                    logger.warn("[raigad-discovery] Failed to add instance [{}] (address [{}])", e, instance.getId(), instance.getHostIP());
+                    logger.warn("[raigad-discovery] Failed to add instance [{}], address [{}]", e, instance.getId(), instance.getHostIP());
                 }
             }
         } catch (Exception e) {
             logger.error("[raigad-discovery] Exception while trying to build dynamic discovery nodes", e);
             throw new RuntimeException(e);
         }
-
 
         logger.debug("[raigad-discovery] Using dynamic discovery nodes {}", discoveryNodes);
 

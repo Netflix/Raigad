@@ -36,7 +36,7 @@ public class RaigadInstance implements Serializable {
     @Override
     public String toString() {
         return String
-                .format("Host name: %s, instance ID: %s, app: %s, AZ: %s, ID: %s, public IP: %s, DC: %s, ASG: %s, update time: %s",
+                .format("Host name [%s], instance ID [%s], app [%s], AZ [%s], ID [%s], IP [%s], DC [%s], ASG [%s], update time [%s]",
                         getHostName(), getInstanceId(), getApp(),
                         getAvailabilityZone(), getId(), getHostIP(), getDC(), getAsg(), getUpdatetime());
     }

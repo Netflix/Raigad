@@ -30,9 +30,9 @@ import java.util.Map;
 public class ElasticsearchUtil {
     private static final String TOP_LEVEL_ELEMENT = "instances";
 
-    private static final String HOST_NAME = "host_name";
     private static final String ID = "id";
     private static final String APP_NAME = "app_name";
+    private static final String HOST_NAME = "host_name";
     private static final String INSTANCE_ID = "instance_id";
     private static final String AVAILABILITY_ZONE = "availability_zone";
     private static final String PUBLIC_IP = "public_ip";
