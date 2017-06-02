@@ -20,7 +20,7 @@ allprojects {
 // Establish version and status
 ext {
     githubProjectName = "Raigad"
-    elasticsearchVersion = "5.4.0"
+    elasticsearchVersion = "5.4.1"
 }
 
 apply plugin: "jetty"
@@ -33,8 +33,8 @@ subprojects {
     apply plugin: "java"
 
     group = "com.netflix.raigad"
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     repositories {
         jcenter()
