@@ -6,7 +6,7 @@
 
 |Branch |Status|
 | ----- | ---- |
-|master (5.4.0) |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=master)](https://travis-ci.org/Netflix/Raigad)|
+|master (5.4.1) |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=master)](https://travis-ci.org/Netflix/Raigad)|
 |2.4.4  |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.4)](https://travis-ci.org/Netflix/Raigad)|
 |2.4.1  |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.1)](https://travis-ci.org/Netflix/Raigad)|
 
