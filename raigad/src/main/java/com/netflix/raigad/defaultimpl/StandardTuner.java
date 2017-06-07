@@ -151,14 +151,23 @@ public class StandardTuner implements IElasticsearchTuner {
                 if ("master".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", true);
                     map.put("node.data", false);
+                    map.put("node.ingest", false);
                 }
                 else if ("data".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", false);
                     map.put("node.data", true);
+                    map.put("node.ingest", false);
                 }
                 else if ("search".equalsIgnoreCase(config.getStackName())) {
                     map.put("node.master", false);
                     map.put("node.data", false);
+                    map.put("node.ingest", true);
+                }
+                else {
+                    map.put("node.master", false);
+                    map.put("node.data", false);
+                    map.put("node.ingest", false);
+
                 }
             }
         }
