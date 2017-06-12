@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
 
 public class StandardTuner implements IElasticsearchTuner {
     private static final Logger logger = LoggerFactory.getLogger(StandardTuner.class);
@@ -65,8 +65,7 @@ public class StandardTuner implements IElasticsearchTuner {
         if (config.isVPCExternal()) {
             map.put("network.publish_host", config.getHostIP());
             map.put("http.publish_host", config.getHostname());
-        }
-        else {
+        } else {
             map.put("network.publish_host", "_non_loopback:ipv4_");
         }
 
@@ -100,21 +99,18 @@ public class StandardTuner implements IElasticsearchTuner {
 
             if (config.amIWriteEnabledTribeNode()) {
                 map.put("tribe.blocks.write", false);
-            }
-            else {
+            } else {
                 map.put("tribe.blocks.write", true);
             }
 
             if (config.amIMetadataEnabledTribeNode()) {
                 map.put("tribe.blocks.metadata", false);
-            }
-            else {
+            } else {
                 map.put("tribe.blocks.metadata", true);
             }
 
             map.put("tribe.on_conflict", "prefer_" + config.getTribePreferredClusterIdOnConflict());
-        }
-        else {
+        } else {
             map.put("discovery.type", config.getElasticsearchDiscoveryType());
             map.put("discovery.zen.minimum_master_nodes", config.getMinimumMasterNodes());
             map.put("index.number_of_shards", config.getNumOfShards());
@@ -133,8 +129,7 @@ public class StandardTuner implements IElasticsearchTuner {
 
             if (config.isMultiDC()) {
                 map.put("node.rack_id", config.getDC());
-            }
-            else {
+            } else {
                 map.put("node.rack_id", config.getRac());
             }
 
@@ -144,12 +139,10 @@ public class StandardTuner implements IElasticsearchTuner {
                 if (config.getASGName().toLowerCase().contains("master")) {
                     map.put("node.master", true);
                     map.put("node.data", false);
-                }
-                else if (config.getASGName().toLowerCase().contains("data")) {
+                } else if (config.getASGName().toLowerCase().contains("data")) {
                     map.put("node.master", false);
                     map.put("node.data", true);
-                }
-                else if (config.getASGName().toLowerCase().contains("search")) {
+                } else if (config.getASGName().toLowerCase().contains("search")) {
                     map.put("node.master", false);
                     map.put("node.data", false);
                 }
@@ -166,21 +159,21 @@ public class StandardTuner implements IElasticsearchTuner {
         String extraConfigParams = config.getExtraConfigParams();
 
         if (extraConfigParams == null) {
-            logger.info("Updating YAML: no extra ES params");
+            logger.info("Updating elasticsearch.yml: no extra parameters");
             return;
         }
 
         String[] pairs = extraConfigParams.trim().split(COMMA_SEPARATOR);
-        logger.info("Updating YAML: adding extra ES params");
+        logger.info("Updating elasticsearch.yml: adding extra parameters");
 
-        for (String pair1 : pairs) {
-            String[] keyValue = pair1.trim().split(PARAM_SEPARATOR);
+        for (String pair : pairs) {
+            String[] keyValue = pair.trim().split(PARAM_SEPARATOR);
 
             String raigadKey = keyValue[0].trim();
             String esKey = keyValue[1].trim();
             String esValue = config.getEsKeyName(raigadKey);
 
-            logger.info("Updating YAML: Raigad key [{}], Elasticsearch key [{}], value [{}]", raigadKey, esKey, esValue);
+            logger.info("Updating elasticsearch.yml: Raigad key [{}], Elasticsearch key [{}], value [{}]", raigadKey, esKey, esValue);
 
             if (raigadKey == null || esKey == null || esValue == null) {
                 logger.error("One of the extra keys or values is null, skipping...");

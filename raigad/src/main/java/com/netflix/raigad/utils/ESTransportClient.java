@@ -1,12 +1,12 @@
 /**
- * Copyright 2014 Netflix, Inc.
- *
+ * Copyright 2017 Netflix, Inc.
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,8 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Class to get data out of Elasticsearch
  */
 @Singleton
-public class ESTransportClient
-{
+public class ESTransportClient {
     private static final Logger logger = LoggerFactory.getLogger(ESTransportClient.class);
 
     private static AtomicReference<ESTransportClient> esTransportClient = new AtomicReference<ESTransportClient>(null);
@@ -50,8 +49,7 @@ public class ESTransportClient
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    public ESTransportClient(String host, int port, String clusterName, String nodeName) throws IOException, InterruptedException
-    {
+    public ESTransportClient(String host, int port, String clusterName, String nodeName) throws IOException, InterruptedException {
         Settings settings = ImmutableSettings.settingsBuilder()
                 .put("cluster.name", clusterName)
                 //.put("client.transport.sniff", true)
@@ -64,47 +62,42 @@ public class ESTransportClient
     }
 
     @Inject
-    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException
-    {
+    public ESTransportClient(IConfiguration config) throws IOException, InterruptedException {
         this("localhost", config.getTransportTcpPort(), config.getAppName(), config.getEsNodeName());
     }
 
     /**
      * Try to create if it is null.
-     * @throws IOException 
+     * @throws IOException
      */
-    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException
-    {
-   		if (esTransportClient.get() == null) {
+    public static ESTransportClient instance(IConfiguration config) throws ESTransportClientConnectionException {
+        if (esTransportClient.get() == null) {
             esTransportClient.set(connect(config));
         }
-        
+
         return esTransportClient.get();
     }
 
-    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config)
-    {
-   		try {
+    public static NodesStatsResponse getNodesStatsResponse(IConfiguration config) {
+        try {
             return ESTransportClient.instance(config).nodeStatsRequestBuilder.execute().actionGet();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
 
         return null;
     }
 
-    public static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException
-    {
-    	ESTransportClient transportClient;
-    		
-		// If Elasticsearch is started then only start the monitoring
-		if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
-			String exceptionMessage = "Elasticsearch is not yet started, check back again later";
-			logger.info("Elasticsearch is not yet started, check back again later");
-			throw new ESTransportClientConnectionException(exceptionMessage);
-		}        		
-    		
+    public static synchronized ESTransportClient connect(final IConfiguration config) throws ESTransportClientConnectionException {
+        ESTransportClient transportClient;
+
+        // If Elasticsearch is started then only start the monitoring
+        if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
+            String exceptionMessage = "Elasticsearch is not yet started, check back again later";
+            logger.info("Elasticsearch is not yet started, check back again later");
+            throw new ESTransportClientConnectionException(exceptionMessage);
+        }
+
         try {
             transportClient = new BoundedExponentialRetryCallable<ESTransportClient>() {
                 @Override
@@ -115,11 +108,10 @@ public class ESTransportClient
                             config.getAppName(),
                             config.getEsNodeName());
 
-                            return transportClientLocal;
+                    return transportClientLocal;
                 }
             }.call();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new ESTransportClientConnectionException(e.getMessage());
         }
@@ -128,8 +120,7 @@ public class ESTransportClient
     }
 
     private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
-                                  String state, String load, String owns, String token) throws JSONException
-    {
+                                  String state, String load, String owns, String token) throws JSONException {
         JSONObject object = new JSONObject();
         object.put("endpoint", primaryEndpoint);
         object.put("dc", dataCenter);
