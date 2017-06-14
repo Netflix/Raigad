@@ -513,12 +513,4 @@ public class FakeConfiguration implements IConfiguration {
     public String getMacIdForInstance() {
         return null;
     }
-
-    @Override
-    public void customizeSettings(Map<String, String> settings) {
-    }
-
-    @Override
-    public void customizePlugins(Collection<Class<? extends Plugin>> plugins) {
-    }
 }

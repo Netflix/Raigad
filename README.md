@@ -4,11 +4,7 @@
 
 ![](images/raigad-type-lg.png?raw=true=150x150) </br>
 
-|Branch |Status|
-| ----- | ---- |
-|master (5.4.1) |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=master)](https://travis-ci.org/Netflix/Raigad)|
-|2.4.4  |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.4)](https://travis-ci.org/Netflix/Raigad)|
-|2.4.1  |[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=2.4.1)](https://travis-ci.org/Netflix/Raigad)|
+[![Build Status](https://travis-ci.org/Netflix/Raigad.svg?branch=master)](https://travis-ci.org/Netflix/Raigad)
 
 **Raigad** is a process/tool that runs alongside Elasticsearch to automate the following:
 - Snapshot backup and restore.
@@ -19,7 +15,7 @@
 
 Elasticsearch is open source, distributed, real-time search and analytics engine: https://www.elastic.co/products/elasticsearch/
 
-The name 'Raigad' refers to the name of an Indian fort in state of Maharashtra.
+The name "Raigad" refers to the name of an Indian fort in state of Maharashtra.
 
 Raigad is actively developed and used at Netflix.
 
