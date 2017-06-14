@@ -13,18 +13,18 @@ public class TestGuiceSingleton
         @Override
         protected void configure()
         {
-            bind(EmptryInterface.class).to(GuiceSingleton.class).asEagerSingleton();
+            bind(EmptyInterface.class).to(GuiceSingleton.class).asEagerSingleton();
         }
 
     }
 
-    public interface EmptryInterface
+    public interface EmptyInterface
     {
         public String print();
     }
 
     @Singleton
-    public static class GuiceSingleton implements EmptryInterface
+    public static class GuiceSingleton implements EmptyInterface
     {
 
         public String print()
@@ -38,9 +38,9 @@ public class TestGuiceSingleton
     public void testSingleton()
     {
         Injector injector = Guice.createInjector(new GModules());
-        injector.getInstance(EmptryInterface.class).print();
-        injector.getInstance(EmptryInterface.class).print();
-        injector.getInstance(EmptryInterface.class).print();
+        injector.getInstance(EmptyInterface.class).print();
+        injector.getInstance(EmptyInterface.class).print();
+        injector.getInstance(EmptyInterface.class).print();
         printInjected();
         printInjected();
         printInjected();
@@ -50,7 +50,7 @@ public class TestGuiceSingleton
     public void printInjected()
     {
         Injector injector = Guice.createInjector(new GModules());
-        injector.getInstance(EmptryInterface.class).print();
+        injector.getInstance(EmptyInterface.class).print();
     }
 
 }

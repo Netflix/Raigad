@@ -25,15 +25,12 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,21 +49,17 @@ public class ElasticsearchTransportClient {
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    public ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
+    private ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
             throws IOException, InterruptedException {
 
         logger.info("Initializing client connection to {}", host.toString());
 
         Map<String, String> transportClientSettings = new HashMap<>();
         transportClientSettings.put("cluster.name", configuration.getAppName());
-        Settings settings = Settings.builder().put(transportClientSettings).build();
+        transportClientSettings.put("client.transport.ping_timeout", "30s");
+        transportClientSettings.put("client.transport.nodes_sampler_interval", "30s");
 
-        Collection<Class<? extends Plugin>> elasticsearchPlugins = new ArrayList<>();
-
-        configuration.customizeSettings(transportClientSettings);
-        configuration.customizePlugins(elasticsearchPlugins);
-
-        client = new PreBuiltTransportClient(settings, elasticsearchPlugins);
+        client = new PreBuiltTransportClient(Settings.builder().put(transportClientSettings).build());
         client.addTransportAddress(new InetSocketTransportAddress(host, configuration.getTransportTcpPort()));
 
         nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(configuration.getEsNodeName()).all();

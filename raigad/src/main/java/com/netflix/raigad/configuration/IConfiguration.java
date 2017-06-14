@@ -345,18 +345,4 @@ public interface IConfiguration {
      * Get the MAC id for an instance
      */
     String getMacIdForInstance();
-
-    /**
-     * Implement this method if extra settings are needed
-     *
-     * @param settings
-     */
-    void customizeSettings(Map<String, String> settings);
-
-    /**
-     * Implement this method if extra plugins needed for transport client
-     *
-     * @param plugins
-     */
-    void customizePlugins(Collection<Class<? extends Plugin>> plugins);
 }

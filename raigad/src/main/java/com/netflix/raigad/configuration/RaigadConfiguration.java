@@ -929,12 +929,4 @@ public class RaigadConfiguration implements IConfiguration {
     public String getMacIdForInstance() {
         return MAC_ID;
     }
-
-    @Override
-    public void customizeSettings(Map<String, String> settings) {
-    }
-
-    @Override
-    public void customizePlugins(Collection<Class<? extends Plugin>> plugins) {
-    }
 }
