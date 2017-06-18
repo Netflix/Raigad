@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Singleton
 public class ElasticsearchProcessMonitor extends Task {
 
-    public static final String JOBNAME = "ES_MONITOR_THREAD";
+    public static final String JOB_NAME = "ES_MONITOR_THREAD";
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
     private static final AtomicBoolean isElasticsearchRunningNow = new AtomicBoolean(false);
     private static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
@@ -46,7 +46,6 @@ public class ElasticsearchProcessMonitor extends Task {
 
     @Override
     public void execute() throws Exception {
-
         try {
             //This returns pid for the Elasticsearch process
             Process p = Runtime.getRuntime().exec("pgrep -f " + config.getElasticsearchProcessName());
@@ -64,16 +63,15 @@ public class ElasticsearchProcessMonitor extends Task {
             logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
             isElasticsearchRunningNow.set(false);
         }
-
     }
 
     public static TaskTimer getTimer() {
-        return new SimpleTimer(JOBNAME, 10L * 1000);
+        return new SimpleTimer(JOB_NAME, 10L * 1000);
     }
 
     @Override
     public String getName() {
-        return JOBNAME;
+        return JOB_NAME;
     }
 
     public static Boolean isElasticsearchRunning() {
