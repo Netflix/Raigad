@@ -84,7 +84,7 @@ public class HttpStatsMonitor extends Task {
             httpStatsBean.serverOpen = httpStats.getServerOpen();
             httpStatsBean.totalOpen = httpStats.getTotalOpen();
         } catch (Exception e) {
-            logger.warn("failed to load HTTP stats data", e);
+            logger.warn("Failed to load HTTP stats data", e);
         }
 
         httpStatsReporter.httpStatsBean.set(httpStatsBean);

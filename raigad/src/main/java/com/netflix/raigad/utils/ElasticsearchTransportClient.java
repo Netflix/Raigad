@@ -16,7 +16,6 @@
 
 package com.netflix.raigad.utils;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilder;
@@ -41,8 +40,8 @@ public class ElasticsearchTransportClient {
 
     private static AtomicReference<ElasticsearchTransportClient> elasticsearchTransportClientAtomicReference = new AtomicReference<>(null);
 
-    private NodesStatsRequestBuilder nodeStatsRequestBuilder;
     private final TransportClient client;
+    private final NodesStatsRequestBuilder nodeStatsRequestBuilder;
 
     /**
      * Hostname and port to talk to will be same server for now optionally we might want the IP to poll.
@@ -56,18 +55,11 @@ public class ElasticsearchTransportClient {
 
         Map<String, String> transportClientSettings = new HashMap<>();
         transportClientSettings.put("cluster.name", configuration.getAppName());
-        transportClientSettings.put("client.transport.ping_timeout", "30s");
-        transportClientSettings.put("client.transport.nodes_sampler_interval", "30s");
 
         client = new PreBuiltTransportClient(Settings.builder().put(transportClientSettings).build());
         client.addTransportAddress(new InetSocketTransportAddress(host, configuration.getTransportTcpPort()));
 
         nodeStatsRequestBuilder = client.admin().cluster().prepareNodesStats(configuration.getEsNodeName()).all();
-    }
-
-    @Inject
-    public ElasticsearchTransportClient(IConfiguration configuration) throws IOException, InterruptedException {
-        this(InetAddress.getLocalHost(), configuration);
     }
 
     /**
@@ -98,16 +90,15 @@ public class ElasticsearchTransportClient {
 
         // If Elasticsearch is started then only start the monitoring
         if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
-            String exceptionMessage = "Elasticsearch is not yet started, check back again later";
-            logger.info("Elasticsearch is not yet started, check back again later");
-            throw new ElasticsearchTransportClientConnectionException(exceptionMessage);
+            logger.error("Elasticsearch is not yet started");
+            throw new ElasticsearchTransportClientConnectionException("Elasticsearch is not yet started");
         }
 
         try {
             transportClient = new BoundedExponentialRetryCallable<ElasticsearchTransportClient>() {
                 @Override
                 public ElasticsearchTransportClient retriableCall() throws Exception {
-                    return new ElasticsearchTransportClient(InetAddress.getLocalHost(), configuration);
+                    return new ElasticsearchTransportClient(InetAddress.getLoopbackAddress(), configuration);
                 }
             }.call();
         } catch (Exception e) {

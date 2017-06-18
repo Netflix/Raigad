@@ -115,24 +115,6 @@ public class RaigadServer {
                     logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
-                        /*
-                        if (config.isVPCMigrationModeEnabled()) {
-                            logger.info("VPC migration mode: updating security settings");
-
-                            // Update security settings
-                            scheduler.runTaskNow(UpdateSecuritySettings.class);
-
-                            // Sleep for 60 seconds for the SG update to happen
-                            if (UpdateSecuritySettings.firstTimeUpdated) {
-                                sleeper.sleep(60 * 1000);
-                            }
-
-                            scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
-                                    UpdateSecuritySettings.class,
-                                    UpdateSecuritySettings.getTimer(instanceManager));
-                        }
-                        */
-
                         logger.info("Setting Security Group ID (VPC)");
                         setVPCSecurityGroupID.execute();
                     }
@@ -176,7 +158,7 @@ public class RaigadServer {
         /*
          *  Run the delayed task (after 10 seconds) to Monitor Elasticsearch Running Process
          */
-        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOBNAME, ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
+        scheduler.addTaskWithDelay(ElasticsearchProcessMonitor.JOB_NAME, ElasticsearchProcessMonitor.class, ElasticsearchProcessMonitor.getTimer(), ES_MONITORING_INITIAL_DELAY);
 
         /*
          *  Run Snapshot Backup task
