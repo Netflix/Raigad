@@ -1,12 +1,12 @@
 /**
  * Copyright 2017 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,11 +37,11 @@ import java.util.Random;
 
 /**
  * This class will associate public IP's with a new instance so they can talk across the regions.
- *
+ * <p>
  * Requirements:
  * 1. Nodes in the same region needs to be able to talk to each other.
  * 2. Nodes in other regions needs to be able to talk to the others in the other region.
- *
+ * <p>
  * Assumptions:
  * 1. IRaigadInstanceFactory will provide the membership and will be visible across the regions
  * 2. IMembership amazon or any other implementation which can tell if the instance is a
@@ -72,8 +72,10 @@ public class UpdateSecuritySettings extends Task {
      */
     @Override
     public void execute() {
-        int port = config.getTransportTcpPort();
-        List<String> acls = membership.listACL(port, port);
+        int transportPort = config.getTransportTcpPort();
+        int restPort = config.getHttpPort();
+
+        List<String> accessControlLists = membership.listACL(transportPort, transportPort);
 
         // Get instances based on node types (tribe / non-tribe)
         List<RaigadInstance> instances = getInstanceList();
@@ -84,27 +86,31 @@ public class UpdateSecuritySettings extends Task {
         for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
             currentRanges.add(range);
-            if (!acls.contains(range)) {
+            if (!accessControlLists.contains(range)) {
                 ipsToAdd.add(range);
             }
         }
 
         if (ipsToAdd.size() > 0) {
-            membership.addACL(ipsToAdd, port, port);
+            logger.info("Adding IPs on ports {} and {}: {}", transportPort, restPort, ipsToAdd);
+            membership.addACL(ipsToAdd, transportPort, transportPort);
+            membership.addACL(ipsToAdd, restPort, restPort);
             firstTimeUpdated = true;
         }
 
         // Create a list of IP's to remove
         List<String> ipsToRemove = Lists.newArrayList();
-        for (String acl : acls) {
+        for (String accessControlList : accessControlLists) {
             // Remove if not found
-            if (!currentRanges.contains(acl)) {
-                ipsToRemove.add(acl);
+            if (!currentRanges.contains(accessControlList)) {
+                ipsToRemove.add(accessControlList);
             }
         }
 
         if (ipsToRemove.size() > 0) {
-            membership.removeACL(ipsToRemove, port, port);
+            logger.info("Removing IPs on ports {} and {}: {}", transportPort, restPort, ipsToRemove);
+            membership.removeACL(ipsToRemove, transportPort, transportPort);
+            membership.removeACL(ipsToRemove, restPort, restPort);
             firstTimeUpdated = true;
         }
     }
@@ -114,20 +120,16 @@ public class UpdateSecuritySettings extends Task {
 
         if (config.amISourceClusterForTribeNode()) {
             List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
-            assert (tribeClusters.size() != 0) : "I am a source cluster but I need one or more tribe clusters";
+            assert (tribeClusters.size() != 0) : "Need at least one tribe cluster";
 
-            for (String tribeClusterName : tribeClusters) {
-                instances.addAll(factory.getAllIds(tribeClusterName));
-            }
+            tribeClusters.forEach(tribeClusterName -> instances.addAll(factory.getAllIds(tribeClusterName)));
         }
 
         // Adding the current cluster
-        instances.addAll(factory.getAllIds(config.getAppName()));
+        //instances.addAll(factory.getAllIds(config.getAppName()));
 
         if (config.isDebugEnabled()) {
-            for (RaigadInstance instance : instances) {
-                logger.debug(instance.toString());
-            }
+            instances.forEach(instance -> logger.debug(instance.toString()));
         }
 
         return instances;
@@ -137,8 +139,7 @@ public class UpdateSecuritySettings extends Task {
         // Only master nodes will update security group settings
         if (!instanceManager.isMaster()) {
             return new SimpleTimer(JOB_NAME);
-        }
-        else {
+        } else {
             return new SimpleTimer(JOB_NAME, 120 * 1000 + RANDOM.nextInt(120 * 1000));
         }
     }
