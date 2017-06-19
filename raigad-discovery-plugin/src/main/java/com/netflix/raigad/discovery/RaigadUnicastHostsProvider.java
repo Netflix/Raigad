@@ -30,15 +30,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RaigadUnicastHostsProvider extends AbstractComponent implements UnicastHostsProvider {
-
     private static final String GET_NODES_ISLAND_URL = "http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_nodes";
     private static final String GET_NODES_TRIBE_URL_PREFIX = "http://127.0.0.1:8080/Raigad/REST/v1/esconfig/get_tribe_nodes/";
 
+    private final String nodeName;
     private final TransportService transportService;
 
     RaigadUnicastHostsProvider(Settings settings, TransportService transportService) {
         super(settings);
         this.transportService = transportService;
+
+        nodeName = settings.get("node.name");
+        logger.info("[raigad-discovery] Node name [{}]", nodeName);
     }
 
     @Override
@@ -51,9 +54,8 @@ public class RaigadUnicastHostsProvider extends AbstractComponent implements Uni
             String discoveryNodesJsonString;
 
             if (isTribeNode()) {
-                String nodeName = settings.get("name");
                 String tribeId = nodeName.substring(nodeName.indexOf("/") + 1);
-                logger.debug("[raigad-discovery] Tribe node name [{}], ID [{}]", nodeName, tribeId);
+                logger.debug("[raigad-discovery] Tribe ID detected [{}]", tribeId);
                 discoveryNodesJsonString = DataFetcher.fetchData(GET_NODES_TRIBE_URL_PREFIX + tribeId, logger);
             } else {
                 discoveryNodesJsonString = DataFetcher.fetchData(GET_NODES_ISLAND_URL, logger);
@@ -86,16 +88,10 @@ public class RaigadUnicastHostsProvider extends AbstractComponent implements Uni
     }
 
     private boolean isTribeNode() {
-        if (settings == null) {
+        if (nodeName == null || nodeName.isEmpty()) {
             return false;
         }
 
-        String tribeName = settings.get("name");
-
-        if (tribeName == null || tribeName.isEmpty()) {
-            return false;
-        }
-
-        return tribeName.contains("/t");
+        return nodeName.contains("/t");
     }
 }
