@@ -34,11 +34,11 @@ import java.util.*;
 
 /**
  * This class will associate public IP's with a new instance so they can talk across the regions.
- *
+ * <p>
  * Requirements:
  * (1) Nodes in the same region needs to be able to talk to each other.
  * (2) Nodes in other regions needs to be able to talk to the others in the other region.
- *
+ * <p>
  * Assumptions:
  * (1) IRaigadInstanceFactory will provide the membership and will be visible across the regions
  * (2) IMembership Amazon or any other implementation which can tell if the instance
@@ -82,10 +82,10 @@ public class UpdateTribeSecuritySettings extends Task {
         // Initializing cluster-port map from config properties
         initializeClusterPortMap();
 
-        List<String> acls = new ArrayList<>();
+        List<String> accessControlLists = new ArrayList<>();
         for (String clusterName : clusterPortMap.keySet()) {
             List<String> aclList = membership.listACL(clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
-            acls.addAll(aclList);
+            accessControlLists.addAll(aclList);
         }
 
         List<RaigadInstance> instances = getInstanceList();
@@ -94,7 +94,7 @@ public class UpdateTribeSecuritySettings extends Task {
 
         for (RaigadInstance instance : instances) {
             String range = instance.getHostIP() + "/32";
-            if (!acls.contains(range)) {
+            if (!accessControlLists.contains(range)) {
                 addAclClusterMap.put(range, instance.getApp());
             }
 
@@ -111,8 +111,16 @@ public class UpdateTribeSecuritySettings extends Task {
              */
             Map<String, List<String>> clusterInstancesMap = generateClusterToAclListMap(addAclClusterMap);
 
-            for (String clusterName : clusterInstancesMap.keySet()) {
-                membership.addACL(clusterInstancesMap.get(clusterName), clusterPortMap.get(clusterName), clusterPortMap.get(clusterName));
+            for (String currentClusterName : clusterInstancesMap.keySet()) {
+                if (currentClusterName.startsWith("es_tribe_")) {
+                    clusterPortMap.forEach((clusterName, transportPort) -> {
+                        logger.info("Adding IPs for {} on port {}: {}", currentClusterName, transportPort, clusterInstancesMap.get(currentClusterName));
+                        membership.addACL(clusterInstancesMap.get(currentClusterName), transportPort, transportPort);
+                    });
+                } else {
+                    logger.info("Adding IPs for {} on port {}: {}", currentClusterName, clusterPortMap.get(currentClusterName), clusterInstancesMap.get(currentClusterName));
+                    membership.addACL(clusterInstancesMap.get(currentClusterName), clusterPortMap.get(currentClusterName), clusterPortMap.get(currentClusterName));
+                }
             }
 
             firstTimeUpdated = true;
@@ -120,7 +128,7 @@ public class UpdateTribeSecuritySettings extends Task {
 
         // Iterating to remove ACL's
         List<String> removeAclList = new ArrayList<>();
-        for (String acl : acls) {
+        for (String acl : accessControlLists) {
             if (!currentIpClusterMap.containsKey(acl)) {
                 removeAclList.add(acl);
             }
@@ -156,8 +164,10 @@ public class UpdateTribeSecuritySettings extends Task {
             assert (clusterPort.length != 2) : "Cluster name or transport port is missing in configuration";
 
             if (!clusterPortMap.containsKey(clusterPort[0].trim())) {
-                clusterPortMap.put(clusterPort[0].trim(), Integer.parseInt(clusterPort[1].trim()));
-                logger.info("Adding cluster [{}:{}]", clusterPort[0], clusterPort[1]);
+                String sourceTribeClusterName = clusterPort[0].trim();
+                Integer sourceTribeClusterPort = Integer.parseInt(clusterPort[1].trim());
+                clusterPortMap.put(sourceTribeClusterName, sourceTribeClusterPort);
+                logger.info("Adding cluster [{}:{}]", sourceTribeClusterName, sourceTribeClusterPort);
             }
         }
     }
@@ -168,8 +178,7 @@ public class UpdateTribeSecuritySettings extends Task {
         for (String acl : addAclClusterMap.keySet()) {
             if (clusterAclsMap.containsKey(addAclClusterMap.get(acl))) {
                 clusterAclsMap.get(addAclClusterMap.get(acl)).add(acl);
-            }
-            else {
+            } else {
                 List<String> aclList = new ArrayList<>();
                 aclList.add(acl);
                 clusterAclsMap.put(addAclClusterMap.get(acl), aclList);
