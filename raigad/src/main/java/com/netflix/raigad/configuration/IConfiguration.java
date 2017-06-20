@@ -277,7 +277,7 @@ public interface IConfiguration {
 
     String getCommaSeparatedCassandraHostNames();
 
-    boolean isSecutrityGroupInMultiDC();
+    boolean isSecurityGroupInMultiDC();
 
     boolean isKibanaSetupRequired();
 

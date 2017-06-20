@@ -116,17 +116,12 @@ public class UpdateSecuritySettings extends Task {
     }
 
     private List<RaigadInstance> getInstanceList() {
-        List<RaigadInstance> instances = new ArrayList<RaigadInstance>();
+        List<RaigadInstance> instances = new ArrayList<>();
 
-        if (config.amISourceClusterForTribeNode()) {
-            List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
-            assert (tribeClusters.size() != 0) : "Need at least one tribe cluster";
+        List<String> tribeClusters = new ArrayList<String>(Arrays.asList(StringUtils.split(config.getCommaSeparatedTribeClusterNames(), ",")));
+        assert (tribeClusters.size() != 0) : "Need at least one tribe cluster";
 
-            tribeClusters.forEach(tribeClusterName -> instances.addAll(factory.getAllIds(tribeClusterName)));
-        }
-
-        // Adding the current cluster
-        //instances.addAll(factory.getAllIds(config.getAppName()));
+        tribeClusters.forEach(tribeClusterName -> instances.addAll(factory.getAllIds(tribeClusterName)));
 
         if (config.isDebugEnabled()) {
             instances.forEach(instance -> logger.debug(instance.toString()));
