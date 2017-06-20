@@ -861,7 +861,7 @@ public class RaigadConfiguration implements IConfiguration {
     }
 
     @Override
-    public boolean isSecutrityGroupInMultiDC() {
+    public boolean isSecurityGroupInMultiDC() {
         return IS_SECURITY_GROUP_IN_MULTI_DC.get();
     }
 

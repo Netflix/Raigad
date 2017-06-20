@@ -447,7 +447,7 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public boolean isSecutrityGroupInMultiDC() {
+    public boolean isSecurityGroupInMultiDC() {
         return false;
     }
 

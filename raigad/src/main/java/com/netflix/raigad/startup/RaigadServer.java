@@ -111,7 +111,7 @@ public class RaigadServer {
                         UpdateTribeSecuritySettings.class,
                         UpdateTribeSecuritySettings.getTimer(instanceManager));
             } else {
-                if (config.isSecutrityGroupInMultiDC()) {
+                if (config.isSecurityGroupInMultiDC()) {
                     logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
@@ -119,17 +119,19 @@ public class RaigadServer {
                         setVPCSecurityGroupID.execute();
                     }
 
-                    // Update security settings
-                    scheduler.runTaskNow(UpdateSecuritySettings.class);
+                    if (config.amISourceClusterForTribeNode()) {
+                        // Update security settings
+                        scheduler.runTaskNow(UpdateSecuritySettings.class);
 
-                    // Sleep for 60 seconds for the SG update to happen
-                    if (UpdateSecuritySettings.firstTimeUpdated) {
-                        sleeper.sleep(60 * 1000);
+                        // Sleep for 60 seconds for the SG update to happen
+                        if (UpdateSecuritySettings.firstTimeUpdated) {
+                            sleeper.sleep(60 * 1000);
+                        }
+
+                        scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
+                                UpdateSecuritySettings.class,
+                                UpdateSecuritySettings.getTimer(instanceManager));
                     }
-
-                    scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
-                            UpdateSecuritySettings.class,
-                            UpdateSecuritySettings.getTimer(instanceManager));
                 }
             }
         }
