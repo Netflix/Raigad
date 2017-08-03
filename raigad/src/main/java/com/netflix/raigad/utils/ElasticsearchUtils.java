@@ -16,14 +16,9 @@
 
 package com.netflix.raigad.utils;
 
-import com.netflix.raigad.backup.exception.MultipleMasterNodesException;
-import com.netflix.raigad.backup.exception.NoMasterNodeException;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.dataobjects.MasterNodeInformation;
 import com.netflix.raigad.identity.RaigadInstance;
-import com.netflix.raigad.objectmapper.DefaultMasterNodeInfoMapper;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.type.TypeReference;
 import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.snapshots.SnapshotInfo;
@@ -120,53 +115,27 @@ public class ElasticsearchUtils {
     }
 
     public static boolean amIMasterNode(IConfiguration config, HttpModule httpModule) throws Exception {
-        boolean iAmTheMaster = false;
-
-        final DefaultMasterNodeInfoMapper defaultMasterNodeInfoMapper = new DefaultMasterNodeInfoMapper();
-
         String URL = httpModule.findMasterNodeURL();
         String response = SystemUtils.runHttpGetCommand(URL);
 
         if (config.isDebugEnabled()) {
-            logger.debug("Calling URL API: {} returns: {}", URL, response);
+            logger.debug("Calling {} returned: {}", URL, response);
         }
+
+        response = StringUtils.trim(response);
 
         // Check the response
         if (StringUtils.isEmpty(response)) {
-            logger.error("Response from URL <" + URL + "> is null or empty, hence returning");
-            return iAmTheMaster;
+            logger.error("Response from " + URL + " is empty");
+            return false;
         }
 
-        // Map MasterNodeInfo response to DO
-        TypeReference<List<MasterNodeInformation>> typeRef = new TypeReference<List<MasterNodeInformation>>() {
-        };
-
-        List<MasterNodeInformation> masterNodeInformationList = defaultMasterNodeInfoMapper.readValue(response, typeRef);
-
-        if (masterNodeInformationList.size() == 0) {
-            throw new NoMasterNodeException("NO MASTER NODE FOUND - something went wrong");
+        // Checking if the current node is a master node
+        if (response.equalsIgnoreCase(config.getHostIP()) || response.equalsIgnoreCase(config.getHostLocalIP())) {
+            return true;
         }
 
-        if (masterNodeInformationList.size() > 1) {
-            throw new MultipleMasterNodesException("MULTIPLE MASTER NODES FOUND - something went wrong");
-        }
-
-        //Get MasterNode Ip
-        String ip = masterNodeInformationList.get(0).getIp();
-        if (StringUtils.isEmpty(ip)) {
-            logger.error("IP from URL <" + URL + "> is null or empty, hence can not run Snapshot Backup");
-            return iAmTheMaster;
-        }
-        if (config.isDebugEnabled()) {
-            logger.debug("*** Master node IP is " + ip);
-        }
-
-        //Confirm if Current Node is a Master Node
-        if (ip.equalsIgnoreCase(config.getHostIP()) || ip.equalsIgnoreCase(config.getHostLocalIP())) {
-            iAmTheMaster = true;
-        }
-
-        return iAmTheMaster;
+        return false;
     }
 
     public static List<String> getAvailableSnapshots(Client transportClient, String repositoryName) {
@@ -199,158 +168,4 @@ public class ElasticsearchUtils {
         DateTimeFormatter fmt = DateTimeFormat.forPattern(dateFormat);
         return dateTime.toString(fmt);
     }
-
-//    public static Set<String> getExistingRepositoryNames(String httpUrl) throws UnsupportedEncodingException, IllegalStateException, IOException, ParseException {
-//        HttpGet repoResponse = new HttpGet(httpUrl);
-//        HttpResponse response = client.execute(repoResponse);
-//
-//        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent(), "UTF-8"));
-//        StringBuilder builder = new StringBuilder();
-//        for (String line = null; (line = reader.readLine()) != null;) {
-//            builder.append(line).append("\n");
-//        }
-//        JSONParser jsonParser = new JSONParser();
-//        JSONObject jsonObject = (JSONObject) jsonParser.parse(builder.toString());
-//        if (jsonObject == null){
-//            System.out.println("No Repositories exist,hence returning");
-//            return null;
-//        }
-//
-//        return jsonObject.keySet();
-//    }
-//
-//
-//    public static String getCreateS3RepositoryJsonBody(String bucket,
-//                                                       String region, String clusterName) {
-//
-//        JSONObject urlSettingsParams = new JSONObject();
-//        String createRepoJson = "";
-//        try {
-//
-//            urlSettingsParams.put("bucket", bucket);
-//            urlSettingsParams.put("region", region);
-//            urlSettingsParams.put("base_path", clusterName
-//                    + EsConfig.URL_PATH_SEPARATOR + getS3RepositoryName());
-//
-//            JSONObject urlParams = new JSONObject();
-//            urlParams.put("type", "s3");
-//            urlParams.put("settings", urlSettingsParams);
-//            createRepoJson = urlParams.toString();
-//        } catch (Exception ex) {
-//            System.out.println("Exception caught during JSONObject Creation");
-//            throw new RuntimeException(ex);
-//        }
-//
-//        System.out.println("Create Repo Params -> " + createRepoJson);
-//        return createRepoJson;
-//    }
-//
-//    /**
-//     * eg. http://0.0.0.0:7104/_snapshot/s3_repo
-//     * @param hostName
-//     * @param S3_Repo_Name
-//     * @return
-//     */
-//    public static String getUrlToCreateS3Repository(String hostName,String S3_Repo_Name){
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(EsConfig.HTTP_TAG);
-//        sb.append(hostName);
-//        sb.append(EsConfig.URL_PORT_SEPARATOR);
-//        sb.append(EsConfig.ELASTICSEARCH_HTTP_PORT);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(EsConfig.REPOSITORY_VERIFICATION_PARAM);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(S3_Repo_Name);
-//
-//        System.out.println("REST Endpoint for Creating S3 Repository = "+sb.toString());
-//        return sb.toString();
-//    }
-//
-//    /**
-//     * eg. http://ec2-50-19-28-170.compute-1.amazonaws.com:7104/_snapshot/
-//     * @param hostName
-//     * @param S3_Repo_Name
-//     * @return
-//     */
-//    public static String getUrlToCheckIfRepoExists(String hostName,String S3_Repo_Name){
-//
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(EsConfig.HTTP_TAG);
-//        sb.append(hostName);
-//        sb.append(EsConfig.URL_PORT_SEPARATOR);
-//        sb.append(EsConfig.ELASTICSEARCH_HTTP_PORT);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(EsConfig.REPOSITORY_VERIFICATION_PARAM);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//
-//        System.out.println("REST Endpoint to verify if Repository exists = "+sb.toString());
-//
-//        return sb.toString();
-//    }
-//
-//    /*
-//     * ec2-50-19-28-170.compute-1.amazonaws.com:7104/_snapshot/20140320/snapshot_1?wait_for_completion=true
-//     *
-//     * {
-//     *  "indices": "chronos_test",
-//     *  "ignore_unavailable": "true",
-//     *  "include_global_state": false
-//     * }
-//     *
-//     */
-//    public static String getUrlToTakeSnapshot(String hostName,String S3_Repo_Name,String indices,boolean includeIndexNameInSnapshot){
-//        String snapshotName = getSnapshotName(indices,includeIndexNameInSnapshot);
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(EsConfig.HTTP_TAG);
-//        sb.append(hostName);
-//        sb.append(EsConfig.URL_PORT_SEPARATOR);
-//        sb.append(EsConfig.ELASTICSEARCH_HTTP_PORT);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(EsConfig.REPOSITORY_VERIFICATION_PARAM);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(S3_Repo_Name);
-//        sb.append(EsConfig.URL_PATH_SEPARATOR);
-//        sb.append(snapshotName);
-//        sb.append(EsConfig.URL_QUERY_SEPARATOR);
-//        sb.append(EsConfig.SNAPSHOT_COMPLETION_PARAM);
-//
-//        System.out.println("***Snapshot Name = "+snapshotName);
-//        System.out.println("REST Endpoint for Creating Snapshot = "+sb.toString());
-//        return sb.toString();
-//    }
-//
-//	/* {
-//	 *   "indices": "index1,index2",
-//	 *   "ignore_unavailable": "true",
-//	 *   "include_global_state": false
-//	 * }
-//	 */
-//    /**
-//     *
-//     * @param indices eg. index1,index2
-//     * @param ignoreUnavailable
-//     * @param includeGlobalState
-//     * @return
-//     */
-//    public static String getTakeSnapshotJsonBody(String indices,
-//                                                 String ignoreUnavailable, boolean includeGlobalState) {
-//
-//        JSONObject urlIndexParams = new JSONObject();
-//        String ignore_unavailable = (ignoreUnavailable == null || ignoreUnavailable.isEmpty()) ? EsConfig.DEFAULT_SNAPSHOT_IGNORE_AVAILABLE_PARAM : ignoreUnavailable;
-//        try {
-//            if (indices != null && !indices.isEmpty() && !indices.toLowerCase().equals("all")) {
-//                urlIndexParams.put("indices", indices);
-//            }
-//            urlIndexParams.put("ignore_unavailable", ignoreUnavailable);
-//            urlIndexParams.put("include_global_state", includeGlobalState);
-//
-//            String takeSnapshotJson = urlIndexParams.toString();
-//            System.out.println("Take Snapshot Params -> " + takeSnapshotJson);
-//            return takeSnapshotJson;
-//        } catch (Exception ex) {
-//            System.out.println("Exception caught during JSONObject Creation");
-//            throw new RuntimeException(ex);
-//        }
-//
-//    }
 }
