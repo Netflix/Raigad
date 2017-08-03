@@ -28,7 +28,7 @@ public class HttpModule {
     private static final String LOCAL_HOST = "127.0.0.1";
     private static final String URL_PORT_SEPARATOR = ":";
     private static final String URL_PATH_SEPARATOR = "/";
-    private static final String MASTER_NODE_SUFFIX = "/_cat/master";
+    private static final String MASTER_NODE_SUFFIX = "/_cat/master?h=ip";
     private static final String SNAPSHOT_BKP_KEYWORD = "/_snapshot/";
     private static final String SNAPSHOT_BKP_WAIT_FOR_COMPLETION_TAG = "?wait_for_completion=";
 

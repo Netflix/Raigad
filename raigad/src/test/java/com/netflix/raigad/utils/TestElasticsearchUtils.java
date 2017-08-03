@@ -1,14 +1,22 @@
 package com.netflix.raigad.utils;
 
+import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.RaigadInstance;
+import mockit.Expectations;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.Mocked;
+import mockit.integration.junit4.JMockit;
 import org.json.simple.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@RunWith(JMockit.class)
 public class TestElasticsearchUtils {
-
     @Test
     public void TestInstanceToJson() {
         System.out.println("Starting a test...");
@@ -21,6 +29,154 @@ public class TestElasticsearchUtils {
         for (RaigadInstance raigadInstance : returnedInstances) {
             System.out.println("-->" + raigadInstance);
         }
+    }
+
+    @Test
+    public void TestAmIMasterNode(@Mocked IConfiguration config) throws Exception {
+        String expectedIp = "100.0.0.1";
+
+        new Expectations() {
+            {
+                config.getHostIP();
+                result = expectedIp;
+                times = 1;
+
+                config.getHostLocalIP();
+                times = 0;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return expectedIp;
+            }
+        };
+
+        Assert.assertTrue(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
+    }
+
+    @Test
+    public void TestAmIMasterNodeWithWhitespace(@Mocked IConfiguration config) throws Exception {
+        String expectedIp = "100.0.0.1";
+
+        new Expectations() {
+            {
+                config.getHostIP();
+                result = expectedIp;
+                times = 1;
+
+                config.getHostLocalIP();
+                times = 0;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return expectedIp + " \n ";
+            }
+        };
+
+        Assert.assertTrue(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
+    }
+
+    @Test
+    public void TestAmIMasterNodeExternalIp(@Mocked IConfiguration config) throws Exception {
+        String expectedLocalIp = "100.0.0.1";
+        String expectedExternalIp = "54.0.0.1";
+
+        new Expectations() {
+            {
+                config.getHostIP();
+                result = expectedExternalIp;
+                times = 1;
+
+                config.getHostLocalIP();
+                result = expectedLocalIp;
+                times = 1;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return expectedLocalIp;
+            }
+        };
+
+        Assert.assertTrue(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
+    }
+
+    @Test
+    public void TestAmIMasterNodeNegative(@Mocked IConfiguration config) throws Exception {
+        String expectedIp = "100.0.0.1";
+        String returnedIp = "100.0.0.2";
+
+        new Expectations() {
+            {
+                config.getHostIP();
+                result = expectedIp;
+                times = 1;
+
+                config.getHostLocalIP();
+                result = expectedIp;
+                times = 1;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return returnedIp;
+            }
+        };
+
+        Assert.assertFalse(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
+    }
+
+    @Test
+    public void TestAmIMasterNodeNegativeNull(@Mocked IConfiguration config) throws Exception {
+        new Expectations() {
+            {
+                config.getHostIP();
+                times = 0;
+
+                config.getHostLocalIP();
+                times = 0;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return null;
+            }
+        };
+
+        Assert.assertFalse(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
+    }
+
+    @Test
+    public void TestAmIMasterNodeNegativeEmpty(@Mocked IConfiguration config) throws Exception {
+        new Expectations() {
+            {
+                config.getHostIP();
+                times = 0;
+
+                config.getHostLocalIP();
+                times = 0;
+            }
+        };
+
+        new MockUp<SystemUtils>() {
+            @Mock
+            String runHttpGetCommand(String url) {
+                return "";
+            }
+        };
+
+        Assert.assertFalse(ElasticsearchUtils.amIMasterNode(config, new HttpModule(config)));
     }
 
     public static List<RaigadInstance> getRaigadInstances() {
