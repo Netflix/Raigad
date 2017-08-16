@@ -20,7 +20,7 @@ allprojects {
 // Establish version and status
 ext {
     githubProjectName = "Raigad"
-    elasticsearchVersion = "5.4.1"
+    elasticsearchVersion = "5.5.1"
 }
 
 apply plugin: "jetty"
