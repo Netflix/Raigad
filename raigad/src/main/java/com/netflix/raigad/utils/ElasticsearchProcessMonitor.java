@@ -21,6 +21,7 @@ import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.scheduler.SimpleTimer;
 import com.netflix.raigad.scheduler.Task;
 import com.netflix.raigad.scheduler.TaskTimer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ElasticsearchProcessMonitor extends Task {
 
     public static final String JOB_NAME = "ES_MONITOR_THREAD";
+
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
-    private static final AtomicBoolean isElasticsearchRunningNow = new AtomicBoolean(false);
-    private static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
+
+    static final AtomicBoolean isElasticsearchRunningNow = new AtomicBoolean(false);
+    static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
 
     @Inject
     protected ElasticsearchProcessMonitor(IConfiguration config) {
@@ -46,22 +49,43 @@ public class ElasticsearchProcessMonitor extends Task {
 
     @Override
     public void execute() throws Exception {
+        checkElasticsearchProcess(config.getElasticsearchProcessName());
+    }
+
+    static void checkElasticsearchProcess(String elasticsearchProcessName) throws Exception {
+        Process pgrepProcess = null;
+        InputStreamReader inputStreamReader = null;
+        BufferedReader bufferedReader = null;
+
         try {
-            //This returns pid for the Elasticsearch process
-            Process p = Runtime.getRuntime().exec("pgrep -f " + config.getElasticsearchProcessName());
-            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = input.readLine();
-            if (line != null && !isElasticsearchRunning()) {
+            // This returns PID for the Elasticsearch process
+            pgrepProcess = Runtime.getRuntime().exec("pgrep -f " + elasticsearchProcessName);
+            inputStreamReader = new InputStreamReader(pgrepProcess.getInputStream());
+            bufferedReader = new BufferedReader(inputStreamReader);
+
+            String line = StringUtils.trim(bufferedReader.readLine());
+
+            if (StringUtils.isNotEmpty(line) && !isElasticsearchRunning()) {
                 isElasticsearchRunningNow.set(true);
                 if (!wasElasticsearchStarted.get()) {
                     wasElasticsearchStarted.set(true);
                 }
-            } else if (line == null && isElasticsearchRunning()) {
+            } else if (StringUtils.isEmpty(line) && isElasticsearchRunning()) {
                 isElasticsearchRunningNow.set(false);
             }
         } catch (Exception e) {
-            logger.warn("Exception thrown while checking if Elasticsearch is running or not ", e);
+            logger.warn("Exception checking if process is running", e);
             isElasticsearchRunningNow.set(false);
+        } finally {
+            if (bufferedReader != null) {
+                bufferedReader.close();
+            }
+            if (inputStreamReader != null) {
+                inputStreamReader.close();
+            }
+            if (pgrepProcess != null) {
+                pgrepProcess.destroyForcibly();
+            }
         }
     }
 
@@ -80,10 +104,5 @@ public class ElasticsearchProcessMonitor extends Task {
 
     public static Boolean getWasElasticsearchStarted() {
         return wasElasticsearchStarted.get();
-    }
-
-    //Added for testing only
-    public static void setElasticsearchStarted() {
-        isElasticsearchRunningNow.set(true);
     }
 }
