@@ -10,6 +10,7 @@ public class FakeConfiguration implements IConfiguration {
 
     public static final String FAKE_REGION = "us-east-1";
     public static final String INDEX_METADATA = "[{\"retentionType\":\"daily\",\"retentionPeriod\":5,\"indexName\":\"test_index\",\"preCreate\":\"true\"}]";
+    public static final String ES_PROCESS_NAME = "org.elasticsearch.bootstrap.Elasticsearch";
 
     public String region;
     public String appName;
@@ -203,7 +204,7 @@ public class FakeConfiguration implements IConfiguration {
 
     @Override
     public String getElasticsearchProcessName() {
-        return null;
+        return ES_PROCESS_NAME;
     }
 
     @Override
