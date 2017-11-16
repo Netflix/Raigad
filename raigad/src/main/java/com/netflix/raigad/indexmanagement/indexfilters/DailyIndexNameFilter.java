@@ -28,7 +28,9 @@ public class DailyIndexNameFilter implements IIndexNameFilter {
         if (name.length() < 9) {
             return false;
         }
+
         String date = name.substring(name.length() - 8, name.length());
+
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYYMMdd"));
             return true;

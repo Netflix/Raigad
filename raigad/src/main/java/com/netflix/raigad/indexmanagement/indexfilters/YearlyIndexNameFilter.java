@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class YearlyIndexNameFilter implements IIndexNameFilter {
 
     public static final String id = "yearly";
-    String YEARLY_PATTERN = "(\\w)+[[a-zA-Z]]{1}[0-9]{4}";
+    private String YEARLY_PATTERN = "(\\w)+[[a-zA-Z]]{1}[0-9]{4}";
 
     @Override
     public boolean filter(String name) {
@@ -35,10 +35,13 @@ public class YearlyIndexNameFilter implements IIndexNameFilter {
 
         Pattern pattern = Pattern.compile(YEARLY_PATTERN);
         Matcher matcher = pattern.matcher(name);
-        if (!matcher.matches())
+
+        if (!matcher.matches()) {
             return false;
+        }
 
         String date = name.substring(name.length() - 4, name.length());
+
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYY"));
             return true;
