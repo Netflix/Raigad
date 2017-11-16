@@ -24,7 +24,7 @@ import java.util.Map;
 
 @Ignore
 @ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST, numDataNodes = 2)
-public class TestIndexManagement extends ESIntegTestCase {
+public class TestElasticsearchIndexManager extends ESIntegTestCase {
     private static final DateTimeZone currentZone = DateTimeZone.UTC;
     private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
     private static final String indexPrefix = "test_index";
@@ -107,7 +107,7 @@ public class TestIndexManagement extends ESIntegTestCase {
 
         List<IndexMetadata> indexMetadataList = ElasticsearchIndexManager.buildInfo(conf.getIndexMetadata());
 
-        /**
+        /*
          * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days
          */
         if (indexMetadataList.get(0).isPreCreate()) {

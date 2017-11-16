@@ -1,6 +1,7 @@
 package com.netflix.raigad.indexmanagement;
 
 import com.netflix.raigad.indexmanagement.indexfilters.DailyIndexNameFilter;
+import com.netflix.raigad.indexmanagement.indexfilters.HourlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.MonthlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.YearlyIndexNameFilter;
 import org.junit.Test;
@@ -10,6 +11,19 @@ import static org.junit.Assert.assertTrue;
 
 
 public class TestIndexNameFilter {
+    @Test
+    public void testHourlyIndexNameFilter() {
+        IIndexNameFilter filter = new HourlyIndexNameFilter();
+        assertTrue(filter.filter("abcd2013120300"));
+        assertTrue(filter.filter("abcd2013120301"));
+        assertTrue(filter.filter("abcd2013120312"));
+        assertTrue(filter.filter("abcd2013120323"));
+        assertFalse(filter.filter("abcd2013120324"));
+        assertFalse(filter.filter("abcd2013120345"));
+        assertFalse(filter.filter("abcd20231248"));
+        assertFalse(filter.filter("_abc"));
+    }
+
     @Test
     public void testDailyIndexNameFilter() {
         IIndexNameFilter filter = new DailyIndexNameFilter();

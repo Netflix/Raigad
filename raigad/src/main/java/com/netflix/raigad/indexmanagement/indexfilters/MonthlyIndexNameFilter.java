@@ -35,8 +35,9 @@ public class MonthlyIndexNameFilter implements IIndexNameFilter {
 
         Pattern pattern = Pattern.compile(MONTHLY_PATTERN);
         Matcher matcher = pattern.matcher(name);
-        if (!matcher.matches())
+        if (!matcher.matches()) {
             return false;
+        }
 
         String date = name.substring(name.length() - 6, name.length());
         try {

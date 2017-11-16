@@ -79,44 +79,43 @@ public class ElasticsearchIndexManager extends Task {
     @Override
     public void execute() {
         try {
-            //Confirm if Current Node is a Master Node
-            if (ElasticsearchUtils.amIMasterNode(config, httpModule)) {
-                // If Elasticsearch is started then only start Snapshot Backup
-                if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
-                    String exceptionMsg = "Elasticsearch is not yet started, not starting Index Management yet";
-                    logger.info(exceptionMsg);
-                    return;
-                }
-
-                logger.info("Current node is the master node");
-
-                if (!config.isIndexAutoCreationEnabled()) {
-                    logger.info("Autocreation of indices is disabled, moving on");
-                    return;
-                }
-
-                runIndexManagement();
-            } else {
-                //TODO: Update config property
-                if (config.isDebugEnabled()) {
-                    logger.debug("Current node is not a master node yet, sleeping for " + config.getAutoCreateIndexPeriodicScheduledHour() + " seconds");
-                }
+            if (!config.isIndexAutoCreationEnabled()) {
+                logger.info("Index management is disabled");
+                return;
             }
+
+            // Check is Elasticsearch is started
+            if (!ElasticsearchProcessMonitor.isElasticsearchRunning()) {
+                logger.info("Elasticsearch is not yet started, skipping index management");
+                return;
+            }
+
+            // Only active master can perform index management
+            if (!ElasticsearchUtils.amIMasterNode(config, httpModule)) {
+                if (config.isDebugEnabled()) {
+                    logger.debug("Current node is not an active master node, sleeping for "
+                            + config.getAutoCreateIndexPeriodicScheduledHour() + "s");
+                }
+                return;
+            }
+
+            runIndexManagement();
+
         } catch (Exception e) {
-            logger.warn("Exception while performing index maintenance", e);
+            logger.warn("Exception while performing index management", e);
         }
     }
 
     public void runIndexManagement() throws Exception {
-        logger.info("Starting index maintenance");
+        logger.info("Starting index management");
 
         String serializedIndexMetadata = config.getIndexMetadata();
         List<IndexMetadata> indexMetadataList;
+
         try {
             indexMetadataList = buildInfo(serializedIndexMetadata);
         } catch (Exception e) {
-            //TODO: Add Servo monitoring so that it can be verified from dashboard
-            logger.error("Failed to build index metadata information from configuration property: {}", serializedIndexMetadata);
+            logger.error("Failed to build index metadata information : {}", serializedIndexMetadata);
             return;
         }
 
@@ -162,10 +161,11 @@ public class ElasticsearchIndexManager extends Task {
      * @return list of IndexMetadata objects
      * @throws IOException
      */
-    public static List<IndexMetadata> buildInfo(String serializedIndexMetadata) throws IOException {
+    static List<IndexMetadata> buildInfo(String serializedIndexMetadata) throws IOException {
         ObjectMapper jsonMapper = new DefaultIndexMapper();
         TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {
         };
+
         return jsonMapper.readValue(serializedIndexMetadata, typeRef);
     }
 
@@ -177,7 +177,7 @@ public class ElasticsearchIndexManager extends Task {
         }
 
         // Calculate the past retention date
-        int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata);
+        int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata, new DateTime());
         logger.info("Deleting indices that are older than {}", pastRetentionCutoffDateDate);
 
         // Find all the indices
@@ -231,51 +231,23 @@ public class ElasticsearchIndexManager extends Task {
             return;
         }
 
+        DateTime dateTime = new DateTime();
+
         for (String indexNameWithDateSuffix : indexStatsMap.keySet()) {
             logger.debug("Processing pre-creation for index {}", indexNameWithDateSuffix);
 
             if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
                     indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
-                for (int i = 0; i < indexMetadata.getRetentionPeriod(); ++i) {
-                    DateTime dateTime = new DateTime();
-                    int addedDate;
+                String newIndexName = IndexUtils.getIndexNameToPreCreate(indexMetadata, dateTime);
+                logger.info("Pre-creating index [{}]", newIndexName);
 
-                    switch (indexMetadata.getRetentionType()) {
-                        case DAILY:
-                            dateTime = dateTime.plusDays(i);
-                            addedDate = Integer.parseInt(String.format("%d%02d%02d", dateTime.getYear(), dateTime.getMonthOfYear(), dateTime.getDayOfMonth()));
-                            break;
-
-                        case MONTHLY:
-                            dateTime = dateTime.plusMonths(i);
-                            addedDate = Integer.parseInt(String.format("%d%02d", dateTime.getYear(), dateTime.getMonthOfYear()));
-                            break;
-
-                        case YEARLY:
-                            dateTime = dateTime.plusYears(i);
-                            addedDate = Integer.parseInt(String.format("%d", dateTime.getYear()));
-                            break;
-
-                        default:
-                            throw new UnsupportedAutoIndexException("Given index is not (DAILY or MONTHLY or YEARLY), please check your configuration");
-                    }
-
-                    if (config.isDebugEnabled()) {
-                        logger.debug("Appended date [{}]", addedDate);
-                    }
-
-                    String newIndexName = indexMetadata.getIndexName() + addedDate;
-
-                    logger.info("Pre-creating index [{}]", newIndexName);
-
-                    if (!esTransportClient.admin().indices().prepareExists(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
-                        esTransportClient.admin().indices().prepareCreate(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout());
-                        logger.info(newIndexName + " has been created");
-                    } else {
-                        //TODO: Change to debug after testing
-                        logger.warn(newIndexName + " already exists");
-                    }
+                if (!esTransportClient.admin().indices().prepareExists(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
+                    esTransportClient.admin().indices().prepareCreate(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout());
+                    logger.info(newIndexName + " has been created");
+                } else {
+                    //TODO: Change to debug after testing
+                    logger.warn(newIndexName + " already exists");
                 }
             }
         }
@@ -290,5 +262,4 @@ public class ElasticsearchIndexManager extends Task {
     private IndicesStatsResponse getIndicesStatsResponse(Client esTransportClient) {
         return esTransportClient.admin().indices().prepareStats("_all").execute().actionGet(config.getAutoCreateIndexTimeout());
     }
-
 }

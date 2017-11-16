@@ -1,12 +1,12 @@
 /**
  * Copyright 2017 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package com.netflix.raigad.indexmanagement;
 
 import com.netflix.raigad.indexmanagement.exception.UnsupportedAutoIndexException;
 import com.netflix.raigad.indexmanagement.indexfilters.DailyIndexNameFilter;
+import com.netflix.raigad.indexmanagement.indexfilters.HourlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.MonthlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.YearlyIndexNameFilter;
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -26,7 +27,7 @@ import org.codehaus.jackson.annotate.JsonProperty;
 public class IndexMetadata {
 
     public enum RETENTION_TYPE {
-        DAILY, MONTHLY, YEARLY
+        HOURLY, DAILY, MONTHLY, YEARLY
     }
 
     private final String indexName;
@@ -50,7 +51,11 @@ public class IndexMetadata {
 
         this.retentionType = RETENTION_TYPE.valueOf(retentionType.toUpperCase());
 
-        switch(this.retentionType) {
+        switch (this.retentionType) {
+            case HOURLY:
+                this.indexNameFilter = new HourlyIndexNameFilter();
+                break;
+
             case DAILY:
                 this.indexNameFilter = new DailyIndexNameFilter();
                 break;
@@ -65,7 +70,7 @@ public class IndexMetadata {
 
             default:
                 this.indexNameFilter = null;
-                throw new UnsupportedAutoIndexException("Unsupported or invalid retention type (DAILY or MONTHLY or YEARLY), please check your configuration");
+                throw new UnsupportedAutoIndexException("Unsupported or invalid retention type (HOURLY, DAILY, MONTHLY, or YEARLY), please check your configuration");
         }
 
         this.retentionPeriod = retentionPeriod;
