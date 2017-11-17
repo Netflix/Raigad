@@ -200,7 +200,7 @@ public interface IConfiguration {
 
     int getAutoCreateIndexInitialStartDelaySeconds();
 
-    int getAutoCreateIndexPeriodicScheduledHour();
+    int getAutoCreateIndexScheduleMinutes();
 
     /*
         Backup related Config properties
