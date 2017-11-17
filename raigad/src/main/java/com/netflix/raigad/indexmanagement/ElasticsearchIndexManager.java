@@ -93,8 +93,7 @@ public class ElasticsearchIndexManager extends Task {
             // Only active master can perform index management
             if (!ElasticsearchUtils.amIMasterNode(config, httpModule)) {
                 if (config.isDebugEnabled()) {
-                    logger.debug("Current node is not an active master node, sleeping for "
-                            + config.getAutoCreateIndexPeriodicScheduledHour() + "s");
+                    logger.debug("Cannot perform index management: current node is not an active master node");
                 }
                 return;
             }
@@ -150,8 +149,7 @@ public class ElasticsearchIndexManager extends Task {
     }
 
     public static TaskTimer getTimer(IConfiguration config) {
-        int hour = config.getAutoCreateIndexPeriodicScheduledHour();
-        return new CronTimer(hour, 1, 0, JOB_NAME);
+        return new CronTimer(config.getAutoCreateIndexScheduleMinutes(), 0, JOB_NAME);
     }
 
     /**
@@ -172,7 +170,7 @@ public class ElasticsearchIndexManager extends Task {
     private void checkIndexRetention(IndexMetadata indexMetadata, Client esTransportClient) throws UnsupportedAutoIndexException {
 
         if (indexMetadata.getRetentionPeriod() == null) {
-            logger.info("Retention period not set for Cluster is empty, no indices found");
+            logger.info("Retention period not set for {}", indexMetadata.toString());
             return;
         }
 
@@ -189,39 +187,40 @@ public class ElasticsearchIndexManager extends Task {
             return;
         }
 
-        for (String indexName : indexStatsMap.keySet()) {
+        indexStatsMap.keySet().forEach(indexName -> {
             logger.info("Processing index [{}]", indexName);
 
             if (indexMetadata.getIndexNameFilter().filter(indexName) &&
                     indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName())) {
 
-                //Extract date from the index name
-                int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
-                logger.info("Extracted date {} from index {}", indexDate, indexName);
+                // Extract date from the index name
+                try {
+                    int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
 
-                //Delete old indices
-                if (indexDate <= pastRetentionCutoffDateDate) {
-                    logger.info("Date {} for index {} is past the retention date of {}, deleting this index now",
-                            indexDate, indexName, pastRetentionCutoffDateDate);
-                    deleteIndices(esTransportClient, indexName, config.getAutoCreateIndexTimeout());
+                    if (indexDate < pastRetentionCutoffDateDate) {
+                        logger.info("Date {} for index {} is past the retention date of {}, deleting", indexDate, indexName, pastRetentionCutoffDateDate);
+                        deleteIndices(esTransportClient, indexName, config.getAutoCreateIndexTimeout());
+                    }
+                } catch (UnsupportedAutoIndexException e) {
+                    logger.error("Invalid index metadata: " + indexMetadata.toString(), e);
                 }
             }
-        }
+        });
     }
 
     private void deleteIndices(Client client, String indexName, int timeout) {
-        logger.info("Attempting to delete {} with timeout of {} ms", indexName, timeout);
         DeleteIndexResponse deleteIndexResponse = client.admin().indices().prepareDelete(indexName).execute().actionGet(timeout);
 
-        if (!deleteIndexResponse.isAcknowledged()) {
-            throw new RuntimeException("Failed to delete " + indexName);
-        } else {
+        if (deleteIndexResponse.isAcknowledged()) {
             logger.info(indexName + " deleted");
+        } else {
+            logger.warn("Failed to delete " + indexName);
+            throw new RuntimeException("Failed to delete " + indexName);
         }
     }
 
     private void preCreateIndex(IndexMetadata indexMetadata, Client esTransportClient) throws UnsupportedAutoIndexException {
-        logger.info("Pre-creating indices");
+        logger.info("Pre-creating indices for {}*", indexMetadata.getIndexName());
 
         IndicesStatsResponse indicesStatsResponse = getIndicesStatsResponse(esTransportClient);
         Map<String, IndexStats> indexStatsMap = indicesStatsResponse.getIndices();
@@ -233,24 +232,22 @@ public class ElasticsearchIndexManager extends Task {
 
         DateTime dateTime = new DateTime();
 
-        for (String indexNameWithDateSuffix : indexStatsMap.keySet()) {
-            logger.debug("Processing pre-creation for index {}", indexNameWithDateSuffix);
+        indexStatsMap.keySet().stream().filter(indexName -> indexMetadata.getIndexNameFilter().filter(indexName) &&
+                        indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName()))
+                .findFirst().ifPresent(indexName -> {
+                    try {
+                        String newIndexName = IndexUtils.getIndexNameToPreCreate(indexMetadata, dateTime);
 
-            if (indexMetadata.getIndexNameFilter().filter(indexNameWithDateSuffix) &&
-                    indexMetadata.getIndexNameFilter().getNamePart(indexNameWithDateSuffix).equalsIgnoreCase(indexMetadata.getIndexName())) {
-
-                String newIndexName = IndexUtils.getIndexNameToPreCreate(indexMetadata, dateTime);
-                logger.info("Pre-creating index [{}]", newIndexName);
-
-                if (!esTransportClient.admin().indices().prepareExists(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
-                    esTransportClient.admin().indices().prepareCreate(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout());
-                    logger.info(newIndexName + " has been created");
-                } else {
-                    //TODO: Change to debug after testing
-                    logger.warn(newIndexName + " already exists");
-                }
-            }
-        }
+                        if (!esTransportClient.admin().indices().prepareExists(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout()).isExists()) {
+                            esTransportClient.admin().indices().prepareCreate(newIndexName).execute().actionGet(config.getAutoCreateIndexTimeout());
+                            logger.info(newIndexName + " has been created");
+                        } else {
+                            logger.warn(newIndexName + " already exists");
+                        }
+                    } catch (UnsupportedAutoIndexException e) {
+                        logger.error("Invalid index metadata: " + indexMetadata.toString(), e);
+                    }
+                });
     }
 
     /**

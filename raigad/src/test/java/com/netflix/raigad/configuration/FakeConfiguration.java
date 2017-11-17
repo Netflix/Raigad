@@ -283,7 +283,7 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public int getAutoCreateIndexPeriodicScheduledHour() {
+    public int getAutoCreateIndexScheduleMinutes() {
         return 0;
     }
 

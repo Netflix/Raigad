@@ -28,13 +28,10 @@ import com.netflix.raigad.aws.ICredential;
 import com.netflix.raigad.utils.RetriableCallable;
 import com.netflix.raigad.utils.SystemUtils;
 import org.apache.commons.lang.StringUtils;
-import org.elasticsearch.plugins.Plugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @Singleton
 public class RaigadConfiguration implements IConfiguration {
@@ -79,7 +76,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String CONFIG_IS_INDEX_AUTOCREATION_ENABLED = MY_WEBAPP_NAME + ".index.autocreation.enabled";
     private static final String CONFIG_AUTOCREATE_INDEX_TIMEOUT = MY_WEBAPP_NAME + ".autocreate.index.timeout";
     private static final String CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = MY_WEBAPP_NAME + ".autocreate.index.initial.start.delay.seconds";
-    private static final String CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = MY_WEBAPP_NAME + ".autocreate.index.periodic.scheduled.delay.seconds";
+    private static final String CONFIG_AUTOCREATE_INDEX_SCHEDULE_MINUTES = MY_WEBAPP_NAME + ".autocreate.index.schedule.minutes";
     private static final String CONFIG_BACKUP_LOCATION = MY_WEBAPP_NAME + ".backup.location";
     private static final String CONFIG_BACKUP_HOUR = MY_WEBAPP_NAME + ".backup.hour";
     private static final String CONFIG_BACKUP_IS_SNAPSHOT_ENABLED = MY_WEBAPP_NAME + ".snapshot.enabled";
@@ -212,7 +209,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final boolean DEFAULT_IS_INDEX_AUTOCREATION_ENABLED = false;
     private static final int DEFAULT_AUTOCREATE_INDEX_TIMEOUT = 300000;
     private static final int DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = 300;
-    private static final int DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = 22;
+    private static final int DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES = 45;
     private static final String DEFAULT_INDEX_METADATA = null;
     private static final String DEFAULT_BACKUP_LOCATION = "elasticsearch-us-east-1-backup";
     private static final int DEFAULT_BACKUP_HOUR = 1;
@@ -292,7 +289,7 @@ public class RaigadConfiguration implements IConfiguration {
     private final DynamicBooleanProperty IS_INDEX_AUTOCREATION_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_INDEX_AUTOCREATION_ENABLED, DEFAULT_IS_INDEX_AUTOCREATION_ENABLED);
     private final DynamicIntProperty AUTOCREATE_INDEX_TIMEOUT = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_TIMEOUT, DEFAULT_AUTOCREATE_INDEX_TIMEOUT);
     private final DynamicIntProperty AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS, DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS);
-    private final DynamicIntProperty AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR, DEFAULT_AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR);
+    private final DynamicIntProperty AUTOCREATE_INDEX_SCHEDULE_MINUTES = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_AUTOCREATE_INDEX_SCHEDULE_MINUTES, DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES);
     private final DynamicStringProperty ES_PROCESS_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ES_PROCESS_NAME, DEFAULT_ES_PROCESS_NAME);
     private final DynamicStringProperty BUCKET_NAME = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_BACKUP_LOCATION, DEFAULT_BACKUP_LOCATION);
     private final DynamicIntProperty BACKUP_HOUR = DynamicPropertyFactory.getInstance().getIntProperty(CONFIG_BACKUP_HOUR, DEFAULT_BACKUP_HOUR);
@@ -692,8 +689,8 @@ public class RaigadConfiguration implements IConfiguration {
     }
 
     @Override
-    public int getAutoCreateIndexPeriodicScheduledHour() {
-        return AUTOCREATE_INDEX_PERIODIC_SCHEDULED_HOUR.get();
+    public int getAutoCreateIndexScheduleMinutes() {
+        return AUTOCREATE_INDEX_SCHEDULE_MINUTES.get();
     }
 
     @Override
