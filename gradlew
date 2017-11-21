@@ -6,13 +6,6 @@
 ##
 ##############################################################################
 
-# Netflix: Attempt to use $WORKSPACE/.gradle if we're not told otherwise
-if [ "x$GRADLE_USER_HOME" == "x" ]; then
-    if [ "x$WORKSPACE" != "x" ]; then
-        export GRADLE_USER_HOME="$WORKSPACE/.gradle"
-    fi
-fi
-
 # Attempt to set APP_HOME
 # Resolve links: $0 may be a link
 PRG="$0"
@@ -168,4 +161,4 @@ function splitJvmOpts() {
 eval splitJvmOpts $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS
 JVM_OPTS[${#JVM_OPTS[*]}]="-Dorg.gradle.appname=$APP_BASE_NAME"
 
-exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain $NEBULA_FLAGS "$@"
+exec "$JAVACMD" "${JVM_OPTS[@]}" -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
