@@ -116,7 +116,6 @@ public class RaigadConfiguration implements IConfiguration {
     private static final String CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = MY_WEBAPP_NAME + ".tribe.node.source.cluster.enabled.in.multi.dc";
     private static final String CONFIG_REPORT_METRICS_FROM_MASTER_ONLY = MY_WEBAPP_NAME + ".report.metrics.from.master.only";
     private static final String CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = MY_WEBAPP_NAME + ".tribe.preferred.cluster.id.on.conflict";
-    private static final String CONFIG_IS_VPC_MIGRATION_MODE_ENABLED = MY_WEBAPP_NAME + ".vpc.migration.mode.enabled";
 
     // Amazon specific
     private static final String CONFIG_ASG_NAME = MY_WEBAPP_NAME + ".az.asgname";
@@ -171,7 +170,6 @@ public class RaigadConfiguration implements IConfiguration {
 
     // Defaults
     private final String DEFAULT_CLUSTER_NAME = "es_samplecluster";
-    private final String DEFAULT_ES_HOME_DIR = "/apps/elasticsearch";
     private List<String> DEFAULT_AVAILABILITY_ZONES = ImmutableList.of();
 
 
@@ -209,7 +207,7 @@ public class RaigadConfiguration implements IConfiguration {
     private static final boolean DEFAULT_IS_INDEX_AUTOCREATION_ENABLED = false;
     private static final int DEFAULT_AUTOCREATE_INDEX_TIMEOUT = 300000;
     private static final int DEFAULT_AUTOCREATE_INDEX_INITIAL_START_DELAY_SECONDS = 300;
-    private static final int DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES = 45;
+    private static final int DEFAULT_AUTOCREATE_INDEX_SCHEDULE_MINUTES = 10;
     private static final String DEFAULT_INDEX_METADATA = null;
     private static final String DEFAULT_BACKUP_LOCATION = "elasticsearch-us-east-1-backup";
     private static final int DEFAULT_BACKUP_HOUR = 1;
@@ -250,7 +248,6 @@ public class RaigadConfiguration implements IConfiguration {
     private static final boolean DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = false;
     private static final boolean DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY = false;
     private static final String DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = "t0";
-    private static final boolean DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED = false;
     private static final String DEFAULT_ACL_GROUP_NAME_FOR_VPC = "es_samplecluster";
 
     private final IConfigSource config;
@@ -330,7 +327,6 @@ public class RaigadConfiguration implements IConfiguration {
     private final DynamicBooleanProperty AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC, DEFAULT_AM_I_SOURCE_CLUSTER_FOR_TRIBE_NODE_IN_MULTI_DC);
     private final DynamicBooleanProperty REPORT_METRICS_FROM_MASTER_ONLY = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_REPORT_METRICS_FROM_MASTER_ONLY, DEFAULT_REPORT_METRICS_FROM_MASTER_ONLY);
     private final DynamicStringProperty TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT, DEFAULT_TRIBE_PREFERRED_CLUSTER_ID_ON_CONFLICT);
-    private final DynamicBooleanProperty IS_VPC_MIGRATION_MODE_ENABLED = DynamicPropertyFactory.getInstance().getBooleanProperty(CONFIG_IS_VPC_MIGRATION_MODE_ENABLED, DEFAULT_IS_VPC_MIGRATION_MODE_ENABLED);
     private final DynamicStringProperty ACL_GROUP_NAME_FOR_VPC = DynamicPropertyFactory.getInstance().getStringProperty(CONFIG_ACL_GROUP_NAME_FOR_VPC, DEFAULT_ACL_GROUP_NAME_FOR_VPC);
 
     @Inject
@@ -890,11 +886,6 @@ public class RaigadConfiguration implements IConfiguration {
     @Override
     public String getEsNodeName() {
         return ES_NODE_NAME;
-    }
-
-    @Override
-    public boolean isVPCMigrationModeEnabled() {
-        return IS_VPC_MIGRATION_MODE_ENABLED.get();
     }
 
     @Override
