@@ -300,15 +300,6 @@ public interface IConfiguration {
     String getEsNodeName();
 
     /**
-     * Parameters associated with VPC
-     */
-
-    /**
-     * VPCMigration mode deals with moving instances from EC2 classic to VPC
-     */
-    boolean isVPCMigrationModeEnabled();
-
-    /**
      * Check if instance is deployed in VPC
      *
      * @return true or false

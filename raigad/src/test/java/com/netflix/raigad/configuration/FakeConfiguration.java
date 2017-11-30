@@ -1,10 +1,6 @@
 package com.netflix.raigad.configuration;
 
-import org.elasticsearch.plugins.Plugin;
-
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public class FakeConfiguration implements IConfiguration {
 
@@ -479,11 +475,6 @@ public class FakeConfiguration implements IConfiguration {
     @Override
     public String getEsNodeName() {
         return null;
-    }
-
-    @Override
-    public boolean isVPCMigrationModeEnabled() {
-        return false;
     }
 
     @Override
