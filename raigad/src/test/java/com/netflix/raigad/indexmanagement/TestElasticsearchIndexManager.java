@@ -1,136 +1,151 @@
 package com.netflix.raigad.indexmanagement;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.configuration.UnitTestModule;
-import com.netflix.raigad.utils.ElasticsearchTransportClient;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
+import com.netflix.raigad.indexmanagement.exception.UnsupportedAutoIndexException;
 import org.elasticsearch.action.admin.indices.stats.IndexStats;
 import org.elasticsearch.action.admin.indices.stats.IndicesStatsResponse;
+import org.elasticsearch.action.admin.indices.stats.ShardStats;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.test.ESIntegTestCase;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
+import javax.management.ObjectName;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import java.lang.management.ManagementFactory;
+import java.util.*;
 
-@Ignore
-@ESIntegTestCase.ClusterScope(scope = ESIntegTestCase.Scope.TEST, numDataNodes = 2)
-public class TestElasticsearchIndexManager extends ESIntegTestCase {
-    private static final DateTimeZone currentZone = DateTimeZone.UTC;
-    private static final String S3_REPO_DATE_FORMAT = "yyyyMMdd";
-    private static final String indexPrefix = "test_index";
-    private static final int numDays = 5;
+import static org.mockito.Mockito.*;
 
-    private static Injector injector;
-    private static Client client0;
+public class TestElasticsearchIndexManager {
+    private static final int AUTO_CREATE_INDEX_TIMEOUT = 300000;
 
-    private static IConfiguration conf;
+    private Client elasticsearchClient;
+    private IConfiguration config;
 
-    @Mocked
-    private static ElasticsearchTransportClient esTransportClient;
+    private ElasticsearchIndexManager elasticsearchIndexManager;
 
-    @Mocked
-    private static ElasticsearchIndexManager esIndexManager;
+    @Before
+    public void setUp() throws Exception {
+        config = mock(IConfiguration.class);
+        when(config.getAutoCreateIndexTimeout()).thenReturn(AUTO_CREATE_INDEX_TIMEOUT);
 
-    @BeforeClass
-    public static void setup() throws InterruptedException, IOException {
-        injector = Guice.createInjector(new UnitTestModule());
-        conf = injector.getInstance(IConfiguration.class);
+        elasticsearchClient = mock(Client.class);
 
-        esTransportClient = injector.getInstance(ElasticsearchTransportClient.class);
+        elasticsearchIndexManager = spy(new ElasticsearchIndexManager(config, null));
+        doReturn(elasticsearchClient).when(elasticsearchIndexManager).getTransportClient();
 
-        if (esIndexManager == null) {
-            esIndexManager = injector.getInstance(ElasticsearchIndexManager.class);
-        }
-    }
-
-    @AfterClass
-    public static void cleanup() throws IOException {
-        injector = null;
-        client0 = null;
-        esTransportClient = null;
-        conf = null;
-        esIndexManager = null;
-    }
-
-    @Ignore
-    public static class MockElasticsearchTransportClient extends MockUp<ElasticsearchTransportClient> {
-        @Mock
-        public static ElasticsearchTransportClient instance(IConfiguration config) {
-            return esTransportClient;
-        }
-
-        @Mock
-        public Client getTransportClient() {
-            return client0;
-        }
-    }
-
-    @Ignore
-    public static class MockElasticsearchIndexManager extends MockUp<ElasticsearchIndexManager> {
-        @Mock
-        public IndicesStatsResponse getIndicesStatusResponse(Client esTransportClient) {
-            return getLocalIndicesStatusResponse();
-        }
-
-        @Mock
-        public void deleteIndices(Client client, String indexName, int timeout) {
-            client0.admin().indices().prepareDelete(indexName).execute().actionGet(timeout);
-        }
+        doNothing().when(elasticsearchIndexManager).deleteIndices(eq(elasticsearchClient), anyString(), anyInt());
     }
 
     @Test
-    public void testIndexRetentionWithPreCreate() throws Exception {
-        client0 = client();
+    public void testRunIndexManagement_NotActionable_NoIndex() throws Exception {
+        String serializedIndexMetadata = "[{\"retentionType\": \"yearly\", \"retentionPeriod\": 20}]";
+        when(config.getIndexMetadata()).thenReturn(serializedIndexMetadata);
 
-        Map<String, IndexStats> beforeIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        Assert.assertEquals(0, beforeIndexStatusMap.size());
+        Map<String, IndexStats> indexStats = new HashMap<>();
+        indexStats.put("nf_errors_log2018", new IndexStats("nf_errors_log2018", new ShardStats[]{}));
 
-        //Create Old indices for {numDays}
-        createOldIndices(indexPrefix, numDays);
+        IndicesStatsResponse indicesStatsResponse = mock(IndicesStatsResponse.class);
+        when(indicesStatsResponse.getIndices()).thenReturn(indexStats);
 
-        Map<String, IndexStats> afterIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-        Assert.assertEquals(numDays, afterIndexStatusMap.size());
+        doReturn(indicesStatsResponse).when(elasticsearchIndexManager).getIndicesStatsResponse(elasticsearchClient);
 
-        esIndexManager.runIndexManagement();
+        elasticsearchIndexManager.runIndexManagement();
 
-        Map<String, IndexStats> finalIndexStatusMap = getLocalIndicesStatusResponse().getIndices();
-
-        List<IndexMetadata> indexMetadataList = ElasticsearchIndexManager.buildInfo(conf.getIndexMetadata());
-
-        /*
-         * If pre-create is enabled, it will create today's index + (retention period in days - 1) day indices for future days
-         */
-        if (indexMetadataList.get(0).isPreCreate()) {
-            Assert.assertEquals((indexMetadataList.get(0).getRetentionPeriod() - 1) * 2 + 1, finalIndexStatusMap.size());
-        } else {
-            Assert.assertEquals(indexMetadataList.get(0).getRetentionPeriod() - 1, finalIndexStatusMap.size());
-        }
+        verify(elasticsearchIndexManager, times(0)).checkIndexRetention(any(Client.class), anySet(), any(IndexMetadata.class), any(DateTime.class));
+        verify(elasticsearchIndexManager, times(0)).preCreateIndex(any(Client.class), any(IndexMetadata.class), any(DateTime.class));
     }
 
-    public static IndicesStatsResponse getLocalIndicesStatusResponse() {
-        return client0.admin().indices().prepareStats().execute().actionGet(conf.getAutoCreateIndexTimeout());
+    @Test
+    public void testRunIndexManagement_NotActionable_NoRetentionPeriod() throws Exception {
+        String serializedIndexMetadata = "[{\"retentionType\": \"yearly\", \"indexName\": \"nf_errors_log\"}]";
+        when(config.getIndexMetadata()).thenReturn(serializedIndexMetadata);
+
+        Map<String, IndexStats> indexStats = new HashMap<>();
+        indexStats.put("nf_errors_log2018", new IndexStats("nf_errors_log2018", new ShardStats[]{}));
+
+        IndicesStatsResponse indicesStatsResponse = mock(IndicesStatsResponse.class);
+        when(indicesStatsResponse.getIndices()).thenReturn(indexStats);
+
+        doReturn(indicesStatsResponse).when(elasticsearchIndexManager).getIndicesStatsResponse(elasticsearchClient);
+
+        elasticsearchIndexManager.runIndexManagement();
+
+        verify(elasticsearchIndexManager, times(0)).checkIndexRetention(any(Client.class), anySet(), any(IndexMetadata.class), any(DateTime.class));
+        verify(elasticsearchIndexManager, times(0)).preCreateIndex(any(Client.class), any(IndexMetadata.class), any(DateTime.class));
     }
 
-    public static void createOldIndices(String indexPrefix, int numDays) {
-        for (int i = numDays; i > 0; i--) {
-            String indexName = indexPrefix + getFormattedDate(i);
-            client0.admin().indices().prepareCreate(indexName).execute().actionGet();
-        }
+    @Test
+    public void testRunIndexManagement() throws Exception {
+        String serializedIndexMetadata = "[{\"retentionType\": \"yearly\", \"retentionPeriod\": 3, \"indexName\": \"nf_errors_log\"}]";
+        when(config.getIndexMetadata()).thenReturn(serializedIndexMetadata);
+
+        Map<String, IndexStats> indexStats = new HashMap<>();
+        indexStats.put("nf_errors_log2018", new IndexStats("nf_errors_log2018", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2017", new IndexStats("nf_errors_log2017", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2016", new IndexStats("nf_errors_log2016", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2015", new IndexStats("nf_errors_log2015", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2014", new IndexStats("nf_errors_log2014", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2013", new IndexStats("nf_errors_log2013", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2012", new IndexStats("nf_errors_log2012", new ShardStats[]{}));
+
+        IndicesStatsResponse indicesStatsResponse = mock(IndicesStatsResponse.class);
+        when(indicesStatsResponse.getIndices()).thenReturn(indexStats);
+
+        doReturn(indicesStatsResponse).when(elasticsearchIndexManager).getIndicesStatsResponse(elasticsearchClient);
+
+        elasticsearchIndexManager.runIndexManagement();
+
+        verify(elasticsearchIndexManager, times(1)).checkIndexRetention(any(Client.class), anySet(), any(IndexMetadata.class), any(DateTime.class));
+
+        verify(elasticsearchIndexManager, times(1)).deleteIndices(any(Client.class), eq("nf_errors_log2012"), eq(AUTO_CREATE_INDEX_TIMEOUT));
+        verify(elasticsearchIndexManager, times(1)).deleteIndices(any(Client.class), eq("nf_errors_log2013"), eq(AUTO_CREATE_INDEX_TIMEOUT));
+
+        verify(elasticsearchIndexManager, times(0)).preCreateIndex(any(Client.class), any(IndexMetadata.class), any(DateTime.class));
     }
 
-    public static String getFormattedDate(int priorDay) {
-        DateTime dt = new DateTime().minusDays(priorDay).withZone(currentZone);
-        DateTimeFormatter fmt = DateTimeFormat.forPattern(S3_REPO_DATE_FORMAT);
-        return dt.toString(fmt);
+    @Test
+    public void testCheckIndexRetention_Hourly() throws IOException, UnsupportedAutoIndexException {
+        String serializedIndexMetadata = "[{\"preCreate\": false, \"retentionType\": \"hourly\", \"retentionPeriod\": 2, \"indexName\": \"nf_errors_log\"}]";
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(serializedIndexMetadata);
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+
+        Set<String> indices = new HashSet<>(
+                Arrays.asList("nf_errors_log2017062210", "nf_errors_log2017062211", "nf_errors_log2017062212", "nf_errors_log2017062213", "nf_errors_log2017062214"));
+
+        elasticsearchIndexManager.checkIndexRetention(elasticsearchClient, indices, indexMetadata, new DateTime("2017-06-22T13:30Z"));
+
+        verify(elasticsearchIndexManager, times(1)).deleteIndices(any(Client.class), eq("nf_errors_log2017062210"), eq(AUTO_CREATE_INDEX_TIMEOUT));
+    }
+
+    @Test
+    public void testCheckIndexRetention_Overlapping() throws Exception {
+        String serializedIndexMetadata = "[{\"preCreate\": false, \"retentionType\": \"hourly\", \"retentionPeriod\": 2, \"indexName\": \"nf_errors_log\"}," +
+                "{\"preCreate\": false, \"retentionType\": \"yearly\", \"retentionPeriod\": 3, \"indexName\": \"nf_errors_log201712\"}]";
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(serializedIndexMetadata);
+
+        Map<String, IndexStats> indexStats = new HashMap<>();
+        indexStats.put("nf_errors_log2017121110", new IndexStats("nf_errors_log2017121110", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2017121111", new IndexStats("nf_errors_log2017121111", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2017121112", new IndexStats("nf_errors_log2017121112", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2017121113", new IndexStats("nf_errors_log2017121113", new ShardStats[]{}));
+        indexStats.put("nf_errors_log2017121114", new IndexStats("nf_errors_log2017121114", new ShardStats[]{}));
+
+        IndicesStatsResponse indicesStatsResponse = mock(IndicesStatsResponse.class);
+        when(indicesStatsResponse.getIndices()).thenReturn(indexStats);
+
+        doReturn(indicesStatsResponse).when(elasticsearchIndexManager).getIndicesStatsResponse(elasticsearchClient);
+
+        elasticsearchIndexManager.runIndexManagement(elasticsearchClient, indexMetadataList, new DateTime("2017-12-11T13:30Z"));
+
+        verify(elasticsearchIndexManager, times(2)).checkIndexRetention(any(Client.class), anySet(), any(IndexMetadata.class), any(DateTime.class));
+    }
+
+    @After
+    public void cleanUp() throws Exception {
+        ManagementFactory.getPlatformMBeanServer().unregisterMBean(
+                new ObjectName("com.netflix.raigad.scheduler:type=" + ElasticsearchIndexManager.class.getName()));
     }
 }

@@ -20,6 +20,7 @@ import com.netflix.raigad.indexmanagement.indexfilters.DailyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.HourlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.MonthlyIndexNameFilter;
 import com.netflix.raigad.indexmanagement.indexfilters.YearlyIndexNameFilter;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -53,19 +54,19 @@ public class IndexMetadata {
 
         switch (this.retentionType) {
             case HOURLY:
-                this.indexNameFilter = new HourlyIndexNameFilter();
+                this.indexNameFilter = new HourlyIndexNameFilter(indexName);
                 break;
 
             case DAILY:
-                this.indexNameFilter = new DailyIndexNameFilter();
+                this.indexNameFilter = new DailyIndexNameFilter(indexName);
                 break;
 
             case MONTHLY:
-                this.indexNameFilter = new MonthlyIndexNameFilter();
+                this.indexNameFilter = new MonthlyIndexNameFilter(indexName);
                 break;
 
             case YEARLY:
-                this.indexNameFilter = new YearlyIndexNameFilter();
+                this.indexNameFilter = new YearlyIndexNameFilter(indexName);
                 break;
 
             default:
@@ -74,17 +75,12 @@ public class IndexMetadata {
         }
 
         this.retentionPeriod = retentionPeriod;
-
-        if (preCreate == null) {
-            this.preCreate = false;
-        } else {
-            this.preCreate = preCreate;
-        }
+        this.preCreate = preCreate == null ? false : preCreate;
     }
 
     @Override
     public String toString() {
-        return String.format("{\"indexName\":\"%s\",\"retentionType\":\"%s\",\"retentionPeriod\":%n,\"preCreate\":%b}",
+        return String.format("{\"indexName\": \"%s\", \"retentionType\": \"%s\", \"retentionPeriod\": %d, \"preCreate\": %b}",
                 indexName, retentionType, retentionPeriod, preCreate);
     }
 
@@ -109,6 +105,6 @@ public class IndexMetadata {
     }
 
     public boolean isActionable() {
-        return indexName != null && retentionPeriod != null;
+        return StringUtils.isNotBlank(indexName) && retentionPeriod != null;
     }
 }

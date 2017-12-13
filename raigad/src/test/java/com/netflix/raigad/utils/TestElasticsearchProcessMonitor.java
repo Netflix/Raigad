@@ -1,197 +1,101 @@
 package com.netflix.raigad.utils;
 
 import com.netflix.raigad.configuration.FakeConfiguration;
-import mockit.*;
-import mockit.integration.junit4.JMockit;
+import com.netflix.raigad.configuration.IConfiguration;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import javax.management.ObjectName;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 
-@RunWith(JMockit.class)
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 public class TestElasticsearchProcessMonitor {
     private static String ELASTICSEARCH_PROCESS_NAME = FakeConfiguration.ES_PROCESS_NAME;
 
+    private Process pgrepProcess;
+    private InputStream processInputStream;
+
+    private ElasticsearchProcessMonitor elasticsearchProcessMonitor;
+
+    @Before
+    public void setUp() throws IOException {
+        processInputStream = mock(InputStream.class);
+
+        pgrepProcess = mock(Process.class);
+        when(pgrepProcess.getInputStream()).thenReturn(processInputStream);
+
+        Runtime runtime = mock(Runtime.class);
+        when(runtime.exec(anyString())).thenReturn(pgrepProcess);
+
+        elasticsearchProcessMonitor = spy(new ElasticsearchProcessMonitor(mock(IConfiguration.class)));
+        doReturn(runtime).when(elasticsearchProcessMonitor).getRuntime();
+    }
+
     @After
-    public void resetElasticsearchProcessMonitor() {
+    public void cleanUp() throws Exception {
+        ManagementFactory.getPlatformMBeanServer().unregisterMBean(
+                new ObjectName("com.netflix.raigad.scheduler:type=" + ElasticsearchProcessMonitor.class.getName()));
+
         ElasticsearchProcessMonitor.isElasticsearchRunningNow.set(false);
         ElasticsearchProcessMonitor.wasElasticsearchStarted.set(false);
     }
 
     @Test
-    public void testNullInputStream(
-            @Mocked Runtime runtime,
-            @Mocked Process pgrepProcess,
-            @Mocked InputStreamReader inputStreamReader,
-            @Mocked BufferedReader bufferedReader) throws Exception {
-        new Expectations() {
-            {
-                pgrepProcess.getInputStream();
-                times = 1;
+    public void testNullInputStream() throws Exception {
+        doReturn(null).when(elasticsearchProcessMonitor).getFirstLine(processInputStream);
 
-                bufferedReader.readLine();
-                result = null;
-                times = 1;
-            }
-        };
+        elasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
 
-        new MockUp<Runtime>() {
-            @Mock
-            Runtime getRuntime() {
-                return runtime;
-            }
-
-            @Mock
-            Process exec(String command) {
-                return pgrepProcess;
-            }
-        };
-
-        ElasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
-
-        new VerificationsInOrder() {
-            {
-                bufferedReader.close();
-                inputStreamReader.close();
-                pgrepProcess.destroyForcibly();
-            }
-        };
+        verify(processInputStream, times(1)).close();
+        verify(pgrepProcess, times(1)).destroyForcibly();
 
         Assert.assertFalse(ElasticsearchProcessMonitor.isElasticsearchRunning());
         Assert.assertFalse(ElasticsearchProcessMonitor.getWasElasticsearchStarted());
     }
 
     @Test
-    public void testEmptyInputStream(
-            @Mocked Runtime runtime,
-            @Mocked Process pgrepProcess,
-            @Mocked InputStreamReader inputStreamReader,
-            @Mocked BufferedReader bufferedReader) throws Exception {
-        new Expectations() {
-            {
-                pgrepProcess.getInputStream();
-                times = 1;
+    public void testEmptyInputStream() throws Exception {
+        doReturn("").when(elasticsearchProcessMonitor).getFirstLine(processInputStream);
 
-                bufferedReader.readLine();
-                result = "\n";
-                times = 1;
-            }
-        };
+        elasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
 
-        new MockUp<Runtime>() {
-            @Mock
-            Runtime getRuntime() {
-                return runtime;
-            }
-
-            @Mock
-            Process exec(String command) {
-                return pgrepProcess;
-            }
-        };
-
-        ElasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
-
-        new VerificationsInOrder() {
-            {
-                bufferedReader.close();
-                inputStreamReader.close();
-                pgrepProcess.destroyForcibly();
-            }
-        };
+        verify(processInputStream, times(1)).close();
+        verify(pgrepProcess, times(1)).destroyForcibly();
 
         Assert.assertFalse(ElasticsearchProcessMonitor.isElasticsearchRunning());
         Assert.assertFalse(ElasticsearchProcessMonitor.getWasElasticsearchStarted());
     }
 
     @Test
-    public void testValidInputStream(
-            @Mocked Runtime runtime,
-            @Mocked Process pgrepProcess,
-            @Mocked InputStreamReader inputStreamReader,
-            @Mocked BufferedReader bufferedReader) throws Exception {
-        new Expectations() {
-            {
-                pgrepProcess.getInputStream();
-                times = 1;
+    public void testValidInputStream() throws Exception {
+        doReturn("1234").when(elasticsearchProcessMonitor).getFirstLine(processInputStream);
 
-                bufferedReader.readLine();
-                result = "1234";
-                times = 1;
-            }
-        };
+        elasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
 
-        new MockUp<Runtime>() {
-            @Mock
-            Runtime getRuntime() {
-                return runtime;
-            }
-
-            @Mock
-            Process exec(String command) {
-                return pgrepProcess;
-            }
-        };
-
-        ElasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
-
-        new VerificationsInOrder() {
-            {
-                bufferedReader.close();
-                inputStreamReader.close();
-                pgrepProcess.destroyForcibly();
-            }
-        };
+        verify(processInputStream, times(1)).close();
+        verify(pgrepProcess, times(1)).destroyForcibly();
 
         Assert.assertTrue(ElasticsearchProcessMonitor.isElasticsearchRunning());
         Assert.assertTrue(ElasticsearchProcessMonitor.getWasElasticsearchStarted());
     }
 
     @Test
-    public void testElasticsearchWasStarted(
-            @Mocked Runtime runtime,
-            @Mocked Process pgrepProcess,
-            @Mocked InputStreamReader inputStreamReader,
-            @Mocked BufferedReader bufferedReader) throws Exception {
-
-        new Expectations() {
-            {
-                pgrepProcess.getInputStream();
-                times = 1;
-
-                bufferedReader.readLine();
-                result = "\n";
-                times = 1;
-            }
-        };
-
-        new MockUp<Runtime>() {
-            @Mock
-            Runtime getRuntime() {
-                return runtime;
-            }
-
-            @Mock
-            Process exec(String command) {
-                return pgrepProcess;
-            }
-        };
+    public void testElasticsearchWasStarted() throws Exception {
+        doReturn("").when(elasticsearchProcessMonitor).getFirstLine(processInputStream);
 
         ElasticsearchProcessMonitor.isElasticsearchRunningNow.set(true);
         ElasticsearchProcessMonitor.wasElasticsearchStarted.set(true);
 
-        ElasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
+        elasticsearchProcessMonitor.checkElasticsearchProcess(ELASTICSEARCH_PROCESS_NAME);
 
-        new VerificationsInOrder() {
-            {
-                bufferedReader.close();
-                inputStreamReader.close();
-                pgrepProcess.destroyForcibly();
-            }
-        };
+        verify(processInputStream, times(1)).close();
+        verify(pgrepProcess, times(1)).destroyForcibly();
 
         Assert.assertFalse(ElasticsearchProcessMonitor.isElasticsearchRunning());
         Assert.assertTrue(ElasticsearchProcessMonitor.getWasElasticsearchStarted());

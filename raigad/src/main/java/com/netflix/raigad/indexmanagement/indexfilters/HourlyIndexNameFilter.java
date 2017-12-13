@@ -4,16 +4,23 @@ import com.netflix.raigad.indexmanagement.IIndexNameFilter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import java.util.regex.Pattern;
+
 public class HourlyIndexNameFilter implements IIndexNameFilter {
-    public static final String id = "hourly";
+    public static final String ID = "hourly";
+    private Pattern indexNamePattern;
+
+    public HourlyIndexNameFilter(String indexNamePrefix) {
+        indexNamePattern = Pattern.compile(String.format("^%s\\d{10}$", indexNamePrefix));
+    }
 
     @Override
-    public boolean filter(String name) {
-        if (name.length() < 11) {
+    public boolean filter(String indexName) {
+        if (!indexNamePattern.matcher(indexName).matches()) {
             return false;
         }
 
-        String date = name.substring(name.length() - 10, name.length());
+        String date = indexName.substring(indexName.length() - 10, indexName.length());
 
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYYMMddHH"));
@@ -30,6 +37,6 @@ public class HourlyIndexNameFilter implements IIndexNameFilter {
 
     @Override
     public String getId() {
-        return id;
+        return ID;
     }
 }

@@ -1,32 +1,30 @@
 package com.netflix.raigad.resources;
 
-import com.google.common.collect.ImmutableList;
 import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.TribeUtils;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import javax.ws.rs.core.Response;
-import java.net.UnknownHostException;
+import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
-@RunWith(JMockit.class)
 public class TestElasticsearchConfig {
-    @Test
-    public void getNodes(
-            @Mocked final RaigadServer raigadServer,
-            @Mocked final TribeUtils tribeUtils,
-            @Mocked final InstanceManager instanceManager) throws Exception {
-        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
+    private TribeUtils tribeUtils;
 
+    @Before
+    public void setUp() {
+        tribeUtils = mock(TribeUtils.class);
+    }
+
+    @Test
+    public void getNodes() {
         RaigadInstance raigadInstance1 = new RaigadInstance();
         raigadInstance1.setApp("fake-app1");
 
@@ -38,89 +36,69 @@ public class TestElasticsearchConfig {
 
         final List<RaigadInstance> nodes = asList(raigadInstance1, raigadInstance2, raigadInstance3);
 
-        new Expectations() {
-            {
-                raigadServer.getInstanceManager();
-                result = instanceManager;
-                times = 1;
+        InstanceManager instanceManager = mock(InstanceManager.class);
+        when(instanceManager.getAllInstances()).thenReturn(nodes);
 
-                instanceManager.getAllInstances();
-                result = nodes;
-                times = 1;
-            }
-        };
+        RaigadServer raigadServer = mock(RaigadServer.class);
+        when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
+
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
+
+        verify(raigadServer, times(1)).getInstanceManager();
+        verify(instanceManager, times(1)).getAllInstances();
     }
 
     @Test
-    public void getNodes_notFound(
-            @Mocked final RaigadServer raigadServer,
-            @Mocked final TribeUtils tribeUtils,
-            @Mocked final InstanceManager instanceManager) throws Exception {
+    public void getNodes_notFound() {
+        InstanceManager instanceManager = mock(InstanceManager.class);
+        when(instanceManager.getAllInstances()).thenReturn(Collections.emptyList());
+
+        RaigadServer raigadServer = mock(RaigadServer.class);
+        when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
+
         ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
-        final List<String> nodes = ImmutableList.of();
-
-        new Expectations() {
-            {
-                raigadServer.getInstanceManager();
-                result = instanceManager;
-                times = 1;
-
-                instanceManager.getAllInstances();
-                result = nodes;
-                times = 1;
-            }
-        };
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
+
+        verify(raigadServer, times(1)).getInstanceManager();
+        verify(instanceManager, times(1)).getAllInstances();
     }
 
     @Test
-    public void getNodes_Error(
-            @Mocked final RaigadServer raigadServer,
-            @Mocked final TribeUtils tribeUtils,
-            @Mocked final InstanceManager instanceManager) throws Exception {
+    public void getNodes_Error() {
+        InstanceManager instanceManager = mock(InstanceManager.class);
+        when(instanceManager.getAllInstances()).thenReturn(null);
+
+        RaigadServer raigadServer = mock(RaigadServer.class);
+        when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
+
         ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
-        final List<String> nodes = null;
-
-        new Expectations() {
-            {
-                raigadServer.getInstanceManager();
-                result = instanceManager;
-                times = 1;
-
-                instanceManager.getAllInstances();
-                result = nodes;
-                times = 1;
-            }
-        };
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
+
+        verify(raigadServer, times(1)).getInstanceManager();
+        verify(instanceManager, times(1)).getAllInstances();
     }
 
     @Test
-    public void getNodes_handlesUnknownHostException(
-            @Mocked final RaigadServer raigadServer,
-            @Mocked final TribeUtils tribeUtils,
-            @Mocked final InstanceManager instanceManager) throws Exception {
+    public void getNodes_handlesUnknownHostException() {
+        InstanceManager instanceManager = mock(InstanceManager.class);
+        when(instanceManager.getAllInstances()).thenThrow(new RuntimeException());
+
+        RaigadServer raigadServer = mock(RaigadServer.class);
+        when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
+
         ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
-
-        new Expectations() {
-            {
-                raigadServer.getInstanceManager();
-                result = instanceManager;
-                times = 1;
-
-                instanceManager.getAllInstances();
-                result = new UnknownHostException();
-            }
-        };
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
+
+        verify(raigadServer, times(1)).getInstanceManager();
+        verify(instanceManager, times(1)).getAllInstances();
     }
 }

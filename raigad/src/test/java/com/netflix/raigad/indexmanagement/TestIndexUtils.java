@@ -13,7 +13,7 @@ public class TestIndexUtils {
 
     @Test
     public void testPastRetentionCutoffDate() throws IOException, UnsupportedAutoIndexException {
-        List<IndexMetadata> indexMetadataList = ElasticsearchIndexManager.buildInfo(
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
                 "[ { \"retentionType\": \"yearly\", \"retentionPeriod\": 20, \"indexName\": \"nf_errors_log\" }," +
                         "{ \"retentionType\": \"monthly\", \"retentionPeriod\": 20, \"indexName\": \"nf_errors_log\" }," +
                         "{ \"retentionType\": \"hourly\", \"retentionPeriod\": 20, \"indexName\": \"nf_errors_log\", \"preCreate\": \"true\" }," +
@@ -37,7 +37,7 @@ public class TestIndexUtils {
 
     @Test
     public void testIndexNameToPreCreate() throws IOException, UnsupportedAutoIndexException {
-        List<IndexMetadata> indexMetadataList = ElasticsearchIndexManager.buildInfo(
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
                 "[ { \"retentionType\": \"yearly\", \"retentionPeriod\": 20, \"indexName\": \"index\" }," +
                         "{ \"retentionType\": \"monthly\", \"retentionPeriod\": 20, \"indexName\": \"0\" }," +
                         "{ \"retentionType\": \"hourly\", \"retentionPeriod\": 20, \"indexName\": \"index1\", \"preCreate\": \"true\" }," +

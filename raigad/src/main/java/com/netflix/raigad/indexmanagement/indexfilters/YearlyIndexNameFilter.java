@@ -23,24 +23,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class YearlyIndexNameFilter implements IIndexNameFilter {
+    public static final String ID = "yearly";
+    private Pattern indexNamePattern;
 
-    public static final String id = "yearly";
-    private String YEARLY_PATTERN = "(\\w)+[[a-zA-Z]]{1}[0-9]{4}";
+    public YearlyIndexNameFilter(String indexNamePrefix) {
+        indexNamePattern = Pattern.compile(String.format("^%s\\d{4}$", indexNamePrefix));
+    }
 
     @Override
-    public boolean filter(String name) {
-        if (name.length() < 5) {
+    public boolean filter(String indexName) {
+        if (!indexNamePattern.matcher(indexName).matches()) {
             return false;
         }
 
-        Pattern pattern = Pattern.compile(YEARLY_PATTERN);
-        Matcher matcher = pattern.matcher(name);
-
-        if (!matcher.matches()) {
-            return false;
-        }
-
-        String date = name.substring(name.length() - 4, name.length());
+        String date = indexName.substring(indexName.length() - 4, indexName.length());
 
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYY"));
@@ -57,6 +53,6 @@ public class YearlyIndexNameFilter implements IIndexNameFilter {
 
     @Override
     public String getId() {
-        return id;
+        return ID;
     }
 }
