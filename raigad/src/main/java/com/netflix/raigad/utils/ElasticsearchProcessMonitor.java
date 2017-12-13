@@ -26,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,10 +36,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Singleton
 public class ElasticsearchProcessMonitor extends Task {
+    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
 
     public static final String JOB_NAME = "ES_MONITOR_THREAD";
-
-    private static final Logger logger = LoggerFactory.getLogger(ElasticsearchProcessMonitor.class);
 
     static final AtomicBoolean isElasticsearchRunningNow = new AtomicBoolean(false);
     static final AtomicBoolean wasElasticsearchStarted = new AtomicBoolean(false);
@@ -52,18 +53,29 @@ public class ElasticsearchProcessMonitor extends Task {
         checkElasticsearchProcess(config.getElasticsearchProcessName());
     }
 
-    static void checkElasticsearchProcess(String elasticsearchProcessName) throws Exception {
+    @Override
+    public String getName() {
+        return JOB_NAME;
+    }
+
+    Runtime getRuntime() {
+        return Runtime.getRuntime();
+    }
+
+    String getFirstLine(InputStream inputStream) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+        return StringUtils.trim(bufferedReader.readLine());
+    }
+
+    void checkElasticsearchProcess(String elasticsearchProcessName) throws Exception {
         Process pgrepProcess = null;
-        InputStreamReader inputStreamReader = null;
-        BufferedReader bufferedReader = null;
+        InputStream processInputStream = null;
 
         try {
             // This returns PID for the Elasticsearch process
-            pgrepProcess = Runtime.getRuntime().exec("pgrep -f " + elasticsearchProcessName);
-            inputStreamReader = new InputStreamReader(pgrepProcess.getInputStream());
-            bufferedReader = new BufferedReader(inputStreamReader);
-
-            String line = StringUtils.trim(bufferedReader.readLine());
+            pgrepProcess = getRuntime().exec("pgrep -f " + elasticsearchProcessName);
+            processInputStream = pgrepProcess.getInputStream();
+            String line = getFirstLine(processInputStream);
 
             if (StringUtils.isNotEmpty(line) && !isElasticsearchRunning()) {
                 isElasticsearchRunningNow.set(true);
@@ -77,11 +89,8 @@ public class ElasticsearchProcessMonitor extends Task {
             logger.warn("Exception checking if process is running", e);
             isElasticsearchRunningNow.set(false);
         } finally {
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-            if (inputStreamReader != null) {
-                inputStreamReader.close();
+            if (processInputStream != null) {
+                processInputStream.close();
             }
             if (pgrepProcess != null) {
                 pgrepProcess.destroyForcibly();
@@ -91,11 +100,6 @@ public class ElasticsearchProcessMonitor extends Task {
 
     public static TaskTimer getTimer() {
         return new SimpleTimer(JOB_NAME, 10L * 1000);
-    }
-
-    @Override
-    public String getName() {
-        return JOB_NAME;
     }
 
     public static Boolean isElasticsearchRunning() {

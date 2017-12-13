@@ -28,7 +28,6 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,9 +47,7 @@ public class ElasticsearchTransportClient {
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    private ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
-            throws IOException, InterruptedException {
-
+    private ElasticsearchTransportClient(InetAddress host, IConfiguration configuration) {
         logger.info("Initializing client connection to {}", host.toString());
 
         Map<String, String> transportClientSettings = new HashMap<>();

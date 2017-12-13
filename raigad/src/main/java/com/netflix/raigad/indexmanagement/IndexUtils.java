@@ -16,12 +16,17 @@
 package com.netflix.raigad.indexmanagement;
 
 import com.netflix.raigad.indexmanagement.exception.UnsupportedAutoIndexException;
+import com.netflix.raigad.objectmapper.DefaultIndexMapper;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class IndexUtils {
+import java.io.IOException;
+import java.util.List;
 
+public class IndexUtils {
     private static DateTimeFormatter hourlyDateTimeFormatter = DateTimeFormat.forPattern("YYYYMMddHH").withZoneUTC();
     private static DateTimeFormatter dailyDateTimeFormatter = DateTimeFormat.forPattern("YYYYMMdd").withZoneUTC();
     private static DateTimeFormatter monthlyDateTimeFormatter = DateTimeFormat.forPattern("YYYYMM").withZoneUTC();
@@ -88,5 +93,18 @@ public class IndexUtils {
             default:
                 throw new UnsupportedAutoIndexException("Unsupported or invalid retention type (HOURLY, DAILY, MONTHLY, or YEARLY)");
         }
+    }
+
+    /**
+     * Convert the JSON String of parameters to IndexMetadata objects
+     *
+     * @param serializedIndexMetadata : JSON string with parameters
+     * @return list of IndexMetadata objects
+     * @throws IOException
+     */
+    public static List<IndexMetadata> parseIndexMetadata(String serializedIndexMetadata) throws IOException {
+        ObjectMapper jsonMapper = new DefaultIndexMapper();
+        TypeReference<List<IndexMetadata>> typeRef = new TypeReference<List<IndexMetadata>>() {};
+        return jsonMapper.readValue(serializedIndexMetadata, typeRef);
     }
 }

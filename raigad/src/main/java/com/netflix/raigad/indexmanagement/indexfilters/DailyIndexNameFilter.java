@@ -19,17 +19,24 @@ import com.netflix.raigad.indexmanagement.IIndexNameFilter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
+import java.util.regex.Pattern;
+
 
 public class DailyIndexNameFilter implements IIndexNameFilter {
-    public static final String id = "daily";
+    public static final String ID = "daily";
+    private Pattern indexNamePattern;
+
+    public DailyIndexNameFilter(String indexNamePrefix) {
+        indexNamePattern = Pattern.compile(String.format("^%s\\d{8}$", indexNamePrefix));
+    }
 
     @Override
-    public boolean filter(String name) {
-        if (name.length() < 9) {
+    public boolean filter(String indexName) {
+        if (!indexNamePattern.matcher(indexName).matches()) {
             return false;
         }
 
-        String date = name.substring(name.length() - 8, name.length());
+        String date = indexName.substring(indexName.length() - 8, indexName.length());
 
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYYMMdd"));
@@ -46,7 +53,7 @@ public class DailyIndexNameFilter implements IIndexNameFilter {
 
     @Override
     public String getId() {
-        return id;
+        return ID;
     }
 }
 

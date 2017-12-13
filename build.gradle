@@ -90,6 +90,7 @@ subprojects {
         compileOnly "javax.servlet:servlet-api:2.5"
 
         testCompile "org.jmockit:jmockit:[1.28,)"
+        testCompile "org.mockito:mockito-core:2.+"
         testCompile "org.elasticsearch.test:framework:${elasticsearchVersion}"
         testCompile "junit:junit:[4.8,5)"
     }
