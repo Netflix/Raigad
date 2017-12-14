@@ -4,11 +4,12 @@ buildscript {
     }
     dependencies {
         classpath "com.netflix.nebula:gradle-extra-configurations-plugin:latest.release"
+        classpath "org.akhikhl.gretty:gretty:2.+"
     }
 }
 
 plugins {
-    id "nebula.netflixoss" version "3.5.2"
+    id "nebula.netflixoss" version "4.1.0"
 }
 
 allprojects {
@@ -17,19 +18,16 @@ allprojects {
     }
 }
 
-// Establish version and status
 ext {
     githubProjectName = "Raigad"
     elasticsearchVersion = "5.4.1"
 }
 
-apply plugin: "jetty"
 apply plugin: "osgi"
 apply plugin: "project-report"
 
 subprojects {
     apply plugin: "nebula.netflixoss"
-    apply plugin: "nebula.provided-base"
     apply plugin: "java"
 
     group = "com.netflix.raigad"
@@ -89,9 +87,10 @@ subprojects {
             exclude module: "junit"
         }
 
-        provided "javax.servlet:servlet-api:2.5"
+        compileOnly "javax.servlet:servlet-api:2.5"
 
         testCompile "org.jmockit:jmockit:[1.28,)"
+        testCompile "org.mockito:mockito-core:2.+"
         testCompile "org.elasticsearch.test:framework:${elasticsearchVersion}"
         testCompile "junit:junit:[4.8,5)"
     }
