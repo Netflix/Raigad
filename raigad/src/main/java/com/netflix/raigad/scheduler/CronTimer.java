@@ -1,12 +1,12 @@
 /**
  * Copyright 2017 Netflix, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,37 +25,40 @@ import java.text.ParseException;
 /**
  * Runs jobs at the specified absolute time and frequency
  */
-public class CronTimer implements TaskTimer
-{
+public class CronTimer implements TaskTimer {
     private String cronExpression;
     private String triggerName;
 
-    public enum DayOfWeek
-    {
+    public enum DayOfWeek {
         SUN, MON, TUE, WED, THU, FRI, SAT
     }
 
     /**
-     * Hourly cron.
+     * Hourly cron
      */
-    public CronTimer(int minute, int sec)
-    {
+    public CronTimer(int minute, int sec) {
         cronExpression = sec + " " + minute + " * * * ?";
     }
 
     /**
-     * Daily Cron
+     * Hourly cron with explicit TriggerName
      */
-    public CronTimer(int hour, int minute, int sec)
-    {
+    public CronTimer(int minute, int sec, String triggerName) {
+        this.triggerName = triggerName;
+        cronExpression = sec + " " + minute + " * * * ?";
+    }
+
+    /**
+     * Daily cron
+     */
+    public CronTimer(int hour, int minute, int sec) {
         cronExpression = sec + " " + minute + " " + hour + " * * ?";
     }
 
     /**
-     * Daily Cron with explicit TriggerName
+     * Daily cron with explicit TriggerName
      */
-    public CronTimer(int hour, int minute, int sec, String triggerName)
-    {
+    public CronTimer(int hour, int minute, int sec, String triggerName) {
         this.triggerName = triggerName;
         cronExpression = sec + " " + minute + " " + hour + " * * ?";
     }
@@ -63,25 +66,22 @@ public class CronTimer implements TaskTimer
     /**
      * Weekly cron jobs
      */
-    public CronTimer(DayOfWeek dayofweek, int hour, int minute, int sec)
-    {
+    public CronTimer(DayOfWeek dayofweek, int hour, int minute, int sec) {
         cronExpression = sec + " " + minute + " " + hour + " * * " + dayofweek;
     }
 
     /**
-     * Cron Expression.
+     * Cron expression
      */
-    public CronTimer(String expression)
-    {
+    public CronTimer(String expression) {
         this.cronExpression = expression;
     }
 
-    public Trigger getTrigger() throws ParseException
-    {
-        if (StringUtils.isNotBlank(triggerName))
-            return new CronTrigger("CronTrigger"+triggerName, Scheduler.DEFAULT_GROUP, cronExpression);
-        else
+    public Trigger getTrigger() throws ParseException {
+        if (StringUtils.isNotBlank(triggerName)) {
+            return new CronTrigger("CronTrigger" + triggerName, Scheduler.DEFAULT_GROUP, cronExpression);
+        } else {
             return new CronTrigger("CronTrigger", Scheduler.DEFAULT_GROUP, cronExpression);
-
+        }
     }
 }

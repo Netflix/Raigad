@@ -200,7 +200,7 @@ public interface IConfiguration {
 
     int getAutoCreateIndexInitialStartDelaySeconds();
 
-    int getAutoCreateIndexPeriodicScheduledHour();
+    int getAutoCreateIndexScheduleMinutes();
 
     /*
         Backup related Config properties
@@ -298,15 +298,6 @@ public interface IConfiguration {
     String getTribePreferredClusterIdOnConflict();
 
     String getEsNodeName();
-
-    /**
-     * Parameters associated with VPC
-     */
-
-    /**
-     * VPCMigration mode deals with moving instances from EC2 classic to VPC
-     */
-    boolean isVPCMigrationModeEnabled();
 
     /**
      * Check if instance is deployed in VPC

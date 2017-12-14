@@ -21,13 +21,12 @@ import org.joda.time.format.DateTimeFormat;
 
 import java.util.regex.Pattern;
 
-
-public class DailyIndexNameFilter implements IIndexNameFilter {
-    public static final String ID = "daily";
+public class HourlyIndexNameFilter implements IIndexNameFilter {
+    public static final String ID = "hourly";
     private Pattern indexNamePattern;
 
-    public DailyIndexNameFilter(String indexNamePrefix) {
-        indexNamePattern = Pattern.compile(String.format("^%s\\d{8}$", indexNamePrefix));
+    public HourlyIndexNameFilter(String indexNamePrefix) {
+        indexNamePattern = Pattern.compile(String.format("^%s\\d{10}$", indexNamePrefix));
     }
 
     @Override
@@ -36,10 +35,10 @@ public class DailyIndexNameFilter implements IIndexNameFilter {
             return false;
         }
 
-        String date = indexName.substring(indexName.length() - 8, indexName.length());
+        String date = indexName.substring(indexName.length() - 10, indexName.length());
 
         try {
-            DateTime.parse(date, DateTimeFormat.forPattern("YYYYMMdd"));
+            DateTime.parse(date, DateTimeFormat.forPattern("YYYYMMddHH"));
             return true;
         } catch (Exception e) {
             return false;
@@ -48,7 +47,7 @@ public class DailyIndexNameFilter implements IIndexNameFilter {
 
     @Override
     public String getNamePart(String name) {
-        return name.substring(0, name.length() - 8);
+        return name.substring(0, name.length() - 10);
     }
 
     @Override
