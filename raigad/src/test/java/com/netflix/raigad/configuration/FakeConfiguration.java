@@ -1,36 +1,31 @@
 package com.netflix.raigad.configuration;
 
-import org.elasticsearch.client.transport.TransportClient;
-
 import java.util.List;
-import java.util.Map;
 
 public class FakeConfiguration implements IConfiguration {
 
     public static final String FAKE_REGION = "us-east-1";
-    public static final String INDEX_METADATA = "[    {        \"retentionType\": \"daily\",        \"retentionPeriod\": 5,    \"indexName\": \"test_index\", \"preCreate\": \"true\"   }]";
+    public static final String INDEX_METADATA = "[{\"retentionType\":\"daily\",\"retentionPeriod\":5,\"indexName\":\"test_index\",\"preCreate\":\"true\"}]";
+    public static final String ES_PROCESS_NAME = "org.elasticsearch.bootstrap.Elasticsearch";
 
     public String region;
     public String appName;
     public String zone;
-    public String instance_id;
+    public String instanceId;
 
-    public FakeConfiguration()
-    {
-        this(FAKE_REGION, "my_fake_cluster", "my_zone", "i-01234567");
+    public FakeConfiguration() {
+        this(FAKE_REGION, "my_fake_cluster", "my_zone", "i-01234567890123456");
     }
 
-    public FakeConfiguration(String region, String appName, String zone, String ins_id)
-    {
+    public FakeConfiguration(String region, String appName, String zone, String instanceId) {
         this.region = region;
         this.appName = appName;
         this.zone = zone;
-        this.instance_id = ins_id;
+        this.instanceId = instanceId;
     }
 
     @Override
     public void initialize() {
-
     }
 
     @Override
@@ -179,6 +174,11 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
+    public String getStackName() {
+        return null;
+    }
+
+    @Override
     public String getACLGroupName() {
         return null;
     }
@@ -200,7 +200,7 @@ public class FakeConfiguration implements IConfiguration {
 
     @Override
     public String getElasticsearchProcessName() {
-        return null;
+        return ES_PROCESS_NAME;
     }
 
     @Override
@@ -279,7 +279,7 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public int getAutoCreateIndexPeriodicScheduledHour() {
+    public int getAutoCreateIndexScheduleMinutes() {
         return 0;
     }
 
@@ -444,7 +444,7 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public boolean isSecutrityGroupInMultiDC() {
+    public boolean isSecurityGroupInMultiDC() {
         return false;
     }
 
@@ -478,11 +478,6 @@ public class FakeConfiguration implements IConfiguration {
     }
 
     @Override
-    public boolean isVPCMigrationModeEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean isDeployedInVPC() {
         return false;
     }
@@ -509,13 +504,5 @@ public class FakeConfiguration implements IConfiguration {
     @Override
     public String getMacIdForInstance() {
         return null;
-    }
-
-    @Override
-    public void customizeSettings(Map<String, String> settings) {
-    }
-
-    @Override
-    public void customizeTransportClientBuilder(TransportClient.Builder builder) {
     }
 }

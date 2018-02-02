@@ -19,8 +19,6 @@ package com.netflix.raigad.utils;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.netflix.raigad.configuration.IConfiguration;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequestBuilder;
 import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsResponse;
 import org.elasticsearch.client.Client;
@@ -50,15 +48,13 @@ public class ElasticsearchTransportClient {
      * NOTE: This class shouldn't be a singleton and this shouldn't be cached.
      * This will work only if Elasticsearch runs.
      */
-    public ElasticsearchTransportClient(InetAddress host, IConfiguration configuration)
-            throws IOException, InterruptedException {
+    public ElasticsearchTransportClient(InetAddress host, IConfiguration configuration) {
         Map<String, String> transportClientSettings = new HashMap<>();
         transportClientSettings.put("cluster.name", configuration.getAppName());
-        configuration.customizeSettings(transportClientSettings);
+
         Settings settings = Settings.settingsBuilder().put(transportClientSettings).build();
 
         TransportClient.Builder transportClientBuilder = TransportClient.builder().settings(settings);
-        configuration.customizeTransportClientBuilder(transportClientBuilder);
         client = transportClientBuilder.build();
         client.addTransportAddress(new InetSocketTransportAddress(host, configuration.getTransportTcpPort()));
 
@@ -66,7 +62,7 @@ public class ElasticsearchTransportClient {
     }
 
     @Inject
-    public ElasticsearchTransportClient(IConfiguration configuration) throws IOException, InterruptedException {
+    public ElasticsearchTransportClient(IConfiguration configuration) throws IOException {
         this(InetAddress.getLocalHost(), configuration);
     }
 
@@ -120,20 +116,6 @@ public class ElasticsearchTransportClient {
 
     private NodesStatsRequestBuilder getNodeStatsRequestBuilder() {
         return nodeStatsRequestBuilder;
-    }
-
-    private JSONObject createJson(String primaryEndpoint, String dataCenter, String rack, String status,
-                                  String state, String load, String owns, String token) throws JSONException {
-        JSONObject object = new JSONObject();
-        object.put("endpoint", primaryEndpoint);
-        object.put("dc", dataCenter);
-        object.put("rack", rack);
-        object.put("status", status);
-        object.put("state", state);
-        object.put("load", load);
-        object.put("owns", owns);
-        object.put("token", token.toString());
-        return object;
     }
 
     public Client getTransportClient() {

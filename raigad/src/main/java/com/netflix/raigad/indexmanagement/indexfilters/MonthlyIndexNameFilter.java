@@ -23,22 +23,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MonthlyIndexNameFilter implements IIndexNameFilter {
+    public static final String ID = "monthly";
+    private Pattern indexNamePattern;
 
-    public static final String id = "monthly";
-    String MONTHLY_PATTERN = "(\\w)+[[a-zA-Z]]{1}[0-9]{6}";
+    public MonthlyIndexNameFilter(String indexNamePrefix) {
+        indexNamePattern = Pattern.compile(String.format("^%s\\d{6}$", indexNamePrefix));
+    }
 
     @Override
-    public boolean filter(String name) {
-        if (name.length() < 7) {
+    public boolean filter(String indexName) {
+        if (!indexNamePattern.matcher(indexName).matches()) {
             return false;
         }
 
-        Pattern pattern = Pattern.compile(MONTHLY_PATTERN);
-        Matcher matcher = pattern.matcher(name);
-        if (!matcher.matches())
-            return false;
+        String date = indexName.substring(indexName.length() - 6, indexName.length());
 
-        String date = name.substring(name.length() - 6, name.length());
         try {
             DateTime.parse(date, DateTimeFormat.forPattern("YYYYMM"));
             return true;
@@ -54,6 +53,6 @@ public class MonthlyIndexNameFilter implements IIndexNameFilter {
 
     @Override
     public String getId() {
-        return id;
+        return ID;
     }
 }
