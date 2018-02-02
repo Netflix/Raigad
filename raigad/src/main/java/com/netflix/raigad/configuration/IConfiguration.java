@@ -17,10 +17,8 @@
 package com.netflix.raigad.configuration;
 
 import com.google.inject.ImplementedBy;
-import org.elasticsearch.client.transport.TransportClient;
 
 import java.util.List;
-import java.util.Map;
 
 @ImplementedBy(RaigadConfiguration.class)
 public interface IConfiguration {
@@ -130,6 +128,11 @@ public interface IConfiguration {
     String getASGName();
 
     /**
+     * Amazon specific setting to query ASG Membership
+     */
+    String getStackName();
+
+    /**
      * Get the security group associated with nodes in this cluster
      */
     String getACLGroupName();
@@ -197,7 +200,7 @@ public interface IConfiguration {
 
     int getAutoCreateIndexInitialStartDelaySeconds();
 
-    int getAutoCreateIndexPeriodicScheduledHour();
+    int getAutoCreateIndexScheduleMinutes();
 
     /*
         Backup related Config properties
@@ -274,7 +277,7 @@ public interface IConfiguration {
 
     String getCommaSeparatedCassandraHostNames();
 
-    boolean isSecutrityGroupInMultiDC();
+    boolean isSecurityGroupInMultiDC();
 
     boolean isKibanaSetupRequired();
 
@@ -295,15 +298,6 @@ public interface IConfiguration {
     String getTribePreferredClusterIdOnConflict();
 
     String getEsNodeName();
-
-    /**
-     * Parameters associated with VPC
-     */
-
-    /**
-     * VPCMigration mode deals with moving instances from EC2 classic to VPC
-     */
-    boolean isVPCMigrationModeEnabled();
 
     /**
      * Check if instance is deployed in VPC
@@ -338,18 +332,4 @@ public interface IConfiguration {
      * Get the MAC id for an instance
      */
     String getMacIdForInstance();
-
-    /**
-     * Implement this method if extra settings are needed
-     *
-     * @param settings
-     */
-    void customizeSettings(Map<String, String> settings);
-
-    /**
-     * Implement this method if extra transport client configuration is needed
-     *
-     * @param builder
-     */
-    void customizeTransportClientBuilder(TransportClient.Builder builder);
 }

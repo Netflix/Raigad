@@ -111,28 +111,10 @@ public class RaigadServer {
                         UpdateTribeSecuritySettings.class,
                         UpdateTribeSecuritySettings.getTimer(instanceManager));
             } else {
-                if (config.isSecutrityGroupInMultiDC()) {
+                if (config.isSecurityGroupInMultiDC()) {
                     logger.info("Updating security setting");
 
                     if (config.isDeployedInVPC()) {
-                        /*
-                        if (config.isVPCMigrationModeEnabled()) {
-                            logger.info("VPC migration mode: updating security settings");
-
-                            // Update security settings
-                            scheduler.runTaskNow(UpdateSecuritySettings.class);
-
-                            // Sleep for 60 seconds for the SG update to happen
-                            if (UpdateSecuritySettings.firstTimeUpdated) {
-                                sleeper.sleep(60 * 1000);
-                            }
-
-                            scheduler.addTask(UpdateSecuritySettings.JOB_NAME,
-                                    UpdateSecuritySettings.class,
-                                    UpdateSecuritySettings.getTimer(instanceManager));
-                        }
-                        */
-
                         logger.info("Setting Security Group ID (VPC)");
                         setVPCSecurityGroupID.execute();
                     }
