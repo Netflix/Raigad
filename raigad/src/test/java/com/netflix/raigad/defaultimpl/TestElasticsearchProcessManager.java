@@ -2,7 +2,6 @@ package com.netflix.raigad.defaultimpl;
 
 import com.netflix.raigad.configuration.FakeConfiguration;
 import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.utils.FakeSleeper;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -18,7 +17,7 @@ public class TestElasticsearchProcessManager {
     @Before
     public void setup() {
         IConfiguration config = new FakeConfiguration("us-east-1", "test_cluster", "us-east-1a", "i-1234afd3");
-        elasticSearchProcessManager = new ElasticsearchProcessManager(config, new FakeSleeper());
+        elasticSearchProcessManager = new ElasticsearchProcessManager(config);
     }
 
     @Test
