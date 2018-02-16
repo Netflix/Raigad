@@ -18,8 +18,6 @@ package com.netflix.raigad.resources;
 import com.google.inject.Inject;
 import com.netflix.raigad.backup.RestoreBackupManager;
 import com.netflix.raigad.backup.SnapshotBackupManager;
-import com.netflix.raigad.configuration.IConfiguration;
-import com.netflix.raigad.defaultimpl.IElasticsearchProcess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +32,7 @@ import javax.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 public class ElasticsearchBackup {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchBackup.class);
+
     private static final String REST_SUCCESS = "[\"ok\"]";
     private static final String REST_REPOSITORY_NAME = "repository_name";
     private static final String REST_REPOSITORY_TYPE = "repository_type";
@@ -41,26 +40,23 @@ public class ElasticsearchBackup {
     private static final String REST_INDICES_NAME = "indices";
     private static final String REST_RESTORE_RENAME_PATTERN = "rename_pattern";
     private static final String REST_RESTORE_RENAME_REPLACEMENT = "rename_replacement";
-    private final IConfiguration config;
-    private final IElasticsearchProcess esProcess;
+
     private final SnapshotBackupManager snapshotBackupManager;
     private final RestoreBackupManager restoreBackupManager;
-    private static final String SHARD_REALLOCATION_PROPERTY = "cluster.routing.allocation.enable";
 
     @Inject
-    public ElasticsearchBackup(IConfiguration config, IElasticsearchProcess esProcess, SnapshotBackupManager snapshotBackupManager, RestoreBackupManager restoreBackupManager) {
-        this.config = config;
-        this.esProcess = esProcess;
+    public ElasticsearchBackup(SnapshotBackupManager snapshotBackupManager, RestoreBackupManager restoreBackupManager) {
         this.snapshotBackupManager = snapshotBackupManager;
         this.restoreBackupManager = restoreBackupManager;
     }
 
     @GET
     @Path("/do_snapshot")
-    public Response snapshot()
-            throws Exception {
-        logger.info("Running Snapshot through REST call ...");
+    public Response snapshot() throws Exception {
+        logger.info("Running snapshot through a REST call...");
+
         snapshotBackupManager.runSnapshotBackup();
+
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 
@@ -69,10 +65,11 @@ public class ElasticsearchBackup {
     public Response restore(@QueryParam(REST_REPOSITORY_NAME) String repoName,
                             @QueryParam(REST_REPOSITORY_TYPE) String repoType,
                             @QueryParam(REST_SNAPSHOT_NAME) String snapName,
-                            @QueryParam(REST_INDICES_NAME) String indicesName)
-            throws Exception {
-        logger.info("Running Restore through REST call ...");
+                            @QueryParam(REST_INDICES_NAME) String indicesName) throws Exception {
+        logger.info("Running restore through a REST call...");
+
         restoreBackupManager.runRestore(repoName, repoType, snapName, indicesName, null, null);
+
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
 
@@ -83,11 +80,11 @@ public class ElasticsearchBackup {
                                       @QueryParam(REST_SNAPSHOT_NAME) String snapName,
                                       @QueryParam(REST_INDICES_NAME) String indicesName,
                                       @QueryParam(REST_RESTORE_RENAME_PATTERN) String renamePattern,
-                                      @QueryParam(REST_RESTORE_RENAME_REPLACEMENT) String renameReplacement)
-            throws Exception {
+                                      @QueryParam(REST_RESTORE_RENAME_REPLACEMENT) String renameReplacement) throws Exception {
         logger.info("Running Restore with rename through REST call ...");
+
         restoreBackupManager.runRestore(repoName, repoType, snapName, indicesName, renamePattern, renameReplacement);
+
         return Response.ok(REST_SUCCESS, MediaType.APPLICATION_JSON).build();
     }
-
 }

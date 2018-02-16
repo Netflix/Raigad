@@ -143,7 +143,7 @@ public class RaigadServer {
 
         if (!config.doesElasticsearchStartManually()) {
             // Start Elasticsearch
-            esProcess.start(true);
+            esProcess.start();
 
             if (config.isRestoreEnabled()) {
                 scheduler.addTaskWithDelay(RestoreBackupManager.JOBNAME,
@@ -182,8 +182,8 @@ public class RaigadServer {
         }
 
         /*
-        * Starting Monitoring Jobs
-        */
+         * Starting Monitoring Jobs
+         */
         scheduler.addTask(ThreadPoolStatsMonitor.METRIC_NAME, ThreadPoolStatsMonitor.class, ThreadPoolStatsMonitor.getTimer("ThreadPoolStatsMonitor"));
         scheduler.addTask(TransportStatsMonitor.METRIC_NAME, TransportStatsMonitor.class, TransportStatsMonitor.getTimer("TransportStatsMonitor"));
         scheduler.addTask(NodeIndicesStatsMonitor.METRIC_NAME, NodeIndicesStatsMonitor.class, NodeIndicesStatsMonitor.getTimer("NodeIndicesStatsMonitor"));
