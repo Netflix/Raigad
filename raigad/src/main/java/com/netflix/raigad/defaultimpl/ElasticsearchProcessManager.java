@@ -36,15 +36,15 @@ public class ElasticsearchProcessManager implements IElasticsearchProcess {
         this.config = config;
     }
 
-    String getStartupCommand() {
-        return StringUtils.trimToEmpty(config.getElasticsearchStartupScript());
+    String[] getStartupCommand() {
+        return StringUtils.split(StringUtils.trimToEmpty(config.getElasticsearchStartupScript()), ' ');
     }
 
-    String getStopCommand() {
-        return StringUtils.trimToEmpty(config.getElasticsearchStopScript());
+    String[] getStopCommand() {
+        return StringUtils.split(StringUtils.trimToEmpty(config.getElasticsearchStopScript()), ' ');
     }
 
-    void runCommand(String command) {
+    void runCommand(String[] command) {
         Process process = null;
 
         try {
@@ -55,12 +55,12 @@ public class ElasticsearchProcessManager implements IElasticsearchProcess {
 
             int exitCode = process.exitValue();
             if (exitCode == 0) {
-                logger.info(String.format("Successfully executed %s", command));
+                logger.info(String.format("Successfully executed %s", StringUtils.join(command, ' ')));
             } else {
-                logger.error(String.format("Error executing %s, exited with code %d", command, exitCode));
+                logger.error(String.format("Error executing %s, exited with code %d", StringUtils.join(command, ' '), exitCode));
             }
         } catch (Exception e) {
-            logger.error(String.format("Exception executing %s", command), e);
+            logger.error(String.format("Exception executing %s", StringUtils.join(command, ' ')), e);
         } finally {
             if (process != null) {
                 process.destroyForcibly();
@@ -71,9 +71,9 @@ public class ElasticsearchProcessManager implements IElasticsearchProcess {
     public void start() {
         logger.info("Starting Elasticsearch server");
 
-        String startupCommand = getStartupCommand();
+        String[] startupCommand = getStartupCommand();
 
-        if (startupCommand.isEmpty()) {
+        if (startupCommand == null || startupCommand.length == 0) {
             logger.warn("Elasticsearch startup command was not specified");
             return;
         }
@@ -84,9 +84,9 @@ public class ElasticsearchProcessManager implements IElasticsearchProcess {
     public void stop() {
         logger.info("Stopping Elasticsearch server");
 
-        String stopCommand = getStopCommand();
+        String[] stopCommand = getStopCommand();
 
-        if (stopCommand.isEmpty()) {
+        if (stopCommand == null || stopCommand.length == 0) {
             logger.warn("Elasticsearch stop command was not specified");
             return;
         }
