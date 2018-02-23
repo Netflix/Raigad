@@ -55,12 +55,12 @@ public class ElasticsearchProcessManager implements IElasticsearchProcess {
 
             int exitCode = process.exitValue();
             if (exitCode == 0) {
-                logger.info(String.format("Successfully executed %s", command));
+                logger.info(String.format("Successfully executed %s", StringUtils.join(command, ' ')));
             } else {
-                logger.error(String.format("Error executing %s, exited with code %d", command, exitCode));
+                logger.error(String.format("Error executing %s, exited with code %d", StringUtils.join(command, ' '), exitCode));
             }
         } catch (Exception e) {
-            logger.error(String.format("Exception executing %s", command), e);
+            logger.error(String.format("Exception executing %s", StringUtils.join(command, ' ')), e);
         } finally {
             if (process != null) {
                 process.destroyForcibly();
