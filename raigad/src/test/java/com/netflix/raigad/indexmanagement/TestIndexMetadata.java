@@ -2,6 +2,7 @@ package com.netflix.raigad.indexmanagement;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.joda.time.Period;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -20,11 +21,8 @@ public class TestIndexMetadata {
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("index20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("a20141233"));
         assertFalse(indexMetadataList.get(0).isPreCreate());
-        assertEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
-        assertEquals(indexMetadataList.get(0).getRetentionPeriod().longValue(), 20);
-        assertEquals(indexMetadataList.get(0).getIndexName(), null);
+        assertEquals(indexMetadataList.get(0).getRetentionPeriod().toString(), "P20M");
+        assertEquals(indexMetadataList.get(0).getIndexNamePattern(), null);
         assertFalse(indexMetadataList.get(0).isActionable());
     }
 
@@ -38,9 +36,6 @@ public class TestIndexMetadata {
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("nf_errors_log20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("nf_errors_log20141233"));
         assertFalse(indexMetadataList.get(0).isPreCreate());
-        assertEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
         assertEquals(indexMetadataList.get(0).getRetentionPeriod(), null);
         assertFalse(indexMetadataList.get(0).isActionable());
     }
@@ -55,9 +50,6 @@ public class TestIndexMetadata {
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("nf_errors_log20131212"));
         assertFalse(indexMetadataList.get(0).getIndexNameFilter().filter("nf_errors_log20141233"));
         assertFalse(indexMetadataList.get(0).isPreCreate());
-        assertEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadataList.get(0).getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
         assertEquals(indexMetadataList.get(0).getRetentionPeriod(), null);
         assertFalse(indexMetadataList.get(0).isActionable());
     }
@@ -68,9 +60,55 @@ public class TestIndexMetadata {
                 "[{\"retentionType\": \"monthly\", \"indexName\": \"nf_errors_log\",\"retentionPeriod\":\"A\"}]");
     }
 
+    @Test(expected = JsonMappingException.class)
+    public void testBadInputInvalidNamePattern() throws IOException {
+        IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"nf_errors_logYYYY\",\"retentionPeriod\":\"P1M\"}]");
+    }
+
     @Test(expected = JsonParseException.class)
     public void testBadInputBadJson() throws IOException {
         IndexUtils.parseIndexMetadata("[{\"retentionType\": \"monthly\", \"indexName\": \"nf_errors_log\",");
+    }
+
+    @Test
+    public void testFiveMinuteRetention() throws IOException {
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"'nf_errors_log'YYYY\",\"retentionPeriod\":\"PT5M\"}]");
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+        assertEquals(Period.minutes(5), indexMetadata.getRetentionPeriod());
+    }
+
+    @Test
+    public void testOneHourRetention() throws IOException {
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"'nf_errors_log'YYYY\",\"retentionPeriod\":\"PT1H\"}]");
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+        assertEquals(Period.hours(1), indexMetadata.getRetentionPeriod());
+    }
+
+    @Test
+    public void test18MonthRetention() throws IOException {
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"'nf_errors_log'YYYY\",\"retentionPeriod\":\"P18M\"}]");
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+        assertEquals(Period.months(18), indexMetadata.getRetentionPeriod());
+    }
+
+    @Test
+    public void testNamePatternOverridesRetentionType() throws IOException {
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"'nf_errors_log'YYYY\",\"retentionType\":\"daily\",\"retentionPeriod\":\"P18M\"}]");
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+        assertEquals("'nf_errors_log'YYYY", indexMetadata.getIndexNamePattern());
+    }
+
+    @Test
+    public void testNamePatternOverridesIndexName() throws IOException {
+        List<IndexMetadata> indexMetadataList = IndexUtils.parseIndexMetadata(
+            "[{\"indexNamePattern\": \"'nf_errors_log'YYYY\",\"indexName\":\"errors\",\"retentionPeriod\":\"P18M\"}]");
+        IndexMetadata indexMetadata = indexMetadataList.get(0);
+        assertEquals("'nf_errors_log'YYYY", indexMetadata.getIndexNamePattern());
     }
 
     @Test
@@ -91,12 +129,8 @@ public class TestIndexMetadata {
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20131212"));
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20141233"));
         assertFalse(indexMetadata.isPreCreate());
-        assertEquals(indexMetadata.getIndexName(), "nf_errors_log");
-        assertEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.HOURLY);
-        assertEquals(indexMetadata.getRetentionPeriod().longValue(), 20);
+        assertEquals(indexMetadata.getIndexNamePattern(), "'nf_errors_log'YYYY");
+        assertEquals(indexMetadata.getRetentionPeriod().toString(), "P20Y");
         assertTrue(indexMetadata.isActionable());
 
         indexMetadata = indexMetadataList.get(1);
@@ -106,12 +140,8 @@ public class TestIndexMetadata {
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20131212"));
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20141233"));
         assertFalse(indexMetadata.isPreCreate());
-        assertEquals(indexMetadata.getIndexName(), "nf_errors_log");
-        assertEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.HOURLY);
-        assertEquals(indexMetadata.getRetentionPeriod().longValue(), 20);
+        assertEquals(indexMetadata.getIndexNamePattern(), "'nf_errors_log'YYYYMM");
+        assertEquals(indexMetadata.getRetentionPeriod().toString(), "P20M");
         assertTrue(indexMetadata.isActionable());
 
         indexMetadata = indexMetadataList.get(2);
@@ -123,12 +153,8 @@ public class TestIndexMetadata {
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log2013121224"));
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20141233"));
         assertTrue(indexMetadata.isPreCreate());
-        assertEquals(indexMetadata.getIndexName(), "nf_errors_log");
-        assertEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.HOURLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
-        assertEquals(indexMetadata.getRetentionPeriod().longValue(), 20);
+        assertEquals(indexMetadata.getIndexNamePattern(), "'nf_errors_log'YYYYMMddHH");
+        assertEquals(indexMetadata.getRetentionPeriod().toString(), "PT20H");
         assertTrue(indexMetadata.isActionable());
 
         indexMetadata = indexMetadataList.get(3);
@@ -137,12 +163,8 @@ public class TestIndexMetadata {
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_lgg20141230"));
         assertFalse(indexMetadata.getIndexNameFilter().filter("nf_errors_log20141233"));
         assertFalse(indexMetadata.isPreCreate());
-        assertEquals(indexMetadata.getIndexName(), "nf_errors_log");
-        assertEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.DAILY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.MONTHLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.YEARLY);
-        assertNotEquals(indexMetadata.getRetentionType(), IndexMetadata.RETENTION_TYPE.HOURLY);
-        assertEquals(indexMetadata.getRetentionPeriod().longValue(), 20);
+        assertEquals(indexMetadata.getIndexNamePattern(), "'nf_errors_log'YYYYMMdd");
+        assertEquals(indexMetadata.getRetentionPeriod().toString(), "P20D");
         assertTrue(indexMetadata.isActionable());
     }
 }

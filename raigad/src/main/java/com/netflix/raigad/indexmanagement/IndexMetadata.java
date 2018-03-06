@@ -16,83 +16,100 @@
 package com.netflix.raigad.indexmanagement;
 
 import com.netflix.raigad.indexmanagement.exception.UnsupportedAutoIndexException;
-import com.netflix.raigad.indexmanagement.indexfilters.DailyIndexNameFilter;
-import com.netflix.raigad.indexmanagement.indexfilters.HourlyIndexNameFilter;
-import com.netflix.raigad.indexmanagement.indexfilters.MonthlyIndexNameFilter;
-import com.netflix.raigad.indexmanagement.indexfilters.YearlyIndexNameFilter;
-import org.apache.commons.lang.StringUtils;
+import com.netflix.raigad.indexmanagement.indexfilters.DatePatternIndexNameFilter;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISOPeriodFormat;
 
 
 public class IndexMetadata {
 
+    private static Period[] AMOUNTS = new Period[] {
+        Period.minutes(1),
+        Period.hours(1),
+        Period.days(1),
+        Period.weeks(1),
+        Period.months(1),
+        Period.years(1)
+    };
+
     public enum RETENTION_TYPE {
-        HOURLY, DAILY, MONTHLY, YEARLY
+        HOURLY("YYYYMMddHH", "PT%dH"),
+        DAILY("YYYYMMdd", "P%dD"),
+        MONTHLY("YYYYMM", "P%dM"),
+        YEARLY("YYYY", "P%dY");
+
+        public final String datePattern;
+        public final String periodFormat;
+
+        RETENTION_TYPE(String datePattern, String periodFormat) {
+            this.datePattern = datePattern;
+            this.periodFormat = periodFormat;
+        }
     }
 
-    private final String indexName;
-    private final RETENTION_TYPE retentionType;
-    private final Integer retentionPeriod;
+    private final String indexNamePattern;
+    private final DateTimeFormatter formatter;
+    private final Period retentionPeriod;
     private final IIndexNameFilter indexNameFilter;
     private final boolean preCreate;
 
     @JsonCreator
     public IndexMetadata(
             @JsonProperty("indexName") String indexName,
+            @JsonProperty("indexNamePattern") String indexNamePattern,
             @JsonProperty("retentionType") String retentionType,
-            @JsonProperty("retentionPeriod") Integer retentionPeriod,
+            @JsonProperty("retentionPeriod") String retentionPeriod,
             @JsonProperty("preCreate") Boolean preCreate) throws UnsupportedAutoIndexException {
-
-        this.indexName = indexName;
 
         if (retentionType == null) {
             retentionType = "DAILY";
         }
+        RETENTION_TYPE retType = RETENTION_TYPE.valueOf(retentionType.toUpperCase());
 
-        this.retentionType = RETENTION_TYPE.valueOf(retentionType.toUpperCase());
+        // If legacy prefix is used, then quote it so it will be used as plain text in
+        // date pattern
+        String prefix = (indexName == null) ? "" : "'" + indexName + "'";
 
-        switch (this.retentionType) {
-            case HOURLY:
-                this.indexNameFilter = new HourlyIndexNameFilter(indexName);
-                break;
+        String namePattern = (indexNamePattern == null)
+            ? prefix + retType.datePattern
+            : indexNamePattern;
 
-            case DAILY:
-                this.indexNameFilter = new DailyIndexNameFilter(indexName);
-                break;
+        this.indexNamePattern = (indexName == null && indexNamePattern == null)
+            ? null
+            : namePattern;
 
-            case MONTHLY:
-                this.indexNameFilter = new MonthlyIndexNameFilter(indexName);
-                break;
+        this.formatter = DateTimeFormat.forPattern(namePattern).withZoneUTC();
+        this.indexNameFilter = new DatePatternIndexNameFilter(formatter);
 
-            case YEARLY:
-                this.indexNameFilter = new YearlyIndexNameFilter(indexName);
-                break;
-
-            default:
-                this.indexNameFilter = null;
-                throw new UnsupportedAutoIndexException("Unsupported or invalid retention type (HOURLY, DAILY, MONTHLY, or YEARLY), please check your configuration");
+        if (retentionPeriod == null) {
+            this.retentionPeriod = null;
+        } else if (retentionPeriod.startsWith("P")) {
+            this.retentionPeriod = ISOPeriodFormat.standard().parsePeriod(retentionPeriod);
+        } else {
+            Integer num = Integer.parseInt(retentionPeriod);
+            String period = String.format(retType.periodFormat, num);
+            this.retentionPeriod = ISOPeriodFormat.standard().parsePeriod(period);
         }
 
-        this.retentionPeriod = retentionPeriod;
         this.preCreate = preCreate == null ? false : preCreate;
     }
 
     @Override
     public String toString() {
-        return String.format("{\"indexName\": \"%s\", \"retentionType\": \"%s\", \"retentionPeriod\": %d, \"preCreate\": %b}",
-                indexName, retentionType, retentionPeriod, preCreate);
+        return String.format("{\"indexNamePattern\": \"%s\", \"retentionPeriod\": \"%s\", \"preCreate\": %b}",
+                indexNamePattern, retentionPeriod, preCreate);
     }
 
-    public String getIndexName() {
-        return indexName;
+    public String getIndexNamePattern() {
+        return indexNamePattern;
     }
 
-    public RETENTION_TYPE getRetentionType() {
-        return retentionType;
-    }
-
-    public Integer getRetentionPeriod() {
+    public Period getRetentionPeriod() {
         return retentionPeriod;
     }
 
@@ -105,6 +122,36 @@ public class IndexMetadata {
     }
 
     public boolean isActionable() {
-        return StringUtils.isNotBlank(indexName) && retentionPeriod != null;
+        return indexNamePattern != null && retentionPeriod != null;
+    }
+
+    public DateTime getPastRetentionCutoffDate(DateTime currentDateTime) {
+        // After computing the cutoff we print then reparse the cutoff time to round to
+        // the significant aspects of the time based on the formatter. For example:
+        //
+        // currentDateTime = 2018-02-03T23:47
+        // retentionPeriod = P2Y
+        // cutoff = 2016-02-03T23:47
+        //
+        // If the index pattern is yyyy, then a 2016 index would be before the cutoff so it
+        // would get dropped. We want to floor the cutoff time to only the significant aspects
+        // which for this example would be the year.
+        DateTime cutoff = currentDateTime.minus(retentionPeriod);
+        return formatter.parseDateTime(formatter.print(cutoff));
+    }
+
+    public DateTime getDateForIndexName(String name) {
+        return formatter.parseDateTime(name);
+    }
+
+    public String getIndexNameToPreCreate(DateTime currentDateTime) throws UnsupportedAutoIndexException {
+        String currentIndexName = formatter.print(currentDateTime);
+        for (int i = 0; i < AMOUNTS.length; ++i) {
+            String newIndexName = formatter.print(currentDateTime.plus(AMOUNTS[i]));
+            if (!currentIndexName.equals(newIndexName)) {
+                return newIndexName;
+            }
+        }
+        throw new UnsupportedAutoIndexException("Invalid date pattern, do not know how to pre create");
     }
 }
