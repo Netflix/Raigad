@@ -2,6 +2,7 @@ package com.netflix.raigad.indexmanagement;
 
 import com.netflix.raigad.indexmanagement.exception.UnsupportedAutoIndexException;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -10,6 +11,10 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 public class TestIndexUtils {
+
+    private static DateTime dateTime(int v, String fmt) {
+        return DateTimeFormat.forPattern(fmt).withZoneUTC().parseDateTime("" + v);
+    }
 
     @Test
     public void testPastRetentionCutoffDate() throws IOException, UnsupportedAutoIndexException {
@@ -28,11 +33,11 @@ public class TestIndexUtils {
 
         DateTime currentDateTime = new DateTime("2017-11-15T12:34:56Z");
 
-        assertEquals(1997, IndexUtils.getPastRetentionCutoffDate(yearlyMetadata, currentDateTime));
-        assertEquals(201603, IndexUtils.getPastRetentionCutoffDate(monthlyMetadata, currentDateTime));
-        assertEquals(20171026, IndexUtils.getPastRetentionCutoffDate(dailyMetadata, currentDateTime));
-        assertEquals(2017111416, IndexUtils.getPastRetentionCutoffDate(hourlyMetadata20, currentDateTime));
-        assertEquals(2017111320, IndexUtils.getPastRetentionCutoffDate(hourlyMetadata40, currentDateTime));
+        assertEquals(dateTime(1997, "yyyy"), yearlyMetadata.getPastRetentionCutoffDate(currentDateTime));
+        assertEquals(dateTime(201603, "yyyyMM"), monthlyMetadata.getPastRetentionCutoffDate(currentDateTime));
+        assertEquals(dateTime(20171026, "yyyyMMdd"), dailyMetadata.getPastRetentionCutoffDate(currentDateTime));
+        assertEquals(dateTime(2017111416, "yyyyMMddHH"), hourlyMetadata20.getPastRetentionCutoffDate(currentDateTime));
+        assertEquals(dateTime(2017111320, "yyyyMMddHH"), hourlyMetadata40.getPastRetentionCutoffDate(currentDateTime));
     }
 
     @Test
@@ -50,9 +55,9 @@ public class TestIndexUtils {
 
         DateTime currentDateTime = new DateTime("2017-11-15T12:34:56Z");
 
-        assertEquals("index2018", IndexUtils.getIndexNameToPreCreate(yearlyMetadata, currentDateTime));
-        assertEquals("0201712", IndexUtils.getIndexNameToPreCreate(monthlyMetadata, currentDateTime));
-        assertEquals("nf_errors_log_useast120171116", IndexUtils.getIndexNameToPreCreate(dailyMetadata, currentDateTime));
-        assertEquals("index12017111513", IndexUtils.getIndexNameToPreCreate(hourlyMetadata, currentDateTime));
+        assertEquals("index2018", yearlyMetadata.getIndexNameToPreCreate(currentDateTime));
+        assertEquals("0201712", monthlyMetadata.getIndexNameToPreCreate(currentDateTime));
+        assertEquals("nf_errors_log_useast120171116", dailyMetadata.getIndexNameToPreCreate(currentDateTime));
+        assertEquals("index12017111513", hourlyMetadata.getIndexNameToPreCreate(currentDateTime));
     }
 }
