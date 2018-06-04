@@ -138,7 +138,7 @@ public class ElasticsearchIndexManager extends Task {
                     preCreateIndex(esTransportClient, indexMetadata, dateTime);
                 }
             } catch (Exception e) {
-                logger.error("Caught an exception while building index metadata information from configuration property");
+                logger.error("Caught an exception while building index metadata information from configuration property", e);
                 return;
             }
         }
@@ -155,32 +155,27 @@ public class ElasticsearchIndexManager extends Task {
 
     void checkIndexRetention(Client esTransportClient, Set<String> indices, IndexMetadata indexMetadata, DateTime dateTime) throws UnsupportedAutoIndexException {
         // Calculate the past retention date
-        int pastRetentionCutoffDateDate = IndexUtils.getPastRetentionCutoffDate(indexMetadata, dateTime);
-        logger.info("Deleting indices that are older than {}", pastRetentionCutoffDateDate);
+        DateTime pastRetentionCutoffDate = indexMetadata.getPastRetentionCutoffDate(dateTime);
+        logger.info("Deleting indices that are older than {}", pastRetentionCutoffDate);
 
         indices.forEach(indexName -> {
             logger.info("Processing index [{}]", indexName);
 
-            if (indexMetadata.getIndexNameFilter().filter(indexName) &&
-                    indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName())) {
+            if (indexMetadata.getIndexNameFilter().filter(indexName)) {
 
                 // Extract date from the index name
-                try {
-                    int indexDate = IndexUtils.getDateFromIndexName(indexMetadata, indexName);
+                DateTime indexDate = indexMetadata.getDateForIndexName(indexName);
 
-                    if (indexDate < pastRetentionCutoffDateDate) {
-                        logger.info("Date {} for index {} is past the retention date of {}, deleting it", indexDate, indexName, pastRetentionCutoffDateDate);
-                        deleteIndices(esTransportClient, indexName, config.getAutoCreateIndexTimeout());
-                    }
-                } catch (UnsupportedAutoIndexException e) {
-                    logger.error("Invalid index metadata: " + indexMetadata.toString(), e);
+                if (indexDate.isBefore(pastRetentionCutoffDate)) {
+                    logger.info("Date {} for index {} is past the retention date of {}, deleting it", indexDate, indexName, pastRetentionCutoffDate);
+                    deleteIndices(esTransportClient, indexName, config.getAutoCreateIndexTimeout());
                 }
             }
         });
     }
 
     void preCreateIndex(Client client, IndexMetadata indexMetadata, DateTime dateTime) throws UnsupportedAutoIndexException {
-        logger.info("Pre-creating indices for {}*", indexMetadata.getIndexName());
+        logger.info("Pre-creating indices for {}*", indexMetadata.getIndexNamePattern());
 
         IndicesStatsResponse indicesStatsResponse = getIndicesStatsResponse(client);
         Map<String, IndexStats> indexStatsMap = indicesStatsResponse.getIndices();
@@ -190,15 +185,16 @@ public class ElasticsearchIndexManager extends Task {
             return;
         }
 
-        indexStatsMap.keySet().stream().filter(indexName -> indexMetadata.getIndexNameFilter().filter(indexName) &&
-                indexMetadata.getIndexNameFilter().getNamePart(indexName).equalsIgnoreCase(indexMetadata.getIndexName()))
-                .findFirst().ifPresent(indexName -> {
-            try {
-                createIndex(client, IndexUtils.getIndexNameToPreCreate(indexMetadata, dateTime));
-            } catch (UnsupportedAutoIndexException e) {
-                logger.error("Invalid index metadata: " + indexMetadata.toString(), e);
-            }
-        });
+        indexStatsMap.keySet().stream()
+            .filter(indexName -> indexMetadata.getIndexNameFilter().filter(indexName))
+            .findFirst()
+            .ifPresent(indexName -> {
+                try {
+                    createIndex(client, indexMetadata.getIndexNameToPreCreate(dateTime));
+                } catch (UnsupportedAutoIndexException e) {
+                    logger.error("Invalid index metadata: " + indexMetadata.toString(), e);
+                }
+            });
     }
 
     void createIndex(Client client, String indexName) {
