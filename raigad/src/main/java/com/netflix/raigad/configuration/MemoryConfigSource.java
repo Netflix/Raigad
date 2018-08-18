@@ -24,6 +24,11 @@ public final class MemoryConfigSource extends AbstractConfigSource
     private final Map<String, String> data = Maps.newConcurrentMap();
 
     @Override
+    public void initialize(IConfiguration config) {
+        //NO OP as we initiaie using asgName and region
+    }
+
+    @Override
     public int size()
     {
         return data.size();

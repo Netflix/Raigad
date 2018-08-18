@@ -16,12 +16,17 @@
 
 package com.netflix.raigad.resources;
 
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.netflix.raigad.configuration.IConfigSource;
+import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.ElasticsearchUtils;
 import com.netflix.raigad.utils.TribeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +49,14 @@ public class ElasticsearchConfig {
 
     private final RaigadServer raigadServer;
     private final TribeUtils tribeUtils;
+    private final IConfigSource configSrc;
 
     @Inject
-    public ElasticsearchConfig(RaigadServer raigadServer, TribeUtils tribeUtils) {
+    public ElasticsearchConfig(RaigadServer raigadServer, TribeUtils tribeUtils, @Named("custom") IConfigSource configSrc, IConfiguration config) {
         this.raigadServer = raigadServer;
         this.tribeUtils = tribeUtils;
+        this.configSrc = configSrc;
+        this.configSrc.initialize(config);
     }
 
     @GET
@@ -103,5 +111,31 @@ public class ElasticsearchConfig {
             logger.error("Exception getting nodes (getTribeNodes)", e);
             return Response.serverError().build();
         }
+    }
+
+    @GET
+    @Path("/get_prop/{names}")
+    /*
+    A means to fetch Fast Properties via REST
+    @param names - comma separated list of property name
+     */
+    public Response getProperty(@PathParam("names") String propNames) {
+        JSONArray fastPropResults = new JSONArray();
+        JsonObject enableAuditLogProp = new JsonObject();
+        String s = this.configSrc.get("enable.audit.log");
+        if (s == null || s.isEmpty()) {
+            s = "DISABLED";
+        }
+        enableAuditLogProp.addProperty("enable.audit.log", s);
+        JsonObject auditLogIncludeUris = new JsonObject();
+        String t = this.configSrc.get("audit.log.include.uris");
+        if (t==null || t.isEmpty()) {
+            t = "";  //empty string means include all uris
+        }
+        auditLogIncludeUris.addProperty("audit.log.include.uris", t);
+
+        fastPropResults.add(enableAuditLogProp);
+        fastPropResults.add(auditLogIncludeUris);
+        return Response.ok(fastPropResults.toJSONString()).build();
     }
 }

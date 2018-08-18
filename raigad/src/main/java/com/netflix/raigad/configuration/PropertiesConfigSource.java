@@ -84,6 +84,11 @@ public class PropertiesConfigSource extends AbstractConfigSource
     }
 
     @Override
+    public void initialize(IConfiguration config) {
+        //NO OP as we initiaie using asgName and region
+    }
+
+    @Override
     public String get(final String prop)
     {
         return data.get(prop);

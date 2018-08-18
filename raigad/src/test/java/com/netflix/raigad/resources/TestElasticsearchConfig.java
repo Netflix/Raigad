@@ -1,5 +1,7 @@
 package com.netflix.raigad.resources;
 
+import com.netflix.raigad.configuration.CustomConfigSource;
+import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.InstanceManager;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
@@ -17,10 +19,13 @@ import static org.mockito.Mockito.*;
 
 public class TestElasticsearchConfig {
     private TribeUtils tribeUtils;
+    private IConfiguration config;
 
     @Before
     public void setUp() {
+
         tribeUtils = mock(TribeUtils.class);
+        config = mock(IConfiguration.class);
     }
 
     @Test
@@ -42,7 +47,7 @@ public class TestElasticsearchConfig {
         RaigadServer raigadServer = mock(RaigadServer.class);
         when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
 
-        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils, new CustomConfigSource(), config);
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
@@ -59,7 +64,7 @@ public class TestElasticsearchConfig {
         RaigadServer raigadServer = mock(RaigadServer.class);
         when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
 
-        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils, new CustomConfigSource(), config);
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(200, response.getStatus());
@@ -76,7 +81,7 @@ public class TestElasticsearchConfig {
         RaigadServer raigadServer = mock(RaigadServer.class);
         when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
 
-        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils, new CustomConfigSource(), config);
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
@@ -93,7 +98,7 @@ public class TestElasticsearchConfig {
         RaigadServer raigadServer = mock(RaigadServer.class);
         when(raigadServer.getInstanceManager()).thenReturn(instanceManager);
 
-        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils);
+        ElasticsearchConfig elasticsearchConfig = new ElasticsearchConfig(raigadServer, tribeUtils, new CustomConfigSource(), config);
 
         Response response = elasticsearchConfig.getNodes();
         assertEquals(500, response.getStatus());
