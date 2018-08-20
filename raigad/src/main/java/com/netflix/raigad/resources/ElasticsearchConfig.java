@@ -37,13 +37,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This servlet will provide the configuration API service as and when Elasticsearch requests for it.
  */
 @Path("/v1/esconfig")
-@Produces(MediaType.TEXT_PLAIN)
 public class ElasticsearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
 
@@ -61,6 +62,7 @@ public class ElasticsearchConfig {
 
     @GET
     @Path("/get_nodes")
+    @Produces(MediaType.TEXT_PLAIN)
     public Response getNodes() {
         try {
             logger.info("Getting cluster nodes");
@@ -82,6 +84,7 @@ public class ElasticsearchConfig {
 
     @GET
     @Path("/get_tribe_nodes/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
     public Response getTribeNodes(@PathParam("id") String id) {
         try {
             logger.info("Getting nodes for the source tribe cluster [{}]", id);
@@ -115,27 +118,31 @@ public class ElasticsearchConfig {
 
     @GET
     @Path("/get_prop/{names}")
+    @Produces(MediaType.APPLICATION_JSON)
     /*
     A means to fetch Fast Properties via REST
     @param names - comma separated list of property name
      */
     public Response getProperty(@PathParam("names") String propNames) {
-        JSONArray fastPropResults = new JSONArray();
-        JsonObject enableAuditLogProp = new JsonObject();
-        String s = this.configSrc.get("enable.audit.log");
-        if (s == null || s.isEmpty()) {
-            s = "DISABLED";
-        }
-        enableAuditLogProp.addProperty("enable.audit.log", s);
-        JsonObject auditLogIncludeUris = new JsonObject();
-        String t = this.configSrc.get("audit.log.include.uris");
-        if (t==null || t.isEmpty()) {
-            t = "";  //empty string means include all uris
-        }
-        auditLogIncludeUris.addProperty("audit.log.include.uris", t);
+        if (propNames.isEmpty())
+            return Response.status(Response.Status.NO_CONTENT).build();
 
-        fastPropResults.add(enableAuditLogProp);
-        fastPropResults.add(auditLogIncludeUris);
-        return Response.ok(fastPropResults.toJSONString()).build();
+        JsonObject fastPropResults = new JsonObject();
+
+        final String[] pNamesSplit = propNames.split(",");
+        final Stream<String> pNamesStream = Arrays.stream(pNamesSplit);
+        pNamesStream.forEach(
+                (propName) -> {
+                    try{
+                        String s = this.configSrc.get(propName);
+                        fastPropResults.addProperty(propName, s);
+                    } catch (Exception e) {
+                        Response.ok("Exception fetcing property " + propName + ", msg: " + e.getLocalizedMessage()).build();
+                    }
+                }
+        );
+
+
+        return Response.ok(fastPropResults.toString()).build();
     }
 }
