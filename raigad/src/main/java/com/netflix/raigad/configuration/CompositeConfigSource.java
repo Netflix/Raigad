@@ -68,6 +68,11 @@ public class CompositeConfigSource extends AbstractConfigSource
     }
 
     @Override
+    public void initialize(IConfiguration config) {
+        //NO OP as we initiaie using asgName and region
+    }
+
+    @Override
     public int size()
     {
         int size = 0;

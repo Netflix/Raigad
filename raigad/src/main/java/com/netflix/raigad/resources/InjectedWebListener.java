@@ -31,6 +31,9 @@ import com.netflix.raigad.backup.AbstractRepository;
 import com.netflix.raigad.backup.AbstractRepositorySettingsParams;
 import com.netflix.raigad.backup.S3Repository;
 import com.netflix.raigad.backup.S3RepositorySettingsParams;
+import com.netflix.raigad.configuration.CompositeConfigSource;
+import com.netflix.raigad.configuration.CustomConfigSource;
+import com.netflix.raigad.configuration.IConfigSource;
 import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.CassandraInstanceFactory;
 import com.netflix.raigad.identity.EurekaHostsSupplier;
@@ -110,6 +113,7 @@ public class InjectedWebListener extends GuiceServletContextListener {
             binder().bind(AbstractRepositorySettingsParams.class).annotatedWith(Names.named("s3")).to(S3RepositorySettingsParams.class);
             bind(SchedulerFactory.class).to(StdSchedulerFactory.class).asEagerSingleton();
             bind(HostSupplier.class).to(EurekaHostsSupplier.class).in(Scopes.SINGLETON);
+            binder().bind(IConfigSource.class).annotatedWith(Names.named("custom")).to(CompositeConfigSource.class);
         }
     }
 }

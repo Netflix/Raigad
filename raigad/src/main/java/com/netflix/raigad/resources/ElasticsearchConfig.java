@@ -16,12 +16,17 @@
 
 package com.netflix.raigad.resources;
 
+import com.google.gson.JsonObject;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
+import com.netflix.raigad.configuration.IConfigSource;
+import com.netflix.raigad.configuration.IConfiguration;
 import com.netflix.raigad.identity.RaigadInstance;
 import com.netflix.raigad.startup.RaigadServer;
 import com.netflix.raigad.utils.ElasticsearchUtils;
 import com.netflix.raigad.utils.TribeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,27 +37,32 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * This servlet will provide the configuration API service as and when Elasticsearch requests for it.
  */
 @Path("/v1/esconfig")
-@Produces(MediaType.TEXT_PLAIN)
 public class ElasticsearchConfig {
     private static final Logger logger = LoggerFactory.getLogger(ElasticsearchConfig.class);
 
     private final RaigadServer raigadServer;
     private final TribeUtils tribeUtils;
+    private final IConfigSource configSrc;
 
     @Inject
-    public ElasticsearchConfig(RaigadServer raigadServer, TribeUtils tribeUtils) {
+    public ElasticsearchConfig(RaigadServer raigadServer, TribeUtils tribeUtils, @Named("custom") IConfigSource configSrc, IConfiguration config) {
         this.raigadServer = raigadServer;
         this.tribeUtils = tribeUtils;
+        this.configSrc = configSrc;
+        this.configSrc.initialize(config);
     }
 
     @GET
     @Path("/get_nodes")
+    @Produces(MediaType.TEXT_PLAIN)
     public Response getNodes() {
         try {
             logger.info("Getting cluster nodes");
@@ -74,6 +84,7 @@ public class ElasticsearchConfig {
 
     @GET
     @Path("/get_tribe_nodes/{id}")
+    @Produces(MediaType.TEXT_PLAIN)
     public Response getTribeNodes(@PathParam("id") String id) {
         try {
             logger.info("Getting nodes for the source tribe cluster [{}]", id);
@@ -103,5 +114,35 @@ public class ElasticsearchConfig {
             logger.error("Exception getting nodes (getTribeNodes)", e);
             return Response.serverError().build();
         }
+    }
+
+    @GET
+    @Path("/get_prop/{names}")
+    @Produces(MediaType.APPLICATION_JSON)
+    /*
+    A means to fetch Fast Properties via REST
+    @param names - comma separated list of property name
+     */
+    public Response getProperty(@PathParam("names") String propNames) {
+        if (propNames.isEmpty())
+            return Response.status(Response.Status.NO_CONTENT).build();
+
+        JsonObject fastPropResults = new JsonObject();
+
+        final String[] pNamesSplit = propNames.split(",");
+        final Stream<String> pNamesStream = Arrays.stream(pNamesSplit);
+        pNamesStream.forEach(
+                (propName) -> {
+                    try{
+                        String s = this.configSrc.get(propName);
+                        fastPropResults.addProperty(propName, s);
+                    } catch (Exception e) {
+                        Response.ok("Exception fetcing property " + propName + ", msg: " + e.getLocalizedMessage()).build();
+                    }
+                }
+        );
+
+
+        return Response.ok(fastPropResults.toString()).build();
     }
 }

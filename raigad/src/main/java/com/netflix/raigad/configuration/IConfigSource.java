@@ -32,6 +32,11 @@ public interface IConfigSource
      */
     void initialize(String asgName, String region);
 
+    /*
+    * An alternative means of initialization, allowing implementaiton to do setup using configuration.
+     */
+    void initialize(IConfiguration config);
+
     /**
      * A non-negative integer indicating a count of elements.
      *
