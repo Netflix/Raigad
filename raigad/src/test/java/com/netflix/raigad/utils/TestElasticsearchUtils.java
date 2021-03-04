@@ -6,17 +6,17 @@ import mockit.Expectations;
 import mockit.Mock;
 import mockit.MockUp;
 import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RunWith(JMockit.class)
-public class TestElasticsearchUtils {
+public class TestElasticsearchUtils { @org.mockito.Mock
+
+    @Mocked IConfiguration config;
+
     @Test
     public void TestInstanceToJson() {
         System.out.println("Starting a test...");
@@ -32,7 +32,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNode(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNode() throws Exception {
         String expectedIp = "100.0.0.1";
 
         new Expectations() {
@@ -57,7 +57,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNodeWithWhitespace(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNodeWithWhitespace() throws Exception {
         String expectedIp = "100.0.0.1";
 
         new Expectations() {
@@ -82,7 +82,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNodeExternalIp(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNodeExternalIp() throws Exception {
         String expectedLocalIp = "100.0.0.1";
         String expectedExternalIp = "54.0.0.1";
 
@@ -109,7 +109,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNodeNegative(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNodeNegative() throws Exception {
         String expectedIp = "100.0.0.1";
         String returnedIp = "100.0.0.2";
 
@@ -136,7 +136,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNodeNegativeNull(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNodeNegativeNull() throws Exception {
         new Expectations() {
             {
                 config.getHostIP();
@@ -158,7 +158,7 @@ public class TestElasticsearchUtils {
     }
 
     @Test
-    public void TestAmIMasterNodeNegativeEmpty(@Mocked IConfiguration config) throws Exception {
+    public void TestAmIMasterNodeNegativeEmpty() throws Exception {
         new Expectations() {
             {
                 config.getHostIP();

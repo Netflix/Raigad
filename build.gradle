@@ -5,11 +5,12 @@ buildscript {
     dependencies {
         classpath "com.netflix.nebula:gradle-extra-configurations-plugin:latest.release"
         classpath "org.akhikhl.gretty:gretty:2.+"
+        classpath "gradle.plugin.com.github.blindpirate:gradle-legacy-osgi-plugin:0.0.4"
     }
 }
 
 plugins {
-    id "nebula.netflixoss" version "4.1.0"
+    id "nebula.netflixoss" version "9.1.0"
 }
 
 allprojects {
@@ -23,7 +24,7 @@ ext {
     elasticsearchVersion = "5.6.4"
 }
 
-apply plugin: "osgi"
+apply plugin: "com.github.blindpirate.osgi"
 apply plugin: "project-report"
 
 subprojects {
@@ -35,7 +36,7 @@ subprojects {
     targetCompatibility = JavaVersion.VERSION_1_8
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
@@ -55,6 +56,7 @@ subprojects {
         compile "com.google.inject:guice:3.0"
         compile "com.google.inject.extensions:guice-servlet:3.0"
         compile "com.googlecode.json-simple:json-simple:1.1"
+        compile "com.google.code.gson:gson:2.1"
 
         compile "com.amazonaws:aws-java-sdk:1.11.+"
 
@@ -89,9 +91,9 @@ subprojects {
 
         compileOnly "javax.servlet:servlet-api:2.5"
 
-        testCompile "org.jmockit:jmockit:[1.28,)"
+        testCompile "org.jmockit:jmockit:1.+"
         testCompile "org.mockito:mockito-core:2.+"
         testCompile "org.elasticsearch.test:framework:${elasticsearchVersion}"
-        testCompile "junit:junit:[4.8,5)"
+        testCompile "junit:junit:4.8"
     }
 }
