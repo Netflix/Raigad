@@ -1,8 +1,7 @@
 apply plugin: "war"
-apply plugin: "org.akhikhl.gretty"
 
 dependencies {
-    compile project(":raigad")
+    implementation project(":raigad")
 }
 
-war.archiveName = "Raigad.war"
+war.archiveFileName = "Raigad.war"

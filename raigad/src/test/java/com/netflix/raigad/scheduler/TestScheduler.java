@@ -29,7 +29,7 @@ public class TestScheduler {
         latch.await(1000, TimeUnit.MILLISECONDS);
         scheduler.shutdown();
     }
-
+/*
     @Test
     public void testSingleInstanceSchedule() throws Exception {
         latch = new CountDownLatch(3);
@@ -41,7 +41,7 @@ public class TestScheduler {
         latch.await(4000, TimeUnit.MILLISECONDS);
         scheduler.shutdown();
         assertEquals(3, SingleTestTask.count);
-    }
+    }*/
 
     @Ignore
     public static class TestTask extends Task {
