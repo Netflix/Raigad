@@ -99,7 +99,7 @@ subprojects {
 
         compileOnly "javax.servlet:servlet-api:2.5"
 
-        testImplementation "org.jmockit:jmockit:1.+"
+        testImplementation "org.jmockit:jmockit:1.49"
         testImplementation "org.mockito:mockito-core:2.+"
         testImplementation "org.elasticsearch.test:framework:${elasticsearchVersion}"
         testImplementation "junit:junit:4.8"
